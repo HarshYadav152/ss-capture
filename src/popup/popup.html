@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Full Page Screenshot</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="glass-container">
+    <h2>Full Page Screenshot</h2>
+    
+    <!-- Enhanced error alert component -->
+    <div class="error-alert" id="errorAlert">
+      <div class="error-alert-content">
+        <div class="error-icon">!</div>
+        <div class="error-message" id="errorMessage">An error occurred.</div>
+      </div>
+      <button class="error-close" id="errorClose">&times;</button>
+    </div>
+    
+    <div class="button-group">
+      <button id="captureBtn">Capture Full Page</button>
+      <button id="cancelBtn">Cancel</button>
+      <button id="saveBtn">Save</button>
+    </div>
+    
+    <div class="spinner" id="loadingSpinner"></div>
+    
+    <div class="progress-bar-container" id="progressContainer">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div class="status" id="statusText">Ready to capture</div>
+    
+    <img id="previewImage" class="preview" />
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

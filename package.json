@@ -1,0 +1,121 @@
+{
+  "name": "full-page-screenshot-capture",
+  "version": "1.1.0",
+  "description": "A modern, high-quality full-page screenshot extension with beautiful glassmorphic interface",
+  "main": "background.js",
+  "scripts": {
+    "dev": "npm run build:dev && npm run watch",
+    "build": "npm run build:all",
+    "build:all": "npm run build:chrome && npm run build:firefox && npm run build:edge",
+    "build:dev": "node scripts/build.js --env development",
+    "build:chrome": "node scripts/build.js --browser chrome --env production",
+    "build:firefox": "node scripts/build.js --browser firefox --env production",
+    "build:edge": "node scripts/build.js --browser edge --env production",
+    "watch": "node scripts/watch.js",
+    "test": "npm run lint && npm run test:unit",
+    "test:unit": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/ --ext .js,.html",
+    "lint:fix": "eslint src/ --ext .js,.html --fix",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist/",
+    "zip": "node scripts/zip.js",
+    "release": "npm run build && npm run zip",
+    "docs": "node scripts/generate-docs.js",
+    "validate": "node scripts/validate.js"
+  },
+  "keywords": [
+    "screenshot",
+    "full-page",
+    "browser-extension",
+    "chrome-extension",
+    "firefox-addon",
+    "edge-extension",
+    "glassmorphism",
+    "modern-ui",
+    "web-capture",
+    "page-screenshot"
+  ],
+  "author": {
+    "name": "Full Page Screenshot Team",
+    "email": "team@fullpagescreenshot.com",
+    "url": "https://github.com/yourusername/ss-capture"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/ss-capture.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/ss-capture/issues"
+  },
+  "homepage": "https://github.com/yourusername/ss-capture#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.254",
+    "@types/jest": "^29.5.8",
+    "@types/node": "^20.8.10",
+    "archiver": "^6.0.1",
+    "chalk": "^4.1.2",
+    "eslint": "^8.52.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-html": "^7.1.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "fs-extra": "^11.1.1",
+    "glob": "^10.3.10",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.2.2",
+    "yargs": "^17.7.2"
+  },
+  "browserslist": [
+    "Chrome >= 88",
+    "Firefox >= 109",
+    "Edge >= 88"
+  ],
+  "manifest": {
+    "version": 3,
+    "permissions": [
+      "activeTab",
+      "scripting",
+      "downloads"
+    ],
+    "host_permissions": [
+      "<all_urls>"
+    ]
+  },
+  "files": [
+    "manifest.json",
+    "popup.html",
+    "popup.js",
+    "content.js",
+    "background.js",
+    "icons/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/yourusername"
+  },
+  "contributors": [
+    {
+      "name": "Your Name",
+      "email": "your.email@example.com",
+      "url": "https://github.com/yourusername"
+    }
+  ],
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  }
+}
