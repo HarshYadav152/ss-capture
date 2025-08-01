@@ -13,11 +13,11 @@ async function validateExtension() {
   try {
     // Check required files
     const requiredFiles = [
-      'manifest.json',
-      'popup.html',
-      'popup.js',
-      'content.js',
-      'background.js'
+      'src/manifest.json',
+      'src/popup/popup.html',
+      'src/popup/popup.js',
+      'src/js/content.js',
+      'src/js/background.js'
     ];
 
     for (const file of requiredFiles) {

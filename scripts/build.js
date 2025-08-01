@@ -37,22 +37,33 @@ async function buildForBrowser(browser) {
     await fs.remove(distDir);
     await fs.ensureDir(distDir);
     
-    // Copy base files
+    // Copy files from src structure
     const filesToCopy = [
-      'popup.html',
-      'popup.js',
-      'content.js',
-      'background.js',
-      'icons'
+      { src: 'src/popup/popup.html', dest: 'popup.html' },
+      { src: 'src/popup/popup.js', dest: 'popup.js' },
+      { src: 'src/js/content.js', dest: 'content.js' },
+      { src: 'src/js/background.js', dest: 'background.js' },
+      { src: 'src/css/style.css', dest: 'style.css' },
+      { src: 'icons', dest: 'icons' }
     ];
     
     for (const file of filesToCopy) {
-      const srcPath = path.join(srcDir, file);
-      const destPath = path.join(distDir, file);
+      const srcPath = path.join(srcDir, file.src);
+      const destPath = path.join(distDir, file.dest);
       
       if (await fs.pathExists(srcPath)) {
-        await fs.copy(srcPath, destPath);
-        console.log(chalk.green(`✓ Copied ${file}`));
+        if (file.src === 'src/popup/popup.html') {
+          // Process popup.html to fix CSS path
+          let htmlContent = await fs.readFile(srcPath, 'utf8');
+          htmlContent = htmlContent.replace('../css/style.css', 'style.css');
+          await fs.writeFile(destPath, htmlContent);
+          console.log(chalk.green(`✓ Processed and copied ${file.dest}`));
+        } else {
+          await fs.copy(srcPath, destPath);
+          console.log(chalk.green(`✓ Copied ${file.dest}`));
+        }
+      } else {
+        console.log(chalk.yellow(`⚠️  Source file not found: ${file.src}`));
       }
     }
     
