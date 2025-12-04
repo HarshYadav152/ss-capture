@@ -1,6 +1,6 @@
 {
   "name": "full-page-screenshot-capture",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A modern, high-quality full-page screenshot extension with beautiful glassmorphic interface",
   "main": "background.js",
   "scripts": {
