@@ -1,6 +1,11 @@
 // State variables
 let isCancelled = false;
 
+// Constants
+const MAX_CANVAS_HEIGHT = 32000; // Browser limit
+const CHUNK_HEIGHT = 28000; // Safe chunk size with margin for overlap
+const OVERLAP = 100; // Overlap between chunks to ensure seamless stitching
+
 // Helper functions
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
@@ -28,9 +33,13 @@ chrome.runtime.onMessage.addListener((message) => {
 
 // Main capture function
 async function captureScreenshot() {
-   console.log('Starting screenshot capture...');
-   
-   try {
+  console.log('Starting screenshot capture...');
+  
+  let originalX = 0;
+  let originalY = 0;
+  let fixedElements = [];
+  
+  try {
     sendProgressUpdate('Preparing to capture screenshot...', 0);
     
     // Check browser compatibility
@@ -53,11 +62,11 @@ async function captureScreenshot() {
     const viewportHeight = window.innerHeight;
     
     // Save original scroll position
-    const originalX = window.scrollX;
-    const originalY = window.scrollY;
+    originalX = window.scrollX;
+    originalY = window.scrollY;
     
-    // Handle fixed elements that might overlay screenshots
-    const fixedElements = [];
+    // Handle fixed elements
+    fixedElements = [];
     document.querySelectorAll('*').forEach(el => {
       const style = window.getComputedStyle(el);
       if (style.position === 'fixed' || style.position === 'sticky') {
@@ -66,111 +75,154 @@ async function captureScreenshot() {
       }
     });
     
-    // Create canvas for the full page
-    const canvas = document.createElement('canvas');
-    canvas.width = viewportWidth;
-    canvas.height = totalHeight;
-    const ctx = canvas.getContext('2d');
+    // Determine if we need chunking
+    const needsChunking = totalHeight > MAX_CANVAS_HEIGHT;
+    const numChunks = needsChunking ? Math.ceil(totalHeight / CHUNK_HEIGHT) : 1;
     
-    if (!ctx) {
-      throw new Error('Could not create canvas context');
+    if (needsChunking) {
+      sendProgressUpdate(`Page height: ${totalHeight}px. Dividing into ${numChunks} chunks...`, 5);
+      await sleep(500);
     }
     
-         let currentY = 0;
-     let capturedParts = 0;
-     const totalParts = Math.ceil(totalHeight / viewportHeight);
-     
-     // Limit the number of captures to prevent excessive API calls
-     const maxCaptures = 50; // Maximum 50 captures per screenshot
-     if (totalParts > maxCaptures) {
-       throw new Error(`Page is too long (${totalParts} parts). Maximum supported: ${maxCaptures} parts.`);
-     }
+    // Capture chunks
+    const chunks = [];
     
-         while (currentY < totalHeight) {
-       if (isCancelled) {
-         throw new Error('Screenshot cancelled');
-       }
-       
-       capturedParts++;
-       const percentComplete = Math.min(Math.round((currentY / totalHeight) * 100), 99);
-       sendProgressUpdate(`Capturing part ${capturedParts}/${totalParts} (rate limited for stability)...`, percentComplete);
-       
-       // Scroll to position
-       window.scrollTo(0, currentY);
-       await sleep(500); // Increased wait time for rendering
-       
-       // Add delay between capture calls to respect rate limits (max 2 calls per second)
-       if (capturedParts > 1) {
-         await sleep(600); // Wait 600ms between captures (ensures < 2 calls per second)
-       }
-       
-       // Capture current viewport with retry mechanism
-       let dataUrl;
-       let retryCount = 0;
-       const maxRetries = 3;
-       
-       while (retryCount < maxRetries) {
-         try {
-           dataUrl = await new Promise((resolve, reject) => {
-             const captureTimeout = setTimeout(() => {
-               reject(new Error('Screenshot capture timed out'));
-             }, 10000); // Increased timeout to 10 seconds
-             
-             chrome.runtime.sendMessage({ type: 'CAPTURE' }, (response) => {
-               clearTimeout(captureTimeout);
-               if (chrome.runtime.lastError) {
-                 reject(new Error(chrome.runtime.lastError.message));
-               } else if (!response || response.error) {
-                 // Handle quota exceeded error specifically
-                 if (response?.error && response.error.includes('MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND')) {
-                   reject(new Error('RATE_LIMIT_EXCEEDED'));
-                 } else {
-                   reject(new Error(response?.error || 'Failed to capture screenshot'));
-                 }
-               } else {
-                 resolve(response);
-               }
-             });
-           });
-           break; // Success, exit retry loop
-         } catch (error) {
-           retryCount++;
-           if (error.message === 'RATE_LIMIT_EXCEEDED' && retryCount < maxRetries) {
-             sendProgressUpdate(`Rate limit hit, retrying in 2 seconds... (${retryCount}/${maxRetries})`, null);
-             await sleep(2000); // Wait 2 seconds before retry
-             continue;
-           } else {
-             throw error; // Re-throw if max retries reached or other error
-           }
-         }
-       }
+    for (let chunkIndex = 0; chunkIndex < numChunks; chunkIndex++) {
+      if (isCancelled) {
+        throw new Error('Screenshot cancelled');
+      }
       
-      // Load image onto canvas
-      const img = new Image();
-      await new Promise((resolve, reject) => {
-        const imgTimeout = setTimeout(() => {
-          reject(new Error('Image loading timed out'));
-        }, 5000);
+      const chunkStartY = chunkIndex * CHUNK_HEIGHT;
+      const chunkEndY = Math.min(chunkStartY + CHUNK_HEIGHT + OVERLAP, totalHeight);
+      const actualChunkHeight = chunkEndY - chunkStartY;
+      
+      sendProgressUpdate(
+        `Processing chunk ${chunkIndex + 1}/${numChunks}...`,
+        Math.round((chunkIndex / numChunks) * 90)
+      );
+      
+      // Create canvas for this chunk
+      const chunkCanvas = document.createElement('canvas');
+      chunkCanvas.width = viewportWidth;
+      chunkCanvas.height = actualChunkHeight;
+      const chunkCtx = chunkCanvas.getContext('2d', { willReadFrequently: false });
+      
+      if (!chunkCtx) {
+        throw new Error('Could not create canvas context');
+      }
+      
+      // Capture this chunk viewport by viewport
+      let currentY = chunkStartY;
+      let capturedParts = 0;
+      const totalParts = Math.ceil(actualChunkHeight / viewportHeight);
+      
+      while (currentY < chunkEndY) {
+        if (isCancelled) {
+          throw new Error('Screenshot cancelled');
+        }
         
-        img.onload = () => {
-          clearTimeout(imgTimeout);
-          resolve();
-        };
-        img.onerror = () => {
-          clearTimeout(imgTimeout);
-          reject(new Error('Failed to load captured image'));
-        };
-        img.src = dataUrl;
-      });
+        capturedParts++;
+        
+        // Scroll to position
+        window.scrollTo(0, currentY);
+        await sleep(300);
+        
+        // Capture current viewport with retry mechanism
+        let dataUrl;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+          try {
+            dataUrl = await new Promise((resolve, reject) => {
+              const captureTimeout = setTimeout(() => {
+                reject(new Error('Screenshot capture timed out'));
+              }, 10000);
+              
+              chrome.runtime.sendMessage({ type: 'CAPTURE' }, (response) => {
+                clearTimeout(captureTimeout);
+                if (chrome.runtime.lastError) {
+                  reject(new Error(chrome.runtime.lastError.message));
+                } else if (!response || response.error) {
+                  if (response?.error && response.error.includes('MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND')) {
+                    reject(new Error('RATE_LIMIT_EXCEEDED'));
+                  } else {
+                    reject(new Error(response?.error || 'Failed to capture screenshot'));
+                  }
+                } else {
+                  resolve(response);
+                }
+              });
+            });
+            break;
+          } catch (error) {
+            retryCount++;
+            if (error.message === 'RATE_LIMIT_EXCEEDED' && retryCount < maxRetries) {
+              await sleep(1000);
+              continue;
+            } else {
+              throw error;
+            }
+          }
+        }
+        
+        // Load image onto canvas
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          const imgTimeout = setTimeout(() => {
+            reject(new Error('Image loading timed out'));
+          }, 5000);
+          
+          img.onload = () => {
+            clearTimeout(imgTimeout);
+            resolve();
+          };
+          img.onerror = () => {
+            clearTimeout(imgTimeout);
+            reject(new Error('Failed to load captured image'));
+          };
+          img.src = dataUrl;
+        });
+        
+        // Calculate drawing position relative to chunk
+        const drawY = currentY - chunkStartY;
+        const drawHeight = Math.min(viewportHeight, chunkEndY - currentY);
+        
+        // Draw to chunk canvas
+        chunkCtx.drawImage(img, 0, drawY, viewportWidth, drawHeight);
+        
+        // Move to next section
+        currentY += viewportHeight;
+        
+        // Allow garbage collection
+        if (capturedParts % 5 === 0) {
+          await sleep(100);
+        }
+      }
       
-      // Calculate the actual height to draw (might be less than viewport for last part)
-      const drawHeight = Math.min(viewportHeight, totalHeight - currentY);
+      chunks.push(chunkCanvas);
+    }
+    
+    // Combine chunks into final canvas
+    sendProgressUpdate('Combining chunks into final image...', 92);
+    
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = viewportWidth;
+    finalCanvas.height = totalHeight;
+    const finalCtx = finalCanvas.getContext('2d', { willReadFrequently: false });
+    
+    if (!finalCtx) {
+      throw new Error('Could not create final canvas context');
+    }
+    
+    for (let i = 0; i < chunks.length; i++) {
+      const yPosition = i * CHUNK_HEIGHT;
+      finalCtx.drawImage(chunks[i], 0, yPosition);
       
-      // Draw to canvas
-      ctx.drawImage(img, 0, currentY, viewportWidth, drawHeight);
-      
-      // Move to next section
-      currentY += viewportHeight;
+      sendProgressUpdate(
+        'Stitching chunks...',
+        92 + Math.round((i / chunks.length) * 5)
+      );
     }
     
     // Restore original state
@@ -181,11 +233,17 @@ async function captureScreenshot() {
       el.style.display = originalDisplay;
     });
     
-    sendProgressUpdate('Processing screenshot...', 99);
+    sendProgressUpdate('Processing final screenshot...', 98);
     
-    // Convert canvas to data URL and send back
+    // Convert canvas to data URL
+    let finalScreenshot;
+    try {
+      finalScreenshot = finalCanvas.toDataURL('image/png');
+    } catch (error) {
+      throw new Error('Failed to convert screenshot to image. The page may be too large.');
+    }
+    
     console.log('Screenshot capture completed successfully');
-    const finalScreenshot = canvas.toDataURL('image/png');
     chrome.runtime.sendMessage({ 
       type: 'CAPTURE_COMPLETE', 
       dataUrl: finalScreenshot
@@ -195,14 +253,20 @@ async function captureScreenshot() {
     console.error('Screenshot error:', error);
     
     // Restore original scroll position
-    window.scrollTo(originalX || 0, originalY || 0);
-    
-    // Restore fixed elements if they exist
-    if (typeof fixedElements !== 'undefined') {
-      fixedElements.forEach(({ el, originalDisplay }) => {
-        el.style.display = originalDisplay;
-      });
+    try {
+      window.scrollTo(originalX, originalY);
+    } catch (e) {
+      console.error('Failed to restore scroll position:', e);
     }
+    
+    // Restore fixed elements
+    fixedElements.forEach(({ el, originalDisplay }) => {
+      try {
+        el.style.display = originalDisplay;
+      } catch (e) {
+        console.error('Failed to restore element:', e);
+      }
+    });
     
     // Send error message
     sendError(error.message || 'Unknown error during screenshot capture');
