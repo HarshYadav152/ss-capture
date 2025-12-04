@@ -30,7 +30,7 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
   captureData = null;
   previewImage.style.display = 'none';
   previewImage.src = '';
-  hideErrorAlert(); // Hide any existing errors
+  hideErrorAlert();
   
   try {
     // Update UI
@@ -59,14 +59,14 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
       files: ['content.js']
     });
     
-    // Set a timeout to detect if the capture process gets stuck
+    // Set a timeout for very long captures (increased for chunking)
     setTimeout(() => {
       if (captureInProgress) {
-        showErrorAlert('Screenshot capture is taking too long. Please try again.');
+        showErrorAlert('Screenshot capture is taking too long. The page may be extremely large.');
         statusText.textContent = 'Capture timeout - please retry';
         resetUI();
       }
-    }, 60000); // 60 second timeout
+    }, 120000); // 120 second timeout for large pages
     
   } catch (error) {
     showErrorAlert(error.message);
@@ -88,7 +88,6 @@ document.getElementById('cancelBtn').addEventListener('click', () => {
 // Save button handler
 document.getElementById('saveBtn').addEventListener('click', () => {
   if (captureData) {
-    // Create an anchor element and trigger download
     const a = document.createElement('a');
     a.href = captureData;
     a.download = `screenshot-${Date.now()}.png`;
@@ -142,12 +141,17 @@ chrome.runtime.onMessage.addListener((message) => {
     captureBtn.disabled = false;
     cancelBtn.style.display = 'none';
     saveBtn.style.display = 'block';
+    progressBar.style.width = '100%';
     statusText.textContent = 'Screenshot complete! Click Save to download.';
     
-    // Show preview
+    // Show preview (may be large, so handle with care)
     if (captureData) {
-      previewImage.src = captureData;
-      previewImage.style.display = 'block';
+      try {
+        previewImage.src = captureData;
+        previewImage.style.display = 'block';
+      } catch (error) {
+        console.warn('Could not display preview:', error);
+      }
     }
   }
   
