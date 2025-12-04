@@ -1,10 +1,3 @@
-// chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-//   if (msg.type === 'CAPTURE') {
-//     chrome.tabs.captureVisibleTab(sender.tab.windowId, { format: 'png' }, sendResponse);
-//     return true; // Keep the message channel open for sendResponse
-//   }
-// });
-
 // Track capture state
 let captureInProgress = false;
 let lastCaptureTime = 0;
