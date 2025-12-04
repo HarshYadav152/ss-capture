@@ -24,22 +24,27 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
   const statusText = document.getElementById('statusText');
   const progressContainer = document.getElementById('progressContainer');
   const progressBar = document.getElementById('progressBar');
+  const progressPercent = document.getElementById('progressPercent');
   const previewImage = document.getElementById('previewImage');
+  const previewContainer = document.getElementById('previewContainer');
+  const previewDimensions = document.getElementById('previewDimensions');
   
   // Reset state
   captureData = null;
   previewImage.style.display = 'none';
+  previewContainer.style.display = 'none';
   previewImage.src = '';
   hideErrorAlert();
   
   try {
     // Update UI
     captureBtn.disabled = true;
-    cancelBtn.style.display = 'block';
+    cancelBtn.style.display = 'flex';
     saveBtn.style.display = 'none';
     spinner.style.display = 'block';
     progressContainer.style.display = 'block';
     progressBar.style.width = '0%';
+    progressPercent.textContent = '0%';
     statusText.textContent = 'Preparing to capture screenshot...';
     
     // Set flag
@@ -95,7 +100,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     a.click();
     document.body.removeChild(a);
     
-    statusText.textContent = 'Screenshot saved successfully!';
+    document.getElementById('statusText').textContent = 'Screenshot saved successfully!';
   } else {
     showErrorAlert('No screenshot data available');
   }
@@ -117,11 +122,15 @@ function resetUI() {
 chrome.runtime.onMessage.addListener((message) => {
   const statusText = document.getElementById('statusText');
   const progressBar = document.getElementById('progressBar');
+  const progressPercent = document.getElementById('progressPercent');
   const spinner = document.getElementById('loadingSpinner');
   const previewImage = document.getElementById('previewImage');
+  const previewContainer = document.getElementById('previewContainer');
+  const previewDimensions = document.getElementById('previewDimensions');
   const captureBtn = document.getElementById('captureBtn');
   const cancelBtn = document.getElementById('cancelBtn');
   const saveBtn = document.getElementById('saveBtn');
+  const progressContainer = document.getElementById('progressContainer');
   
   // Handle progress updates
   if (message.type === 'PROGRESS') {
@@ -129,6 +138,7 @@ chrome.runtime.onMessage.addListener((message) => {
     
     if (message.percentComplete !== null) {
       progressBar.style.width = `${message.percentComplete}%`;
+      progressPercent.textContent = `${message.percentComplete}%`;
     }
   }
   
@@ -140,19 +150,32 @@ chrome.runtime.onMessage.addListener((message) => {
     spinner.style.display = 'none';
     captureBtn.disabled = false;
     cancelBtn.style.display = 'none';
-    saveBtn.style.display = 'block';
+    saveBtn.style.display = 'flex';
     progressBar.style.width = '100%';
+    progressPercent.textContent = '100%';
     statusText.textContent = 'Screenshot complete! Click Save to download.';
     
-    // Show preview (may be large, so handle with care)
+    // Show preview
     if (captureData) {
       try {
+        const img = new Image();
+        img.onload = function() {
+          previewDimensions.textContent = `${this.width} × ${this.height}px`;
+        };
+        img.src = captureData;
+        
         previewImage.src = captureData;
         previewImage.style.display = 'block';
+        previewContainer.style.display = 'block';
       } catch (error) {
         console.warn('Could not display preview:', error);
       }
     }
+    
+    // Hide progress after 2 seconds
+    setTimeout(() => {
+      progressContainer.style.display = 'none';
+    }, 2000);
   }
   
   if (message.type === 'CAPTURE_ERROR') {
