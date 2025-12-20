@@ -1,0 +1,56 @@
+name: Greetings
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          issue-message: |
+            👋 **Welcome @${{ github.actor }} to SS-capture!**
+
+            Thanks for opening your **first issue** here — we really appreciate you taking the time to contribute.
+
+            Before a maintainer reviews this, please make sure your issue includes:
+            - ✔️ Clear description of the problem  
+            - ✔️ Steps to reproduce (if it's a bug)  
+            - ✔️ Expected vs actual behavior  
+            - ✔️ Screenshots or logs if relevant  
+            - ✔️ Environment details (browser, OS, device, etc.)  
+
+            📘 **Contribution Guide:**  
+            Please check our CONTRIBUTING.md for issue and PR standards:  
+            👉 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md
+
+            A maintainer will review your issue soon.  
+            Thanks again — you're helping make SaveBook better! 🚀
+
+          pr-message: |
+            🎉 **Thank you @${{ github.actor }} for opening your first PR to SS-capture!**
+
+            We appreciate your effort — here’s what happens next:
+            - 🔍 A maintainer will review your PR  
+            - 🧪 Our CI checks will run automatically  
+            - ✨ Feedback will be added if needed  
+
+            Before review, please confirm your PR includes:
+            - ✔️ Clear summary of changes  
+            - ✔️ Linked issue (e.g., “Fixes #12”)  
+            - ✔️ Steps to test the feature  
+            - ✔️ Screenshots (if UI-related)  
+
+            📘 Contribution standards:  
+            👉 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md
+
+            We’re excited to have you contributing to SS-capture! 🚀
