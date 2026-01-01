@@ -55,16 +55,20 @@ We welcome various types of contributions:
 ### File Structure
 
 ```
-src/
-├── manifest.json          # Extension manifest
-├── popup/
-│   ├── popup.html        # Main UI
-│   └── popup.js          # UI logic
-├── content/
-│   └── content.js        # Page capture logic
-├── background/
-│   └── background.js     # Service worker
-└── icons/                # Extension icons
+ss-capture/
+   └──src/
+      ├── manifest.json         # Extension manifest
+      ├── popup/
+      │     ├── popup.html      # Main UI
+      │     └── popup.js        # UI logic
+      ├── content/
+      │     └── content.js      # Page capture logic
+      ├── css/
+      |     └──style.css        # CSS styles
+      └── js/
+          ├── background.js     # Service worker
+          └── content.js        # Page capture logic
+      
 ```
 
 ### Commit Messages
@@ -109,17 +113,7 @@ Before submitting a PR, test your changes:
 - [ ] **Responsive design** (different screen sizes)
 
 ### Automated Testing
-
-```bash
-# Run linting
-npm run lint
-
-# Run tests
-npm test
-
-# Check code coverage
-npm run test:coverage
-```
+<!-- will be added -->
 
 ## 🔧 Building
 
@@ -270,7 +264,7 @@ Other approaches you've considered
 ### Documentation Structure
 
 ```
-docs/
+docs/ (open issue for that)
 ├── api/              # API documentation
 ├── guides/           # User guides
 ├── development/      # Developer docs
@@ -289,7 +283,7 @@ docs/
 
 ### Reporting Security Issues
 
-For security issues, please email: security@yourdomain.com
+For security issues, please email: HarshYadav152@outlook.com
 
 ## 🏆 Recognition
 
@@ -301,13 +295,6 @@ All contributors will be recognized in:
 - **GitHub** contributors page
 - **Release notes**
 - **Project documentation**
-
-### Contribution Levels
-
-- **🥉 Bronze**: 1-5 contributions
-- **🥈 Silver**: 6-15 contributions
-- **🥇 Gold**: 16+ contributions
-- **💎 Diamond**: Major features or long-term maintenance
 
 ## 📞 Getting Help
 
