@@ -4,9 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SS-capture</title>
+    <link rel="stylesheet" href = "css/style.css">
 </head>
 <body>
-    Documentation for SS-capture will be added soon.
-    for now checkout my github repo <a href="https://github.com/HarshYadav152/ss-capture" target="_blank">here</a>.
+    <section class = "installation-guide">
+        <h2>Installation Guide</h2>
+        <p>
+            Follow The Steps Below To Install The <strong>SS-Capture</strong> Browser extension. Each Section is specific to a browser and written for beginners.
+        </p>
+
+        <!--Chrome/Edge Accordion-->
+        <details open>
+            <summary>Install on Chrome/Edge</summary>
+            <ol>
+                <li>
+                    Download the Latest Release From the GitHub <strong>Releases</strong> page.
+                    <div class=""screenshot-placeholder">[Screenshot: GitHub Releases Page]
+                    </div>
+                </li>
+
+                <li>
+                    Open Chrome or Edge and go to:
+                    <code>chrome://extensions/</code>
+                    <button class ="copy-btn" data-copy ="chrome://extensions/">Copy</button>
+                    <div class ="screenshot-placeholder">[Screenshot: Chrome Extensions Page]</div>
+                </li>
+
+                <li>
+                    Enable <strong>Developer mode</strong> using the toggle at the top-right corner.
+                    <p class ="note">
+                        Developer Mode Allows You to Load Extensions Manually for Development or Testing.
+                    </p>
+                    <div class = "screenshot-placeholder">[Screenshot: Developer Mode Enabled]</div>
+                </li>
+
+                <li>
+                    Click <strong>Load unpacked</strong> and select the <code>dist/chrome</code> (or <code>dist/edge</code>) folder.
+                    <div class = "screenshot-placeholder">[Screenshot: Load Unpacked Folder]</div>
+                </li>
+
+                <li>
+                    The Extension will now appear in the Extensions List and is Ready to use.
+                    <div class ="screenshot-placeholder">[Screenshot: Extension Installed Successfully</div>
+                </li>
+            </ol>
+        </details>
+
+
+        <!--Firefox Accordion-->
+        <details>
+            <summary>Install on Firefox</summary>
+            <ol>
+                <li>
+                    Download the Latest Release from the GitHub <strong>Releases</strong> page.
+                    <div class ="screenshot-placeholder">[Screenshot: GitHub Releases Page</div>
+                </li>
+
+                <li>
+                    Extract the ZIP file to a known location.
+                    <div class="screenshot-placeholder">[Screenshot: Extract ZIP File]</div>
+                </li>
+
+                <li>
+                    Open Firefox and navigate to:
+                    <code>about:debugging</code>
+                    <button class ="copy-btn" data-copy = "about:debugging">Copy</button>
+                    <div class = "screenshot-placeholder">[Screenshot: The Firefox Tab]</div>
+                </li>
+
+                <li>
+                    Click <strong>Load Temporary Add-on</strong> and select 
+                    <code>manifest.json</code> from the <code>dist/firefox</code> folder.
+                    <div class = "screenshot-placeholder">[Screenshot: Load Temporary Add-on]</div>
+                </li>
+
+                <li>
+                    The extension is now loaded temporarily and will remain active until Firefox is closed.
+                    <div class = "screenshot-placeholder">[Screenshot: Firefox Extension Loaded]</div>
+                </li>
+            </ol>
+        </details>
+
+
+        <!--Troubleshooting-->
+        <details>
+            <summary>Troubleshooting</summary>
+            <ul>
+                <li>
+                    If the extension does not appear, confirm that <strong>Developer mode</strong> is enabled.
+                </li>
+
+                <li>
+                    Ensure you selected the correct folder:
+                    <code>dist/chrome</code>, <code>dist/edge</code>, or <code>dist/firefox</code>
+                </li>
+
+                <li>
+                    Firefox temporary add-ons are removed when the browser is restarted.
+                </li>
+
+                <li>
+                    Chrome internal pages such as 
+                    <code>chrome://</code> cannot be captured due to browser security restrictions.
+                </li>
+            </ul>
+        </details>
+    </section>
+    <script src="js/script.js"></script>
 </body>
 </html>
