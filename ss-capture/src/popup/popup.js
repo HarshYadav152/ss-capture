@@ -20,6 +20,7 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
   const captureBtn = document.getElementById('captureBtn');
   const cancelBtn = document.getElementById('cancelBtn');
   const saveBtn = document.getElementById('saveBtn');
+  const copyBtn = document.getElementById('copyBtn');
   const spinner = document.getElementById('loadingSpinner');
   const statusText = document.getElementById('statusText');
   const progressContainer = document.getElementById('progressContainer');
@@ -41,6 +42,7 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
     captureBtn.disabled = true;
     cancelBtn.style.display = 'flex';
     saveBtn.style.display = 'none';
+    copyBtn.style.display = 'none';
     spinner.style.display = 'block';
     progressContainer.style.display = 'block';
     progressBar.style.width = '0%';
@@ -106,6 +108,23 @@ document.getElementById('saveBtn').addEventListener('click', () => {
   }
 });
 
+// Copy to Clipboard button handler
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  if (captureData) {
+    try {
+      const response = await fetch(captureData);
+      const blob = await response.blob();
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+      document.getElementById('statusText').textContent = 'Screenshot copied to clipboard!';
+    } catch (error) {
+      showErrorAlert('Failed to copy screenshot to clipboard');
+      console.error('Clipboard copy error:', error);
+    }
+  } else {
+    showErrorAlert('No screenshot data available to copy');
+  }
+}); 
+
 // Error alert close button handler
 document.getElementById('errorClose').addEventListener('click', hideErrorAlert);
 
@@ -151,6 +170,7 @@ chrome.runtime.onMessage.addListener((message) => {
     captureBtn.disabled = false;
     cancelBtn.style.display = 'none';
     saveBtn.style.display = 'flex';
+    copyBtn.style.display = 'flex';
     progressBar.style.width = '100%';
     progressPercent.textContent = '100%';
     statusText.textContent = 'Screenshot complete! Click Save to download.';

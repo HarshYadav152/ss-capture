@@ -330,6 +330,20 @@ button:active:not(:disabled) {
     box-shadow: 0 8px 28px rgba(120, 255, 198, 0.4);
 }
 
+.btn-info {
+    background: linear-gradient(135deg, rgba(120, 219, 255, 0.2), rgba(120, 119, 198, 0.2));
+    color: #e6ebed;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 16px rgba(192, 238, 255, 0.2);
+    display: none;
+}
+
+.btn-info:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(120, 219, 255, 0.3), rgba(120, 119, 198, 0.3));
+    border-color: rgba(120, 219, 255, 0.6);
+    box-shadow: 0 8px 28px rgba(120, 219, 255, 0.4);
+}
+
 button:disabled {
     opacity: 0.4;
     cursor: not-allowed;
