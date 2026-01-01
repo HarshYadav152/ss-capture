@@ -1,6 +1,11 @@
-document.querySelectorAll('.copy-btn').forEach(btn => {
-        btn.addEventListener('click', () => {navigator.clipboard.writeText(btn.dataset.copy);
-            btn.textContent = 'Copied!';
-            setTimeout(() => (btn.textContent = 'Copy'), 1500);
-        });
+document.querySelectorAll('.copy-btn').forEach(button => {
+  button.addEventListener('click', () => {
+    const text = button.getAttribute('data-copy');
+    navigator.clipboard.writeText(text);
+
+    button.textContent = 'Copied!';
+    setTimeout(() => {
+      button.textContent = 'Copy';
+    }, 1500);
+  });
 });
