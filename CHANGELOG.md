@@ -1,6 +1,7 @@
-## [2026-01-01]
+## [2026-01-02]
 
 ### ✨ Features
+-  add copy to clipboard button (5eb9f92) - @Your Name
 -  add pull request template (f083a33) - @HarshYadav152
 -  add question issue template (88232fe) - @HarshYadav152
 -  add feature request issue template (1675f82) - @HarshYadav152
@@ -8,6 +9,7 @@
 -  add bug report issue template (a21a910) - @HarshYadav152
 
 ### 📝 Documentation
+-  auto update changelog (8a65880) - @JackSparrow-BlackPearl
 -  auto update changelog (4d4cd35) - @HarshYadav152
 -  auto update changelog (4ce50b9) - @HarshYadav152
 
@@ -25,8 +27,6 @@
 - LICENCE (a2e184c) - @HarshYadav152
 - clean changelog and update changelog workflow (456ce86) - @HarshYadav152
 - preview images added in docs/ (1e2e940) - @HarshYadav152
-- remove moved files (7f3fce6) - @HarshYadav152
-- how this works undersrand (b299f4e) - @HarshYadav152
 
 
 ## [2026-01-01]
