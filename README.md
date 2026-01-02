@@ -64,10 +64,6 @@ node scripts/build.js firefox
 6. **Click** "Save" to download the screenshot
 
 
-### ⌨️ Keyboard Shortcuts
-- **Alt + Shift + S** (Mac: **Cmd + Shift + S**): Open Extension Popup
-- **Alt + Shift + F** (Mac: **Cmd + Shift + F**): Background Full-Page Capture 
-
 ### Supported Page Types
 - ✅ Regular web pages (HTTP/HTTPS)
 - ✅ Single Page Applications (SPAs)
