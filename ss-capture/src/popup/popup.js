@@ -20,6 +20,7 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
   const captureBtn = document.getElementById('captureBtn');
   const cancelBtn = document.getElementById('cancelBtn');
   const saveBtn = document.getElementById('saveBtn');
+  const copyBtn = document.getElementById('copyBtn');
   const spinner = document.getElementById('loadingSpinner');
   const statusText = document.getElementById('statusText');
   const progressContainer = document.getElementById('progressContainer');
@@ -40,7 +41,10 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
     // Update UI
     captureBtn.disabled = true;
     cancelBtn.style.display = 'flex';
+    captureBtn.disabled = true;
+    cancelBtn.style.display = 'flex';
     saveBtn.style.display = 'none';
+    copyBtn.style.display = 'none';
     spinner.style.display = 'block';
     progressContainer.style.display = 'block';
     progressBar.style.width = '0%';
@@ -109,6 +113,40 @@ document.getElementById('saveBtn').addEventListener('click', () => {
   }
 });
 
+// Copy button handler
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  if (captureData) {
+    try {
+      // Convert base64 to blob
+      const res = await fetch(captureData);
+      const blob = await res.blob();
+      
+      // Write to clipboard
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob
+        })
+      ]);
+      
+      const statusText = document.getElementById('statusText');
+      statusText.textContent = 'Screenshot copied to clipboard!';
+      
+      // Visual feedback
+      const originalText = document.querySelector('#copyBtn .btn-text').textContent;
+      document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
+      setTimeout(() => {
+        document.querySelector('#copyBtn .btn-text').textContent = originalText;
+      }, 2000);
+      
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      showErrorAlert('Failed to copy to clipboard');
+    }
+  } else {
+    showErrorAlert('No screenshot data available');
+  }
+});
+
 // Error alert close button handler
 document.getElementById('errorClose').addEventListener('click', hideErrorAlert);
 
@@ -169,6 +207,7 @@ chrome.runtime.onMessage.addListener((message) => {
   const captureBtn = document.getElementById('captureBtn');
   const cancelBtn = document.getElementById('cancelBtn');
   const saveBtn = document.getElementById('saveBtn');
+  const copyBtn = document.getElementById('copyBtn');
   const progressContainer = document.getElementById('progressContainer');
 
   // Handle progress updates
@@ -183,6 +222,7 @@ chrome.runtime.onMessage.addListener((message) => {
 
   if (message.type === 'CAPTURE_COMPLETE') {
     captureInProgress = false;
+    resetUI();
     displayCapture(message.dataUrl);
 
     // Hide progress after 2 seconds
