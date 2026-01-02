@@ -3,7 +3,7 @@
 
 A modern, high-quality full-page screenshot extension with a beautiful glassmorphic interface. Capture entire web pages with automatic scrolling and chunked rendering for pages exceeding browser canvas limitations.
 
-![Extension Preview](docs/preview.png)
+![Extension Preview](https://raw.githubusercontent.com/HarshYadav152/ss-capture/main/docs/PREVIEW.png)
 
 ## ✨ Features
 
