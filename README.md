@@ -20,6 +20,16 @@ A modern, high-quality full-page screenshot extension with a beautiful glassmorp
 
 ## 🚀 Installation
 
+### Prerequisites
+Before installing **SS-Capture**, make sure you have:
+
+- A modern browser (Chrome, Edge, or Firefox)
+- Basic knowledge of browser extensions
+- For developers:
+  - **Node.js** (v16 or later recommended)
+  - **npm** (comes with Node.js)
+
+
 ### For Users
 
 #### Chrome/Edge
