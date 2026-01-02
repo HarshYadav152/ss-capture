@@ -66,6 +66,12 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
       files: ['content.js']
     });
 
+
+
+    // Trigger capture explicitly
+    chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', isPopup: true });
+
+
     // Set a timeout for very long captures (increased for chunking)
     setTimeout(() => {
       if (captureInProgress) {
@@ -154,6 +160,42 @@ function resetUI() {
   document.getElementById('progressContainer').style.display = 'none';
 }
 
+// Initialize popup
+async function initPopup() {
+  const response = await chrome.runtime.sendMessage({ type: 'GET_LAST_CAPTURE' });
+  if (response) {
+    displayCapture(response);
+  }
+}
+
+function displayCapture(dataUrl) {
+  const statusText = document.getElementById('statusText');
+  const previewImage = document.getElementById('previewImage');
+  const previewContainer = document.getElementById('previewContainer');
+  const previewDimensions = document.getElementById('previewDimensions');
+  const saveBtn = document.getElementById('saveBtn');
+
+  captureData = dataUrl;
+  saveBtn.style.display = 'flex';
+  statusText.textContent = 'Screenshot ready! Click Save to download.';
+
+  try {
+    const img = new Image();
+    img.onload = function () {
+      previewDimensions.textContent = `${this.width} × ${this.height}px`;
+    };
+    img.src = dataUrl;
+
+    previewImage.src = dataUrl;
+    previewImage.style.display = 'block';
+    previewContainer.style.display = 'block';
+  } catch (error) {
+    console.warn('Could not display preview:', error);
+  }
+}
+
+initPopup();
+
 // Listen for messages from content/background scripts
 chrome.runtime.onMessage.addListener((message) => {
   const statusText = document.getElementById('statusText');
@@ -180,41 +222,14 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 
   if (message.type === 'CAPTURE_COMPLETE') {
-    captureInProgress = false;
-    captureData = message.dataUrl;
+  captureInProgress = false;
+  displayCapture(message.dataUrl);
 
-    // Update UI
-    spinner.style.display = 'none';
-    captureBtn.disabled = false;
-    cancelBtn.style.display = 'none';
-    saveBtn.style.display = 'flex';
-    copyBtn.style.display = 'flex';
-    progressBar.style.width = '100%';
-    progressPercent.textContent = '100%';
-    statusText.textContent = 'Screenshot complete! Click Save to download.';
+  setTimeout(() => {
+    progressContainer.style.display = 'none';
+  }, 2000);
+}
 
-    // Show preview
-    if (captureData) {
-      try {
-        const img = new Image();
-        img.onload = function () {
-          previewDimensions.textContent = `${this.width} × ${this.height}px`;
-        };
-        img.src = captureData;
-
-        previewImage.src = captureData;
-        previewImage.style.display = 'block';
-        previewContainer.style.display = 'block';
-      } catch (error) {
-        console.warn('Could not display preview:', error);
-      }
-    }
-
-    // Hide progress after 2 seconds
-    setTimeout(() => {
-      progressContainer.style.display = 'none';
-    }, 2000);
-  }
 
   if (message.type === 'CAPTURE_ERROR') {
     resetUI();
