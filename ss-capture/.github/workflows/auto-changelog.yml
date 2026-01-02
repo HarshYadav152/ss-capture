@@ -1,0 +1,113 @@
+name: Auto Generate Changelog
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "CHANGELOG.md"
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure CHANGELOG.md exists
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "All notable changes to this project will be documented in this file." >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+
+      - name: Generate Changelog
+        run: |
+          echo "## [$(date '+%Y-%m-%d')]" > NEW_CHANGELOG.md
+          echo "" >> NEW_CHANGELOG.md
+          
+          # Get commits since last changelog update
+          COMMITS=$(git log --pretty=format:"%s|%an|%h" --no-merges -20)
+          
+          # Initialize sections
+          FEATURES=""
+          FIXES=""
+          DOCS=""
+          CHORE=""
+          OTHER=""
+          
+          # Categorize commits
+          while IFS='|' read -r message author hash; do
+            if [[ $message =~ ^feat(\(.*\))?:(.+) ]]; then
+              FEATURES="${FEATURES}- ${BASH_REMATCH[2]} (${hash}) - @${author}\n"
+            elif [[ $message =~ ^fix(\(.*\))?:(.+) ]]; then
+              FIXES="${FIXES}- ${BASH_REMATCH[2]} (${hash}) - @${author}\n"
+            elif [[ $message =~ ^docs(\(.*\))?:(.+) ]]; then
+              DOCS="${DOCS}- ${BASH_REMATCH[2]} (${hash}) - @${author}\n"
+            elif [[ $message =~ ^chore(\(.*\))?:(.+) ]]; then
+              CHORE="${CHORE}- ${BASH_REMATCH[2]} (${hash}) - @${author}\n"
+            else
+              OTHER="${OTHER}- ${message} (${hash}) - @${author}\n"
+            fi
+          done <<< "$COMMITS"
+          
+          # Add sections with content
+          if [ ! -z "$FEATURES" ]; then
+            echo "### ✨ Features" >> NEW_CHANGELOG.md
+            echo -e "$FEATURES" >> NEW_CHANGELOG.md
+          fi
+          
+          if [ ! -z "$FIXES" ]; then
+            echo "### 🐛 Bug Fixes" >> NEW_CHANGELOG.md
+            echo -e "$FIXES" >> NEW_CHANGELOG.md
+          fi
+          
+          if [ ! -z "$DOCS" ]; then
+            echo "### 📝 Documentation" >> NEW_CHANGELOG.md
+            echo -e "$DOCS" >> NEW_CHANGELOG.md
+          fi
+          
+          if [ ! -z "$CHORE" ]; then
+            echo "### 🔧 Chore" >> NEW_CHANGELOG.md
+            echo -e "$CHORE" >> NEW_CHANGELOG.md
+          fi
+          
+          if [ ! -z "$OTHER" ]; then
+            echo "### 📦 Other Changes" >> NEW_CHANGELOG.md
+            echo -e "$OTHER" >> NEW_CHANGELOG.md
+          fi
+          
+          echo "" >> NEW_CHANGELOG.md
+          cat CHANGELOG.md >> NEW_CHANGELOG.md
+          mv NEW_CHANGELOG.md CHANGELOG.md
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: auto/changelog
+          delete-branch: true
+          commit-message: "docs: auto update changelog"
+          title: "📝 Automated Changelog Update"
+          body: |
+            ## 🤖 Automated Changelog Update
+            
+            This PR contains an automatically generated changelog based on recent commits.
+            
+            ### What's included:
+            - Categorized commits by type (features, fixes, docs, chore)
+            - Commit hashes for reference
+            - Author attribution
+            
+            Please review and merge if everything looks correct.
+          labels: documentation, automated

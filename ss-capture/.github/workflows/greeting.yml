@@ -1,0 +1,90 @@
+name: Greetings
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          issue-message: |
+            👋 **Welcome @${{ github.actor }} to SS-Capture!**  
+
+            Thanks for opening your **first issue** — we're glad to have you here 🎉  
+
+            Before a maintainer reviews this issue, please ensure it includes:
+            - ✔️ Clear description of the problem  
+            - ✔️ Steps to reproduce (for bugs)  
+            - ✔️ Expected vs actual behavior  
+            - ✔️ Screenshots/logs (if applicable)  
+            - ✔️ Environment details (OS, browser, device, etc.)
+
+            📘 **Contribution Guide:**  
+            👉 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md  
+
+            ---
+
+            ### 💬 Join Our Community
+
+            **🎯 Discord (Official Support & Discussions)**  
+            For formal discussions, technical queries, and official announcements:  
+            👉 **https://discord.gg/eMTePUK3gJ**
+
+            **💚 WhatsApp (Casual Chat & Quick Help)**  
+            For informal conversations, quick doubts, and a wholesome contributor experience:  
+            👉 **https://chat.whatsapp.com/I8GYXd3mHlDCC2iXhNGeqV**
+
+            > We believe in building a friendly community! Feel free to join WhatsApp for casual chats, memes, and getting to know fellow contributors 🤝
+
+            ---
+
+            A maintainer will review your issue soon.  
+            Happy contributing 🚀  
+
+          pr-message: |
+            🎉 **Thank you @${{ github.actor }} for your first PR to SS-Capture!**  
+
+            We really appreciate your contribution 🙌  
+
+            What happens next:
+            - 🔍 Maintainers will review your PR  
+            - 🧪 Automated checks will run  
+            - ✨ Feedback may be shared if needed  
+
+            Please confirm your PR includes:
+            - ✔️ Clear summary of changes  
+            - ✔️ Linked issue (e.g., Fixes #123)  
+            - ✔️ Steps to test  
+            - ✔️ Screenshots (for UI changes)
+
+            📘 **Contribution Standards:**  
+            👉 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md  
+
+            ---
+
+            ### 💬 Stay Connected with Our Community
+
+            **🎯 Discord (Official Communication)**  
+            For formal discussions, code reviews, and project updates:  
+            👉 **https://discord.gg/eMTePUK3gJ**
+
+            **💚 WhatsApp (Friendly Community)**  
+            For informal chats, quick help, and building friendships with contributors:  
+            👉 **https://chat.whatsapp.com/I8GYXd3mHlDCC2iXhNGeqV**
+
+            > 🌟 **Our Philosophy:** We value both professional collaboration (Discord) and personal connections (WhatsApp). Join both to get the complete SS-Capture community experience!
+
+            ---
+
+            Thanks for helping improve SS-Capture 🚀  
+            Let's build something amazing together! 💪
