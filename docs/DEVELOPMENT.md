@@ -36,7 +36,7 @@ This document provides detailed information for developers working on the Full P
 
 ```bash
 # Clone repository
-git clone https://github.com/harshyadav152/ss-capture.git
+git clone https://github.com/yourusername/ss-capture.git
 cd ss-capture
 
 # Install dependencies
