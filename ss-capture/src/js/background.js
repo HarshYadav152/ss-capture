@@ -114,10 +114,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       captureInProgress = false;
     }
 
-    // Still forward to popup in case it's open
-    chrome.runtime.sendMessage(message).catch(() => {
-      // Ignore error if popup is not open
-    });
+    // ONLY forward to popup if the message came from a content script (sender.tab exists)
+    // This prevents an infinite loop where the background script sends a message to itself
+    if (sender.tab) {
+      chrome.runtime.sendMessage(message).catch(() => {
+        // Ignore error if popup is not open
+      });
+    }
   }
 
   // Handle request for last capture data from popup
