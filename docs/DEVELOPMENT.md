@@ -33,10 +33,15 @@ This document provides detailed information for developers working on the Full P
 - Code editor (VS Code recommended)
 
 ### Initial Setup
-
+1. Fork the repository on GitHub: https://github.com/HarshYadav152/ss-capture
+2. Clone your fork (PowerShell / CMD):
 ```bash
-# Clone repository
-git clone https://github.com/harshyadav152/ss-capture.git
+# HTTPS
+git clone https://github.com/<your-username>/ss-capture.git
+
+# OR SSH
+git clone git@github.com:<your-username>/ss-capture.git
+
 cd ss-capture
 
 # Install dependencies
