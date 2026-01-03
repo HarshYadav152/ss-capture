@@ -1,3 +1,32 @@
+## [2026-01-03]
+
+### ✨ Features
+-  add copy to clipboard button (5eb9f92) - @Your Name
+
+### 📝 Documentation
+-  auto update changelog (30b00fc) - @JackSparrow-BlackPearl
+-  auto update changelog (afa450b) - @HarshYadav152
+-  auto update changelog (8a65880) - @JackSparrow-BlackPearl
+-  auto update changelog (4d4cd35) - @HarshYadav152
+-  auto update changelog (4ce50b9) - @HarshYadav152
+
+### 📦 Other Changes
+- Move CSS to separate file and link it in index.html (a7029a7) - @Lakshiga Sri Varshan
+- Add step by step installation guide to index.html (bb6c81e) - @Lakshiga Sri Varshan
+- update readme and development files (8f972c1) - @HarshYadav152
+- remove unused LICENC (dd096f3) - @HarshYadav152
+- update greetings.yml (b66d90c) - @HarshYadav152
+- update package files with project author details (22b77ab) - @HarshYadav152
+- update extension name to ss-capture (efe7a57) - @HarshYadav152
+- update development.md file and remove outdated LICENCE inside ss-capture/ (fcb51e6) - @HarshYadav152
+- update greeting workflow (067e37e) - @HarshYadav152
+- GUIDE_TO_CONTRIBUTE.md added for contributor (21ff43f) - @HarshYadav152
+- update CONTRIBUTING.md (542aaed) - @HarshYadav152
+- SECURITY.md added (47a5c52) - @HarshYadav152
+- CODE_OF_CONDUCT.md added (2c84dfc) - @HarshYadav152
+- LICENCE (a2e184c) - @HarshYadav152
+
+
 ## [2026-01-02]
 
 ### ✨ Features
