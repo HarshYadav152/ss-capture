@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screenshot Editor - Privacy Tools</title>
+    <link rel="stylesheet" href="editor.css">
+</head>
+
+<body>
+    <div class="editor-container">
+        <!-- Header -->
+        <div class="editor-header">
+            <div class="header-left">
+                <span class="header-icon">🔒</span>
+                <h1>Screenshot Editor</h1>
+                <span class="header-subtitle">Hide sensitive information</span>
+            </div>
+            <div class="header-right">
+                <button id="closeBtn" class="btn btn-close" title="Close editor">
+                    <span class="btn-icon">✕</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="tool-group">
+                <button id="selectTool" class="tool-btn active" data-tool="select" title="Select (V)">
+                    <span class="tool-icon">👆</span>
+                    <span class="tool-label">Select</span>
+                </button>
+                <button id="blurTool" class="tool-btn" data-tool="blur" title="Blur (B)">
+                    <span class="tool-icon">🌫️</span>
+                    <span class="tool-label">Blur</span>
+                </button>
+                <button id="pixelateTool" class="tool-btn" data-tool="pixelate" title="Pixelate (P)">
+                    <span class="tool-icon">🔲</span>
+                    <span class="tool-label">Pixelate</span>
+                </button>
+            </div>
+
+            <div class="tool-separator"></div>
+
+            <div class="tool-group">
+                <div class="intensity-control">
+                    <label for="intensitySlider" id="intensityLabel">Blur Intensity:</label>
+                    <input type="range" id="intensitySlider" min="5" max="50" value="15" step="1">
+                    <span id="intensityValue">15</span>
+                </div>
+            </div>
+
+            <div class="tool-separator"></div>
+
+            <div class="tool-group">
+                <button id="undoBtn" class="tool-btn" title="Undo (Ctrl+Z)">
+                    <span class="tool-icon">↶</span>
+                    <span class="tool-label">Undo</span>
+                </button>
+                <button id="clearBtn" class="tool-btn" title="Clear All">
+                    <span class="tool-icon">🗑️</span>
+                    <span class="tool-label">Clear All</span>
+                </button>
+            </div>
+
+            <div class="tool-separator"></div>
+
+            <div class="tool-group">
+                <button id="saveBtn" class="tool-btn btn-primary" title="Save & Close">
+                    <span class="tool-icon">💾</span>
+                    <span class="tool-label">Save</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="canvas-container">
+            <div class="canvas-wrapper">
+                <canvas id="editorCanvas"></canvas>
+                <canvas id="overlayCanvas"></canvas>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-left">
+                    <span id="statusText">Ready - Select a tool to begin</span>
+                </div>
+                <div class="status-right">
+                    <span id="effectCount">Effects: 0</span>
+                    <span class="status-separator">|</span>
+                    <span id="canvasSize">0 × 0 px</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Panel -->
+        <div class="instructions-panel">
+            <div class="instruction-item">
+                <span class="instruction-icon">1️⃣</span>
+                <span class="instruction-text">Select <strong>Blur</strong> or <strong>Pixelate</strong> tool</span>
+            </div>
+            <div class="instruction-item">
+                <span class="instruction-icon">2️⃣</span>
+                <span class="instruction-text">Click and drag to draw a rectangle over sensitive areas</span>
+            </div>
+            <div class="instruction-item">
+                <span class="instruction-icon">3️⃣</span>
+                <span class="instruction-text">Adjust intensity and add more effects as needed</span>
+            </div>
+            <div class="instruction-item">
+                <span class="instruction-icon">4️⃣</span>
+                <span class="instruction-text">Click <strong>Save</strong> when finished</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="editor.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,378 @@
+/* Editor Glassmorphic Styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    gap: 15px;
+}
+
+/* Header */
+.editor-header {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-icon {
+    font-size: 28px;
+}
+
+.editor-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+}
+
+.header-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
+}
+
+.btn-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 20px;
+}
+
+.btn-close:hover {
+    background: rgba(255, 77, 77, 0.3);
+    transform: scale(1.05);
+}
+
+/* Toolbar */
+.toolbar {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap;
+}
+
+.tool-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tool-separator {
+    width: 1px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.tool-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.tool-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tool-btn.active {
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.tool-btn.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.tool-btn.btn-primary:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.tool-icon {
+    font-size: 18px;
+}
+
+.tool-label {
+    font-size: 14px;
+}
+
+/* Intensity Control */
+.intensity-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-size: 14px;
+}
+
+#intensitySlider {
+    width: 120px;
+    height: 6px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#intensitySlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+#intensitySlider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+#intensitySlider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+#intensityValue {
+    min-width: 30px;
+    text-align: center;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+/* Canvas Container */
+.canvas-container {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.canvas-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+#editorCanvas {
+    position: absolute;
+    max-width: 100%;
+    max-height: 100%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+#overlayCanvas {
+    position: absolute;
+    max-width: 100%;
+    max-height: 100%;
+    cursor: crosshair;
+    pointer-events: auto;
+}
+
+#overlayCanvas.select-cursor {
+    cursor: default;
+}
+
+#overlayCanvas.blur-cursor {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.5)" stroke="black" stroke-width="2"/></svg>') 12 12, crosshair;
+}
+
+#overlayCanvas.pixelate-cursor {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" fill="rgba(255,255,255,0.5)" stroke="black" stroke-width="2"/></svg>') 12 12, crosshair;
+}
+
+/* Status Bar */
+.status-bar {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    font-size: 13px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-right {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.status-separator {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+#statusText {
+    font-weight: 500;
+}
+
+#effectCount {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+/* Instructions Panel */
+.instructions-panel {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 15px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.instruction-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-size: 13px;
+}
+
+.instruction-icon {
+    font-size: 16px;
+}
+
+.instruction-text {
+    font-weight: 400;
+}
+
+.instruction-text strong {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .tool-label {
+        display: none;
+    }
+
+    .tool-btn {
+        padding: 10px;
+    }
+
+    .instructions-panel {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .editor-container {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .header-subtitle {
+        display: none;
+    }
+
+    .toolbar {
+        padding: 10px;
+    }
+
+    .intensity-control label {
+        display: none;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.editor-container>* {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* Selection Rectangle Styling */
+.selection-rect {
+    border: 2px dashed rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.1);
+    position: absolute;
+    pointer-events: none;
+}
