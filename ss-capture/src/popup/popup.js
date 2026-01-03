@@ -6,7 +6,7 @@ let captureData = null;
 function showErrorAlert(message) {
   const errorAlert = document.getElementById('errorAlert');
   const errorMessage = document.getElementById('errorMessage');
-  
+
   errorMessage.textContent = message;
   errorAlert.style.display = 'block';
 }
@@ -29,14 +29,14 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
   const previewImage = document.getElementById('previewImage');
   const previewContainer = document.getElementById('previewContainer');
   const previewDimensions = document.getElementById('previewDimensions');
-  
+
   // Reset state
   captureData = null;
   previewImage.style.display = 'none';
   previewContainer.style.display = 'none';
   previewImage.src = '';
   hideErrorAlert();
-  
+
   try {
     // Update UI
     captureBtn.disabled = true;
@@ -50,24 +50,24 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
     progressBar.style.width = '0%';
     progressPercent.textContent = '0%';
     statusText.textContent = 'Preparing to capture screenshot...';
-    
+
     // Set flag
     captureInProgress = true;
-    
+
     // Get current tab
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
+
     // Check if we can inject scripts into this tab
     if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
       throw new Error('Cannot capture screenshots on this page type');
     }
-    
+
     // Execute the content script
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       files: ['content.js']
     });
-    
+
     // Set a timeout for very long captures (increased for chunking)
     setTimeout(() => {
       if (captureInProgress) {
@@ -76,7 +76,7 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
         resetUI();
       }
     }, 120000); // 120 second timeout for large pages
-    
+
   } catch (error) {
     showErrorAlert(error.message);
     statusText.textContent = 'Failed to start capture';
@@ -103,7 +103,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    
+
     document.getElementById('statusText').textContent = 'Screenshot saved successfully!';
   } else {
     showErrorAlert('No screenshot data available');
@@ -117,28 +117,48 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
       // Convert base64 to blob
       const res = await fetch(captureData);
       const blob = await res.blob();
-      
+
       // Write to clipboard
       await navigator.clipboard.write([
         new ClipboardItem({
           'image/png': blob
         })
       ]);
-      
+
       const statusText = document.getElementById('statusText');
       statusText.textContent = 'Screenshot copied to clipboard!';
-      
+
       // Visual feedback
       const originalText = document.querySelector('#copyBtn .btn-text').textContent;
       document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
       setTimeout(() => {
         document.querySelector('#copyBtn .btn-text').textContent = originalText;
       }, 2000);
-      
+
     } catch (err) {
       console.error('Failed to copy: ', err);
       showErrorAlert('Failed to copy to clipboard');
     }
+  } else {
+    showErrorAlert('No screenshot data available');
+  }
+});
+
+// Edit button handler
+document.getElementById('editBtn').addEventListener('click', () => {
+  if (captureData) {
+    // Store screenshot data in localStorage for editor to access
+    localStorage.setItem('screenshotToEdit', captureData);
+
+    // Open editor in new window
+    chrome.windows.create({
+      url: chrome.runtime.getURL('editor/editor.html'),
+      type: 'popup',
+      width: 1200,
+      height: 800
+    });
+
+    document.getElementById('statusText').textContent = 'Opening editor...';
   } else {
     showErrorAlert('No screenshot data available');
   }
@@ -170,40 +190,41 @@ chrome.runtime.onMessage.addListener((message) => {
   const saveBtn = document.getElementById('saveBtn');
   const copyBtn = document.getElementById('copyBtn');
   const progressContainer = document.getElementById('progressContainer');
-  
+
   // Handle progress updates
   if (message.type === 'PROGRESS') {
     statusText.textContent = message.message;
-    
+
     if (message.percentComplete !== null) {
       progressBar.style.width = `${message.percentComplete}%`;
       progressPercent.textContent = `${message.percentComplete}%`;
     }
   }
-  
+
   if (message.type === 'CAPTURE_COMPLETE') {
     captureInProgress = false;
     captureData = message.dataUrl;
-    
+
     // Update UI
     spinner.style.display = 'none';
     captureBtn.disabled = false;
     cancelBtn.style.display = 'none';
     saveBtn.style.display = 'flex';
     copyBtn.style.display = 'flex';
+    document.getElementById('editBtn').style.display = 'flex';
     progressBar.style.width = '100%';
     progressPercent.textContent = '100%';
-    statusText.textContent = 'Screenshot complete! Click Save to download.';
-    
+    statusText.textContent = 'Screenshot complete! Edit, Copy, or Save.';
+
     // Show preview
     if (captureData) {
       try {
         const img = new Image();
-        img.onload = function() {
+        img.onload = function () {
           previewDimensions.textContent = `${this.width} × ${this.height}px`;
         };
         img.src = captureData;
-        
+
         previewImage.src = captureData;
         previewImage.style.display = 'block';
         previewContainer.style.display = 'block';
@@ -211,16 +232,37 @@ chrome.runtime.onMessage.addListener((message) => {
         console.warn('Could not display preview:', error);
       }
     }
-    
+
     // Hide progress after 2 seconds
     setTimeout(() => {
       progressContainer.style.display = 'none';
     }, 2000);
   }
-  
+
   if (message.type === 'CAPTURE_ERROR') {
     resetUI();
     showErrorAlert(message.error);
     statusText.textContent = 'Screenshot capture failed';
+  }
+
+  if (message.type === 'EDITOR_COMPLETE') {
+    // Update with edited screenshot
+    captureData = message.dataUrl;
+
+    // Update preview
+    const previewImage = document.getElementById('previewImage');
+    const previewDimensions = document.getElementById('previewDimensions');
+
+    if (captureData) {
+      const img = new Image();
+      img.onload = function () {
+        previewDimensions.textContent = `${this.width} × ${this.height}px`;
+      };
+      img.src = captureData;
+
+      previewImage.src = captureData;
+    }
+
+    statusText.textContent = 'Screenshot edited successfully! Ready to save.';
   }
 });

@@ -37,12 +37,16 @@ body::before {
 }
 
 @keyframes backgroundShift {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translate(0, 0) scale(1);
     }
+
     33% {
         transform: translate(-10px, -10px) scale(1.1);
     }
+
     66% {
         transform: translate(10px, 10px) scale(0.9);
     }
@@ -77,8 +81,13 @@ body::before {
 }
 
 @keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 100%; }
+    0% {
+        left: -100%;
+    }
+
+    100% {
+        left: 100%;
+    }
 }
 
 /* Header Section */
@@ -103,8 +112,15 @@ body::before {
 }
 
 @keyframes iconFloat {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
 }
 
 .main-icon {
@@ -156,8 +172,15 @@ h2 {
 }
 
 @keyframes errorPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
 @keyframes slideInDown {
@@ -165,6 +188,7 @@ h2 {
         opacity: 0;
         transform: translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -344,6 +368,20 @@ button:active:not(:disabled) {
     box-shadow: 0 8px 28px rgba(168, 85, 247, 0.4);
 }
 
+.btn-warning {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.2));
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    box-shadow: 0 4px 16px rgba(251, 191, 36, 0.2);
+    display: none;
+}
+
+.btn-warning:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.3));
+    border-color: rgba(251, 191, 36, 0.6);
+    box-shadow: 0 8px 28px rgba(251, 191, 36, 0.4);
+}
+
 button:disabled {
     opacity: 0.4;
     cursor: not-allowed;
@@ -365,7 +403,9 @@ button:disabled {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Progress Section */
@@ -403,8 +443,13 @@ button:disabled {
 }
 
 @keyframes progressShimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 .progress-bar {
@@ -419,8 +464,13 @@ button:disabled {
 }
 
 @keyframes progressGradient {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    100% {
+        background-position: 200% 50%;
+    }
 }
 
 .progress-percentage {
@@ -459,6 +509,7 @@ button:disabled {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
