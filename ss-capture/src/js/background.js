@@ -17,6 +17,8 @@ chrome.commands.onCommand.addListener(async (command) => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (tab && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+      // Open the popup immediately so it can show progress and the final result
+      chrome.action.openPopup().catch(() => { /* Ignore if already open */ });
 
       // Try to ping existing script first
       try {
@@ -108,11 +110,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'CAPTURE_COMPLETE') {
       captureInProgress = false;
       lastCaptureData = message.dataUrl;
-
-      // Automatically open the popup to show the preview
-      chrome.action.openPopup().catch((err) => {
-        console.warn('Could not open popup automatically:', err);
-      });
     }
 
     if (message.type === 'CAPTURE_ERROR') {
