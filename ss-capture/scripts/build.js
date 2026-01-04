@@ -31,12 +31,12 @@ console.log(chalk.blue(`🚀 Building for browsers: ${browsers.join(', ')} (${en
 async function buildForBrowser(browser) {
   const distDir = path.join(__dirname, '..', 'dist', browser);
   const srcDir = path.join(__dirname, '..');
-  
+
   try {
     // Clean and create dist directory
     await fs.remove(distDir);
     await fs.ensureDir(distDir);
-    
+
     // Copy files from src structure
     const filesToCopy = [
       { src: 'src/popup/popup.html', dest: 'popup.html' },
@@ -46,11 +46,11 @@ async function buildForBrowser(browser) {
       { src: 'src/css/style.css', dest: 'style.css' },
       { src: 'icons', dest: 'icons' }
     ];
-    
+
     for (const file of filesToCopy) {
       const srcPath = path.join(srcDir, file.src);
       const destPath = path.join(distDir, file.dest);
-      
+
       if (await fs.pathExists(srcPath)) {
         if (file.src === 'src/popup/popup.html') {
           // Process popup.html to fix CSS path
@@ -66,15 +66,15 @@ async function buildForBrowser(browser) {
         console.log(chalk.yellow(`⚠️  Source file not found: ${file.src}`));
       }
     }
-    
+
     // Generate browser-specific manifest
     const manifest = await generateManifest(browser, env);
     await fs.writeJson(path.join(distDir, 'manifest.json'), manifest, { spaces: 2 });
     console.log(chalk.green(`✓ Generated manifest.json for ${browser}`));
-    
+
     console.log(chalk.green(`✅ Build completed for ${browser}`));
     return true;
-    
+
   } catch (error) {
     console.error(chalk.red(`❌ Build failed for ${browser}:`), error.message);
     return false;
@@ -90,7 +90,8 @@ async function generateManifest(browser, env) {
     permissions: [
       "activeTab",
       "scripting",
-      "downloads"
+      "downloads",
+      "unlimitedStorage"
     ],
     host_permissions: [
       "<all_urls>"
@@ -109,9 +110,25 @@ async function generateManifest(browser, env) {
     icons: {
       "48": "icons/icon-48x48.png",
       "128": "icons/icon-128x128.png"
+    },
+    commands: {
+      "_execute_action": {
+        "suggested_key": {
+          "default": "Alt+Shift+S",
+          "mac": "Command+Shift+S"
+        },
+        "description": "Open the extension popup"
+      },
+      "capture_full_page": {
+        "suggested_key": {
+          "default": "Alt+Shift+F",
+          "mac": "Command+Shift+F"
+        },
+        "description": "Background Full Page Capture"
+      }
     }
   };
-  
+
   // Browser-specific modifications
   switch (browser) {
     case 'firefox':
@@ -122,51 +139,51 @@ async function generateManifest(browser, env) {
         }
       };
       break;
-      
+
     case 'edge':
       // Edge uses the same manifest as Chrome
       break;
-      
+
     case 'chrome':
     default:
       // Chrome manifest is the base
       break;
   }
-  
+
   // Environment-specific modifications
   if (env === 'development') {
     baseManifest.name += ' (Dev)';
     baseManifest.description += ' - Development Version';
   }
-  
+
   return baseManifest;
 }
 
 async function main() {
   console.log(chalk.blue('🔨 Starting build process...'));
-  
+
   const results = [];
-  
+
   for (const browser of browsers) {
     console.log(chalk.yellow(`\n📦 Building for ${browser}...`));
     const success = await buildForBrowser(browser);
     results.push({ browser, success });
   }
-  
+
   console.log(chalk.blue('\n📊 Build Summary:'));
-  
+
   const successful = results.filter(r => r.success);
   const failed = results.filter(r => !r.success);
-  
+
   if (successful.length > 0) {
     console.log(chalk.green(`✅ Successful: ${successful.map(r => r.browser).join(', ')}`));
   }
-  
+
   if (failed.length > 0) {
     console.log(chalk.red(`❌ Failed: ${failed.map(r => r.browser).join(', ')}`));
     process.exit(1);
   }
-  
+
   console.log(chalk.green('\n🎉 All builds completed successfully!'));
   console.log(chalk.blue('📁 Output directory: dist/'));
 }

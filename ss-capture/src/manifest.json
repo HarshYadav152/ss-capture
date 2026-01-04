@@ -6,7 +6,8 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "downloads"
+    "downloads",
+    "unlimitedStorage"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -39,6 +40,13 @@
         "mac": "Command+Shift+S"
       },
       "description": "Open the extension popup"
+    },
+    "capture_full_page": {
+      "suggested_key": {
+        "default": "Alt+Shift+F",
+        "mac": "Command+Shift+F"
+      },
+      "description": "Background Full Page Capture"
     }
   }
 }
