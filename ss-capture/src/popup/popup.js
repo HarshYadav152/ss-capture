@@ -95,16 +95,38 @@ document.getElementById('cancelBtn').addEventListener('click', () => {
 });
 
 // Save button handler
-document.getElementById('saveBtn').addEventListener('click', () => {
+document.getElementById('saveBtn').addEventListener('click', async () => {
   if (captureData) {
-    const a = document.createElement('a');
-    a.href = captureData;
-    a.download = `screenshot-${Date.now()}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    document.getElementById('statusText').textContent = 'Screenshot saved successfully!';
+    try {
+      // Get current tab to retrieve site URL
+      let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      
+      // Extract filename from URL
+      let url = new URL(tab.url);
+      let filename = url.hostname || 'screenshot';
+      
+      // Remove www. prefix if present
+      if (filename.startsWith('www.')) {
+        filename = filename.substring(4);
+      }
+      
+      // Replace dots and slashes with hyphens for better filename compatibility
+      filename = filename.replace(/[\.\/\?#&=]/g, '-').replace(/\s+/g, ' ').trim();
+      // Remove trailing hyphens
+      filename = filename.replace(/-+$/, '');
+      
+      const a = document.createElement('a');
+      a.href = captureData;
+      a.download = `${filename}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      document.getElementById('statusText').textContent = 'Screenshot saved successfully!';
+    } catch (error) {
+      console.error('Error saving screenshot:', error);
+      showErrorAlert('Failed to save screenshot');
+    }
   } else {
     showErrorAlert('No screenshot data available');
   }
