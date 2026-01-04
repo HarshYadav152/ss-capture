@@ -17,8 +17,6 @@ chrome.commands.onCommand.addListener(async (command) => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (tab && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
-      // Open the popup immediately so it can show progress and the final result
-      chrome.action.openPopup().catch(() => { /* Ignore if already open */ });
 
       // Try to ping existing script first
       try {
@@ -128,6 +126,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Handle request for last capture data from popup
   if (message.type === 'GET_LAST_CAPTURE') {
     sendResponse(lastCaptureData);
+  }
+
+  // Handle request to open popup from content script toast
+  if (message.type === 'OPEN_POPUP') {
+    chrome.action.openPopup().catch((err) => {
+      console.warn('Could not open popup from toast click:', err);
+    });
   }
 });
 

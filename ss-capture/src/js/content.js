@@ -28,7 +28,7 @@ function sendError(errorMessage) {
 class Toast {
   constructor() {
     this.host = document.createElement('div');
-    this.host.style.cssText = 'position: fixed; z-index: 2147483647; pointer-events: none;';
+    this.host.style.cssText = 'position: fixed; z-index: 2147483647;';
     const shadow = this.host.attachShadow({ mode: 'open' });
 
     const style = document.createElement('style');
@@ -52,6 +52,15 @@ class Toast {
           transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           font-size: 14px;
           font-weight: 500;
+          pointer-events: auto;
+          cursor: default;
+        }
+        .toast.clickable {
+          cursor: pointer;
+          border: 1px solid rgba(56, 189, 248, 0.5);
+        }
+        .toast.clickable:hover {
+          background: rgba(30, 41, 59, 0.95);
         }
         .toast.visible { transform: translateY(0); }
         .spinner {
@@ -70,11 +79,23 @@ class Toast {
 
     shadow.appendChild(style);
     shadow.appendChild(this.element);
+
+    this.onClick = null;
+    this.element.addEventListener('click', () => {
+      if (this.onClick) this.onClick();
+    });
   }
 
-  show(message, type = 'info') {
+  show(message, type = 'info', onClick = null) {
     if (!this.host.isConnected) {
       (document.body || document.documentElement).appendChild(this.host);
+    }
+
+    this.onClick = onClick;
+    if (onClick) {
+      this.element.classList.add('clickable');
+    } else {
+      this.element.classList.remove('clickable');
     }
 
     let icon = '';
@@ -340,8 +361,11 @@ async function captureScreenshot(isPopup = true) {
     cleanup();
 
     if (!isPopup) {
-      toast.show('Capture Complete! Open extension to save.', 'success');
-      toast.hide(5000);
+      toast.show('Capture Complete! Click to preview.', 'success', () => {
+        chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+        toast.hide();
+      });
+      toast.hide(8000);
     }
 
     chrome.runtime.sendMessage({
