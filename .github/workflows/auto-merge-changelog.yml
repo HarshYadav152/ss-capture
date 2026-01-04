@@ -1,0 +1,102 @@
+name: Auto Merge Changelog PR
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+
+jobs:
+  auto-merge-changelog:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.pull_request.head.ref == 'auto/changelog' &&
+      github.event.pull_request.user.login == 'github-actions[bot]' &&
+      contains(github.event.pull_request.title, 'Automated Changelog Update')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate changelog changes
+        run: |
+          # Check if only CHANGELOG.md was modified
+          CHANGED_FILES=$(git diff --name-only origin/main..origin/auto/changelog)
+          echo "Changed files: $CHANGED_FILES"
+          
+          if [ "$CHANGED_FILES" != "CHANGELOG.md" ]; then
+            echo "Error: More than just CHANGELOG.md was modified"
+            exit 1
+          fi
+          
+          # Validate CHANGELOG.md format
+          if ! grep -q "^# Changelog" CHANGELOG.md; then
+            echo "Error: CHANGELOG.md missing proper header"
+            exit 1
+          fi
+          
+          # Check if new content was added
+          if ! grep -q "$(date '+%Y-%m-%d')" CHANGELOG.md; then
+            echo "Warning: No entries for today found"
+          fi
+
+      - name: Auto-approve PR
+        uses: juliangruber/approve-pull-request-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ github.event.pull_request.number }}
+
+      - name: Add auto-merge label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['auto-merge', 'changelog']
+            })
+
+      - name: Enable auto-merge
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: squash
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '✅ **Auto-merge enabled**\n\nThis changelog PR has been automatically reviewed and approved. It will be merged once all checks pass.\n\n🤖 _This action was performed automatically by the changelog workflow._'
+            })
+
+  fallback-notification:
+    runs-on: ubuntu-latest
+    if: |
+      failure() &&
+      github.event.pull_request.head.ref == 'auto/changelog' &&
+      github.event.pull_request.user.login == 'github-actions[bot]'
+
+    steps:
+      - name: Notify failure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '❌ **Auto-merge failed**\n\nThe automated changelog PR could not be auto-merged due to validation errors. Please review manually.\n\n🤖 _This notification was sent automatically._'
+            })
