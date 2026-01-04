@@ -6,7 +6,7 @@ let captureData = null;
 function showErrorAlert(message) {
   const errorAlert = document.getElementById('errorAlert');
   const errorMessage = document.getElementById('errorMessage');
-  
+
   errorMessage.textContent = message;
   errorAlert.style.display = 'block';
 }
@@ -29,14 +29,14 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
   const previewImage = document.getElementById('previewImage');
   const previewContainer = document.getElementById('previewContainer');
   const previewDimensions = document.getElementById('previewDimensions');
-  
+
   // Reset state
   captureData = null;
   previewImage.style.display = 'none';
   previewContainer.style.display = 'none';
   previewImage.src = '';
   hideErrorAlert();
-  
+
   try {
     // Update UI
     captureBtn.disabled = true;
@@ -50,24 +50,27 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
     progressBar.style.width = '0%';
     progressPercent.textContent = '0%';
     statusText.textContent = 'Preparing to capture screenshot...';
-    
+
     // Set flag
     captureInProgress = true;
-    
+
     // Get current tab
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
+
     // Check if we can inject scripts into this tab
     if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
       throw new Error('Cannot capture screenshots on this page type');
     }
-    
+
     // Execute the content script
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       files: ['content.js']
     });
-    
+
+    // Trigger capture explicitly
+    chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', isPopup: true });
+
     // Set a timeout for very long captures (increased for chunking)
     setTimeout(() => {
       if (captureInProgress) {
@@ -76,7 +79,7 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
         resetUI();
       }
     }, 120000); // 120 second timeout for large pages
-    
+
   } catch (error) {
     showErrorAlert(error.message);
     statusText.textContent = 'Failed to start capture';
@@ -178,6 +181,42 @@ function resetUI() {
   document.getElementById('progressContainer').style.display = 'none';
 }
 
+// Initialize popup
+async function initPopup() {
+  const response = await chrome.runtime.sendMessage({ type: 'GET_LAST_CAPTURE' });
+  if (response) {
+    displayCapture(response);
+  }
+}
+
+function displayCapture(dataUrl) {
+  const statusText = document.getElementById('statusText');
+  const previewImage = document.getElementById('previewImage');
+  const previewContainer = document.getElementById('previewContainer');
+  const previewDimensions = document.getElementById('previewDimensions');
+  const saveBtn = document.getElementById('saveBtn');
+
+  captureData = dataUrl;
+  saveBtn.style.display = 'flex';
+  statusText.textContent = 'Screenshot ready! Click Save to download.';
+
+  try {
+    const img = new Image();
+    img.onload = function () {
+      previewDimensions.textContent = `${this.width} × ${this.height}px`;
+    };
+    img.src = dataUrl;
+
+    previewImage.src = dataUrl;
+    previewImage.style.display = 'block';
+    previewContainer.style.display = 'block';
+  } catch (error) {
+    console.warn('Could not display preview:', error);
+  }
+}
+
+initPopup();
+
 // Listen for messages from content/background scripts
 chrome.runtime.onMessage.addListener((message) => {
   const statusText = document.getElementById('statusText');
@@ -192,54 +231,28 @@ chrome.runtime.onMessage.addListener((message) => {
   const saveBtn = document.getElementById('saveBtn');
   const copyBtn = document.getElementById('copyBtn');
   const progressContainer = document.getElementById('progressContainer');
-  
+
   // Handle progress updates
   if (message.type === 'PROGRESS') {
     statusText.textContent = message.message;
-    
+
     if (message.percentComplete !== null) {
       progressBar.style.width = `${message.percentComplete}%`;
       progressPercent.textContent = `${message.percentComplete}%`;
     }
   }
-  
+
   if (message.type === 'CAPTURE_COMPLETE') {
     captureInProgress = false;
-    captureData = message.dataUrl;
-    
-    // Update UI
-    spinner.style.display = 'none';
-    captureBtn.disabled = false;
-    cancelBtn.style.display = 'none';
-    saveBtn.style.display = 'flex';
-    copyBtn.style.display = 'flex';
-    progressBar.style.width = '100%';
-    progressPercent.textContent = '100%';
-    statusText.textContent = 'Screenshot complete! Click Save to download.';
-    
-    // Show preview
-    if (captureData) {
-      try {
-        const img = new Image();
-        img.onload = function() {
-          previewDimensions.textContent = `${this.width} × ${this.height}px`;
-        };
-        img.src = captureData;
-        
-        previewImage.src = captureData;
-        previewImage.style.display = 'block';
-        previewContainer.style.display = 'block';
-      } catch (error) {
-        console.warn('Could not display preview:', error);
-      }
-    }
-    
+    resetUI();
+    displayCapture(message.dataUrl);
+
     // Hide progress after 2 seconds
     setTimeout(() => {
       progressContainer.style.display = 'none';
     }, 2000);
   }
-  
+
   if (message.type === 'CAPTURE_ERROR') {
     resetUI();
     showErrorAlert(message.error);
