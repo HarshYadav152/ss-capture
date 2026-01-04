@@ -5,6 +5,37 @@
 -  make capture toast clickable to open extension preview (4cbed6d) - @Abhin Vaidya
 -  open popup immediately on shortcut to show progress (5993d72) - @Abhin Vaidya
 -  automatically open popup after background capture (5bcbfd3) - @Abhin Vaidya
+-  add glassmorphic capture button styling (1061291) - @RutujaKavilkar
+
+### 📝 Documentation
+-  auto update changelog (a6bfc62) - @HarshYadav152
+-  auto update changelog (9f5576e) - @HarshYadav152
+-  auto update changelog (d0df740) - @HarshYadav152
+-  auto approve changelog PRs workflow (64a62a4) - @HarshYadav152
+-  auto update changelog (031d15b) - @HarshYadav152
+-  auto update changelog (77013b7) - @HarshYadav152
+-  auto update changelog (f662efa) - @HarshYadav152
+
+### 🔧 Chore
+-  resolve README merge conflict with upstream main (4939b77) - @heisenberg7519
+
+### 📦 Other Changes
+- Revert "[FEATURE] Add Glassmorphic Button UI + Tooltip System #16" (bde6f61) - @Harsh Yadav
+- Improve Animation (8c58cf6) - @sohanjadyal
+- Updated SS Naming (8be4a33) - @Shivani Meena
+- Move CSS to separate file and link it in index.html (a7029a7) - @Lakshiga Sri Varshan
+- Add step by step installation guide to index.html (bb6c81e) - @Lakshiga Sri Varshan
+- Improve README formatting and add emojis (0ec7daf) - @Harsh Yadav
+- Add prerequisites section to README (0aeadbb) - @heisenberg7519
+
+
+## [2026-01-04]
+
+### ✨ Features
+-  add camera shutter flash and delay for background capture feedback (08947cc) - @Abhin Vaidya
+-  make capture toast clickable to open extension preview (4cbed6d) - @Abhin Vaidya
+-  open popup immediately on shortcut to show progress (5993d72) - @Abhin Vaidya
+-  automatically open popup after background capture (5bcbfd3) - @Abhin Vaidya
 
 ### 📝 Documentation
 -  auto update changelog (9f5576e) - @HarshYadav152
