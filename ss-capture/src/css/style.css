@@ -18,6 +18,7 @@ body {
     padding: 16px;
     position: relative;
     overflow: hidden;
+    clip-path: inset(0);
 }
 
 /* Animated background particles */
@@ -32,19 +33,17 @@ body::before {
         radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
-    animation: backgroundShift 8s ease-in-out infinite;
+    animation: backgroundShift 12s ease-in-out infinite;
     z-index: -1;
+    will-change: opacity;
 }
 
 @keyframes backgroundShift {
     0%, 100% {
-        transform: translate(0, 0) scale(1);
+        opacity: 1;
     }
-    33% {
-        transform: translate(-10px, -10px) scale(1.1);
-    }
-    66% {
-        transform: translate(10px, 10px) scale(0.9);
+    50% {
+        opacity: 0.85;
     }
 }
 
@@ -53,7 +52,7 @@ body::before {
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: none;
     box-shadow:
         0 8px 32px 0 rgba(0, 0, 0, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
