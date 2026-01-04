@@ -5,6 +5,37 @@
 -  add copy to clipboard button (5eb9f92) - @Your Name
 
 ### 📝 Documentation
+-  auto update changelog (77013b7) - @HarshYadav152
+-  auto update changelog (f662efa) - @HarshYadav152
+-  auto update changelog (30b00fc) - @JackSparrow-BlackPearl
+-  auto update changelog (afa450b) - @HarshYadav152
+-  add keyboard shortcut details to README (7b99654) - @Abhin Vaidya
+-  auto update changelog (8a65880) - @JackSparrow-BlackPearl
+
+### 🔧 Chore
+-  resolve README merge conflict with upstream main (4939b77) - @heisenberg7519
+
+### 📦 Other Changes
+- Updated SS Naming (8be4a33) - @Shivani Meena
+- Move CSS to separate file and link it in index.html (a7029a7) - @Lakshiga Sri Varshan
+- Add step by step installation guide to index.html (bb6c81e) - @Lakshiga Sri Varshan
+- Improve README formatting and add emojis (0ec7daf) - @Harsh Yadav
+- Add prerequisites section to README (0aeadbb) - @heisenberg7519
+- update readme and development files (8f972c1) - @HarshYadav152
+- remove unused LICENC (dd096f3) - @HarshYadav152
+- update greetings.yml (b66d90c) - @HarshYadav152
+- update package files with project author details (22b77ab) - @HarshYadav152
+- update extension name to ss-capture (efe7a57) - @HarshYadav152
+- update development.md file and remove outdated LICENCE inside ss-capture/ (fcb51e6) - @HarshYadav152
+
+
+## [2026-01-04]
+
+### ✨ Features
+-  Add Alt+Shift+S keyboard shortcut to open popup (Issue #18) (d8c08c6) - @Abhin Vaidya
+-  add copy to clipboard button (5eb9f92) - @Your Name
+
+### 📝 Documentation
 -  auto update changelog (f662efa) - @HarshYadav152
 -  auto update changelog (30b00fc) - @JackSparrow-BlackPearl
 -  auto update changelog (afa450b) - @HarshYadav152
