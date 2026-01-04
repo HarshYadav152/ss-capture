@@ -93,7 +93,7 @@ document.getElementById('cancelBtn').addEventListener('click', () => {
 });
 
 // Save button handler
-document.getElementById('saveBtn').addEventListener('click', () => {
+document.getElementById('saveBtn').addEventListener('click', async () => {
   if (captureData) {
     const a = document.createElement('a');
     a.href = captureData;
