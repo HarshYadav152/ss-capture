@@ -88,7 +88,7 @@ class Toast {
 
   show(message, type = 'info', onClick = null) {
     if (!this.host.isConnected) {
-      (document.body || document.documentElement).appendChild(this.host);
+      (document.documentElement || document.body).appendChild(this.host);
     }
 
     this.onClick = onClick;
@@ -99,10 +99,20 @@ class Toast {
     }
 
     let icon = '';
-    if (type === 'loading') icon = '<div class="spinner"></div>';
-    if (type === 'success') icon = '✅';
-    if (type === 'error') icon = '❌';
+    let bgColor = 'rgba(15, 23, 42, 0.95)';
+    if (type === 'loading') {
+      icon = '<div class="spinner"></div>';
+    }
+    if (type === 'success') {
+      icon = '✅';
+      bgColor = 'rgba(5, 150, 105, 0.95)';
+    }
+    if (type === 'error') {
+      icon = '❌';
+      bgColor = 'rgba(220, 38, 38, 0.95)';
+    }
 
+    this.element.style.background = bgColor;
     this.element.innerHTML = `${icon}<span>${message}</span>`;
     requestAnimationFrame(() => this.element.classList.add('visible'));
   }
@@ -146,7 +156,21 @@ async function captureScreenshot(isPopup = true) {
   console.log('Starting screenshot capture...');
   isCancelled = false; // Reset cancel flag
   
-  if (!isPopup) toast.show('Initializing capture...', 'loading');
+  if (!isPopup) {
+    toast.show('Starting Full Page Capture...', 'loading');
+    
+    // Visual feedback: Flash the screen like a camera shutter
+    const flash = document.createElement('div');
+    flash.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2147483647; pointer-events: none; opacity: 0.6; transition: opacity 0.4s ease-out;';
+    (document.documentElement || document.body).appendChild(flash);
+    
+    requestAnimationFrame(() => {
+      flash.style.opacity = '0';
+      setTimeout(() => flash.remove(), 400);
+    });
+
+    await sleep(800); // Give user a moment to see the notification
+  }
 
   let originalX = window.scrollX;
   let originalY = window.scrollY;
