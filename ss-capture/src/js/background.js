@@ -108,6 +108,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'CAPTURE_COMPLETE') {
       captureInProgress = false;
       lastCaptureData = message.dataUrl;
+
+      // Automatically open the popup to show the preview
+      chrome.action.openPopup().catch((err) => {
+        console.warn('Could not open popup automatically:', err);
+      });
     }
 
     if (message.type === 'CAPTURE_ERROR') {
