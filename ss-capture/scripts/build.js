@@ -82,13 +82,12 @@ async function buildForBrowser(browser) {
 }
 
 async function generateManifest(browser, env) {
-  const packageJsonPath = path.join(__dirname, '..', 'package.json');
-  const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
+  const { version } = require('../package.json');
 
   const baseManifest = {
     manifest_version: 3,
     name: "SS-Capture",
-    version: packageJson.version,
+    version: version,
     description: "Capture high-quality full-page screenshots with a modern glassmorphic interface.",
     permissions: [
       "activeTab",
