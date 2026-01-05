@@ -1,66 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SS-Capture – Browser Compatibility</title>
-   <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SS-capture</title>
+    <link rel="stylesheet" href ="css/style.css">
 </head>
 <body>
 
-<section class="browser-compatibility">
-  <h2>🌐 Browser Compatibility</h2>
-  <p class="compat-note">
-    SS-Capture uses <strong>Manifest V3</strong>. Only browsers that support
-    Manifest V3 APIs are compatible.
-  </p>
+  <nav class="navbar">
+  <div class="nav-container">
+    <div class="logo">
+      <img src="logo.png" alt="SS-Capture Logo" />
+      <span>SS-Capture</span>
+    </div>
 
-  <div class="browser-grid">
+    <ul class="nav-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Docs</a></li>
+      <li><a href="#">GitHub</a></li>
+      <li><a href="#">Support</a></li>
+    </ul>
+  </div>
+</nav>
+
+
+    <section class="installation-guide">
+    <h2>Installation Guide</h2>
+
+    <p>
+      This guide explains how to install the <strong>SS-Capture</strong> browser
+      extension on Chrome, Microsoft Edge, and Firefox. The steps are written
+      for beginners and follow the project README.
+    </p>
 
     <!-- Chrome -->
-    <div class="browser-card">
-      <img src="images/googlechrome.svg" alt="Chrome">
-      <h3>Chrome</h3>
-      <p class="version">Version 88+</p>
-      <p class="status supported">✅ Full Support</p>
-      <a href="https://www.google.com/chrome/" target="_blank" class="btn">
-        Install Now
-      </a>
-    </div>
+    <details open>
+      <summary>Install on Google Chrome</summary>
+
+      <ol>
+        <li>
+          Download the latest release from the GitHub <strong>Releases</strong> page.
+          <div class="screenshot-placeholder">
+            [Screenshot: GitHub Releases Page]
+          </div>
+        </li>
+
+        <li>
+          Open Chrome and navigate to
+          <code>chrome://extensions/</code>
+          <button class="copy-btn" data-copy="chrome://extensions/">Copy</button>
+          <div class="screenshot-placeholder">
+            [Screenshot: Chrome Extensions Page]
+          </div>
+        </li>
+
+        <li>
+          Enable <strong>Developer mode</strong> using the toggle in the top-right corner.
+          <p class="note">
+            Developer mode allows loading unpacked extensions for development and testing.
+          </p>
+          <div class="screenshot-placeholder">
+            [Screenshot: Developer Mode Enabled]
+          </div>
+        </li>
+
+        <li>
+          Click <strong>Load unpacked</strong> and select the
+          <code>dist/chrome</code> folder.
+          <div class="screenshot-placeholder">
+            [Screenshot: Load Unpacked Folder]
+          </div>
+        </li>
+
+        <li>
+          The extension will appear in the extensions list and is ready to use.
+          <div class="screenshot-placeholder">
+            [Screenshot: Extension Installed Successfully]
+          </div>
+          <div class="warning">
+            Make sure you select the <code>dist/chrome</code> folder, not the project root.
+          </div>
+        </li>
+      </ol>
+
+      <p>
+        Official documentation:
+        <a href="https://developer.chrome.com/docs/extensions/mv3/getstarted/" target="_blank">
+          Chrome Extensions Getting Started
+        </a>
+      </p>
+    </details>
 
     <!-- Edge -->
-    <div class="browser-card">
-      <img src="images/edge.svg" alt="Edge">
-      <h3>Edge</h3>
-      <p class="version">Version 88+</p>
-      <p class="status supported">✅ Full Support</p>
-      <a href="https://www.microsoft.com/edge" target="_blank" class="btn">
-        Download
-      </a>
-    </div>
+    <details>
+      <summary>Install on Microsoft Edge</summary>
+
+      <ol>
+        <li>
+          Download the latest release from the GitHub <strong>Releases</strong> page.
+          <div class="screenshot-placeholder">
+            [Screenshot: GitHub Releases Page]
+          </div>
+        </li>
+
+        <li>
+          Open Microsoft Edge and navigate to
+          <code>edge://extensions/</code>
+          <button class="copy-btn" data-copy="edge://extensions/">Copy</button>
+          <div class="screenshot-placeholder">
+            [Screenshot: Edge Extensions Page]
+          </div>
+        </li>
+
+        <li>
+          Enable <strong>Developer mode</strong> using the toggle at the bottom-left.
+          <div class="screenshot-placeholder">
+            [Screenshot: Developer Mode Enabled]
+          </div>
+        </li>
+
+        <li>
+          Click <strong>Load unpacked</strong> and select the
+          <code>dist/edge</code> folder.
+          <div class="screenshot-placeholder">
+            [Screenshot: Load Unpacked Folder]
+          </div>
+        </li>
+
+        <li>
+          The extension will now be installed and ready to use.
+          <div class="screenshot-placeholder">
+            [Screenshot: Extension Installed Successfully]
+          </div>
+        </li>
+      </ol>
+
+      <p>
+        Official documentation:
+        <a href="https://learn.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/" target="_blank">
+          Edge Extensions Documentation
+        </a>
+      </p>
+    </details>
 
     <!-- Firefox -->
-    <div class="browser-card">
-      <img src="images/firefox.svg" alt="Firefox">
-      <h3>Firefox</h3>
-      <p class="version">Version 109+</p>
-      <p class="status supported">✅ Full Support</p>
-      <a href="https://www.mozilla.org/firefox/" target="_blank" class="btn">
-        Download
-      </a>
-    </div>
+    <details>
+      <summary>Install on Firefox</summary>
 
-    <!-- Safari -->
-    <div class="browser-card not-supported">
-      <img src="images/safari.svg" alt="Safari">
-      <h3>Safari</h3>
-      <p class="version">Version 16+</p>
-      <p class="status not-supported-status">❌ Not Supported</p>
-      <p class="note">Manifest V3 not supported</p>
-    </div>
+      <ol>
+        <li>
+          Download the latest release from the GitHub <strong>Releases</strong> page.
+          <div class="screenshot-placeholder">
+            [Screenshot: GitHub Releases Page]
+          </div>
+        </li>
 
+        <li>
+          Extract the ZIP file to a known location.
+          <div class="screenshot-placeholder">
+            [Screenshot: Extract ZIP File]
+          </div>
+        </li>
+
+        <li>
+          Open Firefox and navigate to
+          <code>about:debugging</code>
+          <button class="copy-btn" data-copy="about:debugging">Copy</button>
+          <div class="screenshot-placeholder">
+            [Screenshot: Firefox Debugging Page]
+          </div>
+        </li>
+
+        <li>
+          Click <strong>This Firefox</strong>.
+        </li>
+
+        <li>
+          Click <strong>Load Temporary Add-on</strong> and select
+          <code>manifest.json</code> from the <code>dist/firefox</code> folder.
+          <div class="screenshot-placeholder">
+            [Screenshot: Load Temporary Add-on]
+          </div>
+        </li>
+
+        <li>
+          The extension will remain active until Firefox is restarted.
+          <div class="screenshot-placeholder">
+            [Screenshot: Firefox Extension Loaded]
+          </div>
+          <div class="warning">
+            Firefox temporary add-ons are removed when the browser is closed.
+          </div>
+        </li>
+      </ol>
+
+      <p>
+        Official documentation:
+        <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension" target="_blank">
+          Firefox WebExtensions Guide
+        </a>
+      </p>
+    </details>
+
+    <!-- Troubleshooting -->
+    <details>
+      <summary>Troubleshooting</summary>
+      <ul>
+        <li>Ensure <strong>Developer mode</strong> is enabled before loading the extension.</li>
+        <li>
+          Confirm that the correct folder was selected:
+          <code>dist/chrome</code>, <code>dist/edge</code>, or <code>dist/firefox</code>.
+        </li>
+        <li>Firefox temporary add-ons are removed when the browser is restarted.</li>
+        <li>
+          Internal browser pages such as <code>chrome://</code> and <code>edge://</code>
+          cannot be captured due to browser security restrictions.
+        </li>
+      </ul>
+    </details>
+  </section>
+
+  <script>
+    document.querySelectorAll(".copy-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        navigator.clipboard.writeText(btn.dataset.copy);
+        btn.textContent = "Copied";
+        setTimeout(function () {
+          btn.textContent = "Copy";
+        }, 1500);
+      });
+    });
+  </script>
+
+  <footer class="footer">
+  <div class="footer-content">
+    <p>© 2026 SS-Capture. Open-source browser extension.</p>
+    <div class="footer-links">
+      <a href="#">GitHub</a>
+      <a href="#">License</a>
+      <a href="#">Issues</a>
+    </div>
   </div>
-</section>
+</footer>
 
+    
 </body>
 </html>

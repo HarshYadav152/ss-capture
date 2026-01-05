@@ -1,10 +1,10 @@
 {
-  "name": "full-page-screenshot-capture",
+  "name": "ss-capture",
   "version": "1.2.0",
   "description": "A modern, high-quality full-page screenshot extension with beautiful glassmorphic interface",
   "main": "background.js",
   "scripts": {
-    "dev": "npm run build:dev && npm run watch",
+    "dev": "npm run build:dev &&",
     "build": "npm run build:all",
     "build:all": "npm run build:chrome && npm run build:firefox && npm run build:edge",
     "build:dev": "node scripts/build.js --env development",
@@ -37,19 +37,19 @@
     "page-screenshot"
   ],
   "author": {
-    "name": "Full Page Screenshot Team",
-    "email": "team@fullpagescreenshot.com",
-    "url": "https://github.com/yourusername/ss-capture"
+    "name": "Harsh Yadav",
+    "email": "HarshYadav152@outlook.com",
+    "url": "https://github.com/HarshYadav152/ss-capture"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/ss-capture.git"
+    "url": "https://github.com/HarshYadav152/ss-capture.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/ss-capture/issues"
+    "url": "https://github.com/HarshYadav152/ss-capture/issues"
   },
-  "homepage": "https://github.com/yourusername/ss-capture#readme",
+  "homepage": "https://github.com/HarshYadav152/ss-capture#readme",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"
@@ -108,15 +108,8 @@
   },
   "funding": {
     "type": "github",
-    "url": "https://github.com/sponsors/yourusername"
+    "url": "https://github.com/sponsors/HarshYadav152"
   },
-  "contributors": [
-    {
-      "name": "Your Name",
-      "email": "your.email@example.com",
-      "url": "https://github.com/yourusername"
-    }
-  ],
   "config": {
     "commitizen": {
       "path": "cz-conventional-changelog"

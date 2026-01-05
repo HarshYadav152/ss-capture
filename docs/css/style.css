@@ -1,80 +1,236 @@
- body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: #f4f6f8;
-      color: #222;
-    }
+/* ===== CSS RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    .browser-compatibility {
-      max-width: 1100px;
-      margin: 3rem auto;
-      padding: 1rem;
-      text-align: center;
-    }
+/* ===== ROOT VARIABLES ===== */
+:root {
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --primary: #2563eb;
+  --secondary: #0f172a;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: #e5e7eb;
+  --warning: #fee2e2;
+}
+/* ===== LOGO ===== */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+}
 
-    .compat-note {
-      color: #555;
-      margin-bottom: 2rem;
-    }
+.logo img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
 
-    .browser-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.5rem;
-    }
+.logo span {
+  color: var(--secondary);
+}
 
-    .browser-card {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-    }
 
-    .browser-card img {
-      width: 48px;
-      height: 48px;
-      margin-bottom: 0.5rem;
-    }
+/* ===== BODY ===== */
+body {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text);
+  line-height: 1.7;
+}
 
-    .version {
-      color: #666;
-      font-size: 0.9rem;
-    }
+/* ===== NAVBAR ===== */
+.navbar {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
 
-    .status {
-      margin: 0.6rem 0 1rem;
-      font-weight: 600;
-    }
+.nav-container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-    .supported {
-      color: #0a8a0a;
-    }
+.logo {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--primary);
+}
 
-    .not-supported-status {
-      color: #b00020;
-    }
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
 
-    .btn {
-      display: inline-block;
-      padding: 0.55rem 1.2rem;
-      background: #1a73e8;
-      color: #fff;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
+.nav-links a {
+  text-decoration: none;
+  color: var(--secondary);
+  font-weight: 500;
+}
 
-    .btn:hover {
-      background: #1558b0;
-    }
+.nav-links a:hover {
+  color: var(--primary);
+}
 
-    .not-supported {
-      opacity: 0.45;
-      background: #eee;
-      box-shadow: none;
-    }
+/* ===== MAIN SECTION ===== */
+.installation-guide {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
 
-    .note {
-      font-size: 0.8rem;
-      color: #444;
-    }
+.installation-guide h2 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.installation-guide p {
+  margin-bottom: 20px;
+  color: var(--muted);
+}
+
+/* ===== DETAILS / ACCORDIONS ===== */
+details {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  padding: 16px;
+}
+
+details summary {
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+details[open] summary {
+  color: var(--primary);
+}
+
+details ol {
+  margin-top: 16px;
+  padding-left: 20px;
+}
+
+details li {
+  margin-bottom: 14px;
+}
+
+/* ===== CODE & COPY BUTTON ===== */
+code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.copy-btn {
+  margin-left: 8px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card-bg);
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  background: #f1f5f9;
+}
+
+/* ===== SCREENSHOT PLACEHOLDER ===== */
+.screenshot-placeholder {
+  margin-top: 8px;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: #f9fafb;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* ===== NOTES & WARNINGS ===== */
+.note {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.warning {
+  margin-top: 10px;
+  padding: 10px;
+  background: var(--warning);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #991b1b;
+}
+
+/* ===== LINKS ===== */
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  margin-top: 60px;
+  background: var(--secondary);
+  color: #e5e7eb;
+}
+
+.footer-content {
+  max-width: 1100px;
+  margin: auto;
+  padding: 24px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-links {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-links a {
+  color: #cbd5f5;
+  font-size: 0.9rem;
+}
+
+.footer-links a:hover {
+  color: #ffffff;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .nav-links {
+    gap: 12px;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
