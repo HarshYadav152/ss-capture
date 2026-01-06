@@ -2,7 +2,14 @@
 let captureInProgress = false;
 let lastCaptureTime = 0;
 let lastCaptureData = null;
-const MIN_CAPTURE_INTERVAL = 600; // Minimum 600ms between captures (ensures < 2 calls per second)
+const MIN_CAPTURE_INTERVAL = 600;
+
+// Initialize from storage
+chrome.storage.local.get(['lastCaptureData'], (result) => {
+  if (result.lastCaptureData) {
+    lastCaptureData = result.lastCaptureData;
+  }
+});
 
 // Keyboard shortcuts handling
 chrome.commands.onCommand.addListener(async (command) => {
@@ -108,6 +115,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'CAPTURE_COMPLETE') {
       captureInProgress = false;
       lastCaptureData = message.dataUrl;
+      chrome.storage.local.set({ lastCaptureData: message.dataUrl });
     }
 
     if (message.type === 'CAPTURE_ERROR') {
@@ -125,7 +133,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // Handle request for last capture data from popup
   if (message.type === 'GET_LAST_CAPTURE') {
-    sendResponse(lastCaptureData);
+    if (lastCaptureData) {
+      sendResponse(lastCaptureData);
+    } else {
+      chrome.storage.local.get(['lastCaptureData'], (result) => {
+        sendResponse(result.lastCaptureData || null);
+      });
+      return true; // Keep channel open for async
+    }
   }
 
   // Handle request to open popup from content script toast
