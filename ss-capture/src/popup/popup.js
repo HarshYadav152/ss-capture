@@ -41,8 +41,6 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
     // Update UI
     captureBtn.disabled = true;
     cancelBtn.style.display = 'flex';
-    captureBtn.disabled = true;
-    cancelBtn.style.display = 'flex';
     saveBtn.style.display = 'none';
     copyBtn.style.display = 'none';
     spinner.style.display = 'block';
@@ -68,8 +66,8 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
       files: ['content.js']
     });
 
-    // Trigger capture explicitly
-    chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', isPopup: true });
+// Trigger capture explicitly
+chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', isPopup: true });
 
     // Set a timeout for very long captures (increased for chunking)
     setTimeout(() => {
@@ -100,36 +98,14 @@ document.getElementById('cancelBtn').addEventListener('click', () => {
 // Save button handler
 document.getElementById('saveBtn').addEventListener('click', async () => {
   if (captureData) {
-    try {
-      // Get current tab to retrieve site URL
-      let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      
-      // Extract filename from URL
-      let url = new URL(tab.url);
-      let filename = url.hostname || 'screenshot';
-      
-      // Remove www. prefix if present
-      if (filename.startsWith('www.')) {
-        filename = filename.substring(4);
-      }
-      
-      // Replace dots and slashes with hyphens for better filename compatibility
-      filename = filename.replace(/[\.\/\?#&=]/g, '-').replace(/\s+/g, ' ').trim();
-      // Remove trailing hyphens
-      filename = filename.replace(/-+$/, '');
-      
-      const a = document.createElement('a');
-      a.href = captureData;
-      a.download = `${filename}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      
-      document.getElementById('statusText').textContent = 'Screenshot saved successfully!';
-    } catch (error) {
-      console.error('Error saving screenshot:', error);
-      showErrorAlert('Failed to save screenshot');
-    }
+    const a = document.createElement('a');
+    a.href = captureData;
+    a.download = `screenshot-${Date.now()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    document.getElementById('statusText').textContent = 'Screenshot saved successfully!';
   } else {
     showErrorAlert('No screenshot data available');
   }
@@ -142,24 +118,24 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
       // Convert base64 to blob
       const res = await fetch(captureData);
       const blob = await res.blob();
-      
+
       // Write to clipboard
       await navigator.clipboard.write([
         new ClipboardItem({
           'image/png': blob
         })
       ]);
-      
+
       const statusText = document.getElementById('statusText');
       statusText.textContent = 'Screenshot copied to clipboard!';
-      
+
       // Visual feedback
       const originalText = document.querySelector('#copyBtn .btn-text').textContent;
       document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
       setTimeout(() => {
         document.querySelector('#copyBtn .btn-text').textContent = originalText;
       }, 2000);
-      
+
     } catch (err) {
       console.error('Failed to copy: ', err);
       showErrorAlert('Failed to copy to clipboard');
@@ -243,19 +219,38 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 
   if (message.type === 'CAPTURE_COMPLETE') {
-    captureInProgress = false;
-    resetUI();
-    displayCapture(message.dataUrl);
+if (message.type === 'CAPTURE_COMPLETE') {
+  captureInProgress = false;
+  resetUI();
+  displayCapture(message.dataUrl);
 
-    // Hide progress after 2 seconds
-    setTimeout(() => {
-      progressContainer.style.display = 'none';
-    }, 2000);
-  }
+  // Hide progress after 2 seconds
+  setTimeout(() => {
+    progressContainer.style.display = 'none';
+  }, 2000);
+}
+
 
   if (message.type === 'CAPTURE_ERROR') {
     resetUI();
     showErrorAlert(message.error);
     statusText.textContent = 'Screenshot capture failed';
   }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const themeToggle = document.getElementById('themeToggle');
+  if (!themeToggle) return;
+
+  // Initialize theme on page load
+  const initTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', initTheme);
+
+  themeToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  });
 });
