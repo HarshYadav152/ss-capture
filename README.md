@@ -3,20 +3,20 @@
 
 A modern, high-quality full-page screenshot extension with a beautiful glassmorphic interface. Capture entire web pages with automatic scrolling and chunked rendering for pages exceeding browser canvas limitations.
 
-![Extension Preview](docs/preview.png)
+![Extension Preview](https://raw.githubusercontent.com/HarshYadav152/ss-capture/main/docs/PREVIEW.png)
 
 ## ✨ Features
 
-- **🎯 Full Page Capture**: Automatically captures entire web pages, not just the visible viewport
-- **📏 Large Page Support**: Handles pages exceeding 32,000px by automatically dividing them into chunks
-- **🎨 Modern UI**: Beautiful glassmorphic interface with futuristic design
-- **⚡ Smart Processing**: Intelligent chunking and stitching for very long pages
-- **🔄 Progress Tracking**: Real-time progress updates showing chunk processing (X of Y)
-- **📱 Responsive Design**: Works perfectly on all screen sizes
-- **⏱️ Live Updates**: Visual progress bar and status messages
-- **🎯 Error Recovery**: Graceful error handling with clear user messages
-- **💾 High Quality**: PNG format with maximum quality settings
-- **⏸️ Cancellable**: Abort long-running captures at any time
+- 🎯 **Full Page Capture**: Automatically captures entire web pages, not just the visible viewport
+- 📏 **Large Page Support**: Handles pages exceeding 32,000px by automatically dividing them into chunks
+- 🎨 **Modern UI**: Beautiful glassmorphic interface with futuristic design
+- ⚡ **Smart Processing**: Intelligent chunking and stitching for very long pages
+- 🔄 **Progress Tracking**: Real-time progress updates showing chunk processing (X of Y)
+- 📱 **Responsive Design**: Works perfectly on all screen sizes
+- ⏱️ **Live Updates**: Visual progress bar and status messages
+- 🎯 **Error Recovery**: Graceful error handling with clear user messages
+- 💾 **High Quality**: PNG format with maximum quality settings
+- ⏸️ **Cancellable**: Abort long-running captures at any time
 
 ## 🚀 Installation
 
@@ -63,6 +63,10 @@ node scripts/build.js firefox
 5. **Preview** the captured screenshot
 6. **Click** "Save" to download the screenshot
 
+###  Keyboard Shortcuts
+- **Alt + Shift + S** (Mac: **Cmd + Shift + S**): Open Extension Popup
+- **Alt + Shift + F** (Mac: **Cmd + Shift + F**): Invoke extension in bankgroud
+
 ### Supported Page Types
 - ✅ Regular web pages (HTTP/HTTPS)
 - ✅ Single Page Applications (SPAs)
@@ -75,7 +79,7 @@ node scripts/build.js firefox
 - ❌ Chrome internal pages (`chrome://`)
 - ❌ Extension pages (`chrome-extension://`)
 - ❌ Browser new tab pages
-- ❌ Local file URLs (without proper permissions)
+- ❌ Local file URLs (`without proper permissions`)
 
 ### How Large Pages Are Handled
 When a page exceeds **32,000px** in height (browser canvas limitation):
@@ -332,3 +336,4 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 ---
 
 **Made with ❤️ by [Harsh Yadav](https://github.com/HarshYadav152)**
+
