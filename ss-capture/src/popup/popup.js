@@ -66,11 +66,8 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
       files: ['content.js']
     });
 
-
-
-    // Trigger capture explicitly
-    chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', isPopup: true });
-
+// Trigger capture explicitly
+chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', isPopup: true });
 
     // Set a timeout for very long captures (increased for chunking)
     setTimeout(() => {
@@ -222,9 +219,12 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 
   if (message.type === 'CAPTURE_COMPLETE') {
+if (message.type === 'CAPTURE_COMPLETE') {
   captureInProgress = false;
+  resetUI();
   displayCapture(message.dataUrl);
 
+  // Hide progress after 2 seconds
   setTimeout(() => {
     progressContainer.style.display = 'none';
   }, 2000);

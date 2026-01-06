@@ -179,8 +179,10 @@ body {
     position: relative;
     overflow: hidden;
 
+
     border: none;
     box-shadow: none;
+
 
 }
 
@@ -195,16 +197,19 @@ body::before {
     bottom: 0;
     background:
 
+
         radial-gradient(circle at 20% 80%, var(--blob-1) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, var(--blob-2) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, var(--blob-3) 0%, transparent 50%);
     animation: backgroundShift 8s ease-in-out infinite;
+
 
     z-index: -1;
     will-change: opacity;
 }
 
 @keyframes backgroundShift {
+
 
 
     0%,
@@ -219,6 +224,7 @@ body::before {
     66% {
         transform: translate(10px, 10px) scale(1.05);
 
+
     }
 }
 
@@ -228,6 +234,7 @@ body::before {
     -webkit-backdrop-filter: blur(25px);
     border-radius: 24px;
 
+
     border: 1px solid var(--glass-border);
 
     box-shadow: var(--card-shadow);
@@ -236,6 +243,7 @@ body::before {
         background 0.6s cubic-bezier(0.4, 0.0, 0.2, 1),
         border-color 0.6s cubic-bezier(0.4, 0.0, 0.2, 1),
         box-shadow 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+
 
 
     padding: 28px 24px;
