@@ -4,69 +4,81 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SS-Capture</title>
-
-  <!-- Main CSS -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
-
 <body>
-  <main class="page-container">
+  <!-- Glass Container Popup -->
+  <div class="glass-container">
+    <div class="header">
+      <div class="icon-wrapper">
+        <div class="main-icon">📸</div>
+      </div>
+      <h2>SS-Capture</h2>
+      <p class="subtitle">Capture screenshots with ease and precision</p>
+    </div>
 
-    <!-- Feature Showcase Section -->
-    <section class="features-section">
-      <h2 class="features-title">✨ Why Choose SS-Capture?</h2>
+    <!-- Error Alert -->
+    <div class="error-alert" id="errorAlert">
+      <div class="error-alert-content">
+        <div class="error-icon">!</div>
+        <div class="error-message" id="errorMessage">Error message here</div>
+        <button class="error-close" id="errorClose">&times;</button>
+      </div>
+    </div>
 
-      <div class="features-grid">
-        <div class="feature-card">
-          <span class="feature-icon">🎯</span>
-          <h3>Full Page Capture</h3>
-          <p>
-            Capture entire webpages seamlessly, including content beyond the visible viewport.
-          </p>
+    <!-- Main Content -->
+    <div class="content">
+      <div class="button-group">
+        <button class="btn-primary" id="captureBtn">
+          <span class="btn-icon">📸</span>
+          <span class="btn-text">Capture Screenshot</span>
+        </button>
+        <button class="btn-secondary" id="downloadBtn" disabled>
+          <span class="btn-icon">⬇️</span>
+          <span class="btn-text">Download</span>
+        </button>
+        <button class="btn-success" id="retryBtn">
+          <span class="btn-icon">🔄</span>
+          <span class="btn-text">Try Again</span>
+        </button>
+      </div>
+
+      <!-- Loading Spinner -->
+      <div class="spinner" id="loadingSpinner"></div>
+
+      <!-- Progress Section -->
+      <div class="progress-section" id="progressSection">
+        <div class="progress-wrapper">
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <div class="progress-percentage" id="progressPercentage">0%</div>
         </div>
+        <div class="status" id="statusText">Initializing...</div>
+      </div>
 
-        <div class="feature-card">
-          <span class="feature-icon">📏</span>
-          <h3>Large Page Support</h3>
-          <p>
-            Handles long and complex pages efficiently without breaking or missing sections.
-          </p>
+      <!-- Preview Section -->
+      <div class="preview-container" id="previewContainer">
+        <div class="preview-header">
+          <div class="preview-label">Preview</div>
+          <div class="preview-dimensions" id="previewDimensions">0x0px</div>
         </div>
-
-        <div class="feature-card">
-          <span class="feature-icon">🎨</span>
-          <h3>Modern UI</h3>
-          <p>
-            Clean, minimal, and intuitive interface designed for productivity.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <span class="feature-icon">⚡</span>
-          <h3>Smart Processing</h3>
-          <p>
-            Optimized screenshot rendering ensures speed and accuracy.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <span class="feature-icon">🔄</span>
-          <h3>Progress Tracking</h3>
-          <p>
-            Live progress updates so users always know what’s happening.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <span class="feature-icon">📱</span>
-          <h3>Responsive Design</h3>
-          <p>
-            Works smoothly across desktop, tablet, and mobile screens.
-          </p>
+        <div class="preview-wrapper">
+          <img class="preview" id="previewImage" src="" alt="Screenshot preview" />
         </div>
       </div>
-    </section>
+    </div>
 
-  </main>
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-content">
+        <span class="footer-text">Powered by</span>
+        <a href="#" class="footer-link">SS-Capture</a>
+      </div>
+      <div class="footer-version">v1.0.0</div>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
 </body>
 </html>
