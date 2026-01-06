@@ -564,6 +564,21 @@ button:active:not(:disabled) {
     box-shadow: 0 8px 28px rgba(168, 85, 247, 0.4);
 }
 
+.btn-warning {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 152, 0, 0.2));
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    box-shadow: 0 4px 16px rgba(255, 193, 7, 0.2);
+    display: none;
+    transition: background 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), border-color 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.btn-warning:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(255, 152, 0, 0.3));
+    border-color: rgba(255, 193, 7, 0.6);
+    box-shadow: 0 8px 28px rgba(255, 193, 7, 0.4);
+}
+
 button:disabled {
     opacity: 0.4;
     cursor: not-allowed;

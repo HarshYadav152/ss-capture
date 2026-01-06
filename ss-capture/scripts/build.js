@@ -44,6 +44,9 @@ async function buildForBrowser(browser) {
       { src: 'src/js/content.js', dest: 'content.js' },
       { src: 'src/js/background.js', dest: 'background.js' },
       { src: 'src/css/style.css', dest: 'style.css' },
+      { src: 'src/editor/editor.html', dest: 'editor/editor.html' },
+      { src: 'src/editor/editor.js', dest: 'editor/editor.js' },
+      { src: 'src/editor/editor.css', dest: 'editor/editor.css' },
       { src: 'icons', dest: 'icons' }
     ];
 
@@ -91,6 +94,7 @@ async function generateManifest(browser, env) {
       "activeTab",
       "scripting",
       "downloads",
+      "storage",
       "unlimitedStorage"
     ],
     host_permissions: [

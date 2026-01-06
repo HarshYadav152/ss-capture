@@ -43,6 +43,7 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
     cancelBtn.style.display = 'flex';
     saveBtn.style.display = 'none';
     copyBtn.style.display = 'none';
+    document.getElementById('editBtn').style.display = 'none';
     spinner.style.display = 'block';
     progressContainer.style.display = 'block';
     progressBar.style.width = '0%';
@@ -66,8 +67,8 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
       files: ['content.js']
     });
 
-// Trigger capture explicitly
-chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', isPopup: true });
+    // Trigger capture explicitly
+    chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', isPopup: true });
 
     // Set a timeout for very long captures (increased for chunking)
     setTimeout(() => {
@@ -145,6 +146,31 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
   }
 });
 
+// Edit button handler - Opens the privacy editor
+document.getElementById('editBtn').addEventListener('click', async () => {
+  if (captureData) {
+    try {
+      // Store screenshot in localStorage for the editor
+      localStorage.setItem('editScreenshot', captureData);
+
+      // Open editor in a new window
+      chrome.windows.create({
+        url: chrome.runtime.getURL('/editor/editor.html'),
+        type: 'popup',
+        width: 1200,
+        height: 800
+      });
+
+      document.getElementById('statusText').textContent = 'Editor opened. Apply effects and click Save when done.';
+    } catch (err) {
+      console.error('Failed to open editor:', err);
+      showErrorAlert('Failed to open editor');
+    }
+  } else {
+    showErrorAlert('No screenshot data available');
+  }
+});
+
 // Error alert close button handler
 document.getElementById('errorClose').addEventListener('click', hideErrorAlert);
 
@@ -171,10 +197,14 @@ function displayCapture(dataUrl) {
   const previewContainer = document.getElementById('previewContainer');
   const previewDimensions = document.getElementById('previewDimensions');
   const saveBtn = document.getElementById('saveBtn');
+  const editBtn = document.getElementById('editBtn');
+  const copyBtn = document.getElementById('copyBtn');
 
   captureData = dataUrl;
   saveBtn.style.display = 'flex';
-  statusText.textContent = 'Screenshot ready! Click Save to download.';
+  editBtn.style.display = 'flex';
+  copyBtn.style.display = 'flex';
+  statusText.textContent = 'Screenshot ready! Edit to hide sensitive info, or Save to download.';
 
   try {
     const img = new Image();
@@ -219,22 +249,28 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 
   if (message.type === 'CAPTURE_COMPLETE') {
-if (message.type === 'CAPTURE_COMPLETE') {
-  captureInProgress = false;
-  resetUI();
-  displayCapture(message.dataUrl);
+    captureInProgress = false;
+    resetUI();
+    displayCapture(message.dataUrl);
 
-  // Hide progress after 2 seconds
-  setTimeout(() => {
-    progressContainer.style.display = 'none';
-  }, 2000);
-}
-
+    // Hide progress after 2 seconds
+    setTimeout(() => {
+      progressContainer.style.display = 'none';
+    }, 2000);
+  }
 
   if (message.type === 'CAPTURE_ERROR') {
     resetUI();
     showErrorAlert(message.error);
     statusText.textContent = 'Screenshot capture failed';
+  }
+
+  // Handle editor complete message
+  if (message.type === 'EDITOR_COMPLETE') {
+    if (message.dataUrl) {
+      displayCapture(message.dataUrl);
+      statusText.textContent = 'Screenshot edited successfully! Click Save to download.';
+    }
   }
 });
 

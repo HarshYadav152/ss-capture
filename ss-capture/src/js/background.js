@@ -103,8 +103,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // Forward progress updates and capture complete message to popup
   if (message.type === 'PROGRESS' || message.type === 'CAPTURE_COMPLETE' ||
-    message.type === 'CAPTURE_ERROR') {
-    
+    message.type === 'CAPTURE_ERROR' || message.type === 'EDITOR_COMPLETE') {
+
     if (message.type === 'CAPTURE_COMPLETE') {
       captureInProgress = false;
       lastCaptureData = message.dataUrl;
@@ -114,9 +114,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       captureInProgress = false;
     }
 
-    // ONLY forward to popup if the message came from a content script (sender.tab exists)
-    // This prevents an infinite loop where the background script sends a message to itself
-    if (sender.tab) {
+    // Update last capture data with edited screenshot
+    if (message.type === 'EDITOR_COMPLETE' && message.dataUrl) {
+      lastCaptureData = message.dataUrl;
+    }
+
+    // Forward to popup - for EDITOR_COMPLETE, always forward (comes from editor window, not content script)
+    // For other messages, only forward if from content script (sender.tab exists)
+    if (sender.tab || message.type === 'EDITOR_COMPLETE') {
       chrome.runtime.sendMessage(message).catch(() => {
         // Ignore error if popup is not open
       });

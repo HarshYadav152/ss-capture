@@ -1,0 +1,477 @@
+/* ===============================
+   PRIVACY EDITOR STYLES
+   Glassmorphic design matching SS-Capture theme
+   =============================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animated background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+  animation: backgroundShift 8s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes backgroundShift {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-10px, -10px) scale(1.05);
+  }
+  66% {
+    transform: translate(10px, 10px) scale(1.02);
+  }
+}
+
+.editor-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===============================
+   TOOLBAR
+   =============================== */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 0 20px rgba(120, 219, 255, 0.3);
+}
+
+.toolbar-icon {
+  font-size: 24px;
+  filter: drop-shadow(0 0 8px rgba(120, 219, 255, 0.5));
+}
+
+/* Tool Buttons */
+.tool-buttons {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tool-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.tool-btn.active {
+  background: linear-gradient(135deg, rgba(120, 219, 255, 0.3), rgba(120, 119, 198, 0.3));
+  color: #78dbff;
+  box-shadow: 0 0 15px rgba(120, 219, 255, 0.3);
+}
+
+.tool-icon {
+  font-size: 18px;
+}
+
+.tool-label {
+  font-weight: 600;
+}
+
+/* Intensity Slider */
+.intensity-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.intensity-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.intensity-slider {
+  width: 120px;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.intensity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #78dbff, #7877c6);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(120, 219, 255, 0.5);
+  transition: transform 0.2s ease;
+}
+
+.intensity-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.intensity-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #78dbff, #7877c6);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 10px rgba(120, 219, 255, 0.5);
+}
+
+.intensity-value {
+  min-width: 30px;
+  text-align: center;
+  color: #78dbff;
+  font-weight: 700;
+  font-size: 14px;
+  text-shadow: 0 0 10px rgba(120, 219, 255, 0.5);
+}
+
+/* Action Buttons */
+.action-buttons {
+  gap: 8px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 13px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn.danger {
+  background: linear-gradient(135deg, rgba(255, 119, 198, 0.2), rgba(255, 119, 119, 0.2));
+  border-color: rgba(255, 119, 198, 0.4);
+  color: #ff77c6;
+}
+
+.action-btn.danger:hover {
+  background: linear-gradient(135deg, rgba(255, 119, 198, 0.3), rgba(255, 119, 119, 0.3));
+  box-shadow: 0 8px 20px rgba(255, 119, 198, 0.3);
+}
+
+.action-btn.success {
+  background: linear-gradient(135deg, rgba(120, 255, 198, 0.2), rgba(119, 198, 120, 0.2));
+  border-color: rgba(120, 255, 198, 0.4);
+  color: #78ffc6;
+}
+
+.action-btn.success:hover {
+  background: linear-gradient(135deg, rgba(120, 255, 198, 0.3), rgba(119, 198, 120, 0.3));
+  box-shadow: 0 8px 20px rgba(120, 255, 198, 0.3);
+}
+
+.action-icon {
+  font-size: 16px;
+}
+
+.action-label {
+  font-weight: 600;
+}
+
+/* ===============================
+   CANVAS CONTAINER
+   =============================== */
+
+.canvas-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
+  position: relative;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+#editorCanvas {
+  max-width: 100%;
+  max-height: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  cursor: default;
+}
+
+#editorCanvas.blur-cursor {
+  cursor: crosshair;
+}
+
+#editorCanvas.pixelate-cursor {
+  cursor: crosshair;
+}
+
+.selection-overlay {
+  position: fixed;
+  border: 2px dashed #78dbff;
+  background: rgba(120, 219, 255, 0.15);
+  pointer-events: none;
+  display: none;
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(120, 219, 255, 0.3);
+}
+
+/* ===============================
+   STATUS BAR
+   =============================== */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-left,
+.status-center,
+.status-right {
+  display: flex;
+  align-items: center;
+}
+
+.status-left {
+  min-width: 150px;
+}
+
+.status-center {
+  flex: 1;
+  justify-content: center;
+}
+
+.status-right {
+  min-width: 150px;
+  justify-content: flex-end;
+}
+
+.effect-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: rgba(120, 219, 255, 0.15);
+  border-radius: 20px;
+  color: #78dbff;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(120, 219, 255, 0.3);
+}
+
+.status-message {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.canvas-dimensions {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+}
+
+/* ===============================
+   INSTRUCTIONS PANEL
+   =============================== */
+
+.instructions-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.instruction-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.instruction-key {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(120, 219, 255, 0.2), rgba(120, 119, 198, 0.2));
+  border-radius: 6px;
+  color: #78dbff;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid rgba(120, 219, 255, 0.3);
+}
+
+.instruction-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+}
+
+.instruction-text strong {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===============================
+   RESPONSIVE DESIGN
+   =============================== */
+
+@media (max-width: 1000px) {
+  .toolbar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+  
+  .toolbar-section {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .instructions-panel {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tool-label,
+  .action-label {
+    display: none;
+  }
+  
+  .tool-btn,
+  .action-btn {
+    padding: 10px 12px;
+  }
+  
+  .intensity-section {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .intensity-slider {
+    width: 80px;
+  }
+  
+  .instructions-panel {
+    display: none;
+  }
+}
+
+/* ===============================
+   ANIMATIONS
+   =============================== */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.effect-count.has-effects {
+  animation: pulse 2s infinite;
+  background: rgba(120, 255, 198, 0.15);
+  border-color: rgba(120, 255, 198, 0.3);
+  color: #78ffc6;
+}
