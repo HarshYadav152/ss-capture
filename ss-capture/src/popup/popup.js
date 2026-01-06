@@ -169,40 +169,6 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
   }
 });
 
-// Copy button handler
-document.getElementById('copyBtn').addEventListener('click', async () => {
-  if (captureData) {
-    try {
-      // Convert base64 to blob
-      const res = await fetch(captureData);
-      const blob = await res.blob();
-      
-      // Write to clipboard
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          'image/png': blob
-        })
-      ]);
-      
-      const statusText = document.getElementById('statusText');
-      statusText.textContent = 'Screenshot copied to clipboard!';
-      
-      // Visual feedback
-      const originalText = document.querySelector('#copyBtn .btn-text').textContent;
-      document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
-      setTimeout(() => {
-        document.querySelector('#copyBtn .btn-text').textContent = originalText;
-      }, 2000);
-      
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-      showErrorAlert('Failed to copy to clipboard');
-    }
-  } else {
-    showErrorAlert('No screenshot data available');
-  }
-});
-
 // Error alert close button handler
 document.getElementById('errorClose').addEventListener('click', hideErrorAlert);
 
@@ -278,41 +244,9 @@ chrome.runtime.onMessage.addListener((message) => {
 
   if (message.type === 'CAPTURE_COMPLETE') {
     captureInProgress = false;
-<<<<<<< HEAD
     resetUI();
     displayCapture(message.dataUrl);
 
-=======
-    captureData = message.dataUrl;
-    
-    // Update UI
-    spinner.style.display = 'none';
-    captureBtn.disabled = false;
-    cancelBtn.style.display = 'none';
-    saveBtn.style.display = 'flex';
-    copyBtn.style.display = 'flex';
-    progressBar.style.width = '100%';
-    progressPercent.textContent = '100%';
-    statusText.textContent = 'Screenshot complete! Click Save to download.';
-    
-    // Show preview
-    if (captureData) {
-      try {
-        const img = new Image();
-        img.onload = function() {
-          previewDimensions.textContent = `${this.width} × ${this.height}px`;
-        };
-        img.src = captureData;
-        
-        previewImage.src = captureData;
-        previewImage.style.display = 'block';
-        previewContainer.style.display = 'block';
-      } catch (error) {
-        console.warn('Could not display preview:', error);
-      }
-    }
-    
->>>>>>> 89b4f7e512a1ccfad9649a46819d72b315645f7c
     // Hide progress after 2 seconds
     setTimeout(() => {
       progressContainer.style.display = 'none';
