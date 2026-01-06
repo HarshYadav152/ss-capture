@@ -198,12 +198,10 @@ function displayCapture(dataUrl) {
   const previewDimensions = document.getElementById('previewDimensions');
   const saveBtn = document.getElementById('saveBtn');
   const editBtn = document.getElementById('editBtn');
-  const copyBtn = document.getElementById('copyBtn');
 
   captureData = dataUrl;
   saveBtn.style.display = 'flex';
   editBtn.style.display = 'flex';
-  copyBtn.style.display = 'flex';
   statusText.textContent = 'Screenshot ready! Edit to hide sensitive info, or Save to download.';
 
   try {
