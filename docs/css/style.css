@@ -12,7 +12,7 @@ body {
 }
 
 body {
-    min-width: 420px;
+    min-width: 360px;
     min-height: 280px;
     display: flex;
     align-items: center;
@@ -24,7 +24,8 @@ body {
             rgba(0, 0, 0, 0.95) 100%);
     padding: 16px;
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 /* Animated background particles */
