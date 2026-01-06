@@ -63,6 +63,9 @@ node scripts/build.js firefox
 5. **Preview** the captured screenshot
 6. **Click** "Save" to download the screenshot
 
+###  Keyboard Shortcuts
+- **Alt + Shift + S** (Mac: **Cmd + Shift + S**): Open Extension Popup
+- **Alt + Shift + F** (Mac: **Cmd + Shift + F**): Invoke extension in bankgroud
 
 ### Supported Page Types
 - ✅ Regular web pages (HTTP/HTTPS)
@@ -333,3 +336,4 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 ---
 
 **Made with ❤️ by [Harsh Yadav](https://github.com/HarshYadav152)**
+
