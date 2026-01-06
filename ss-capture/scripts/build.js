@@ -93,6 +93,7 @@ async function generateManifest(browser, env) {
       "activeTab",
       "scripting",
       "downloads",
+      "storage",
       "unlimitedStorage"
     ],
     host_permissions: [
