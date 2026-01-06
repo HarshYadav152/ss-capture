@@ -224,8 +224,9 @@ code {
 
 
 .copy-btn:hover {
-  background: #f1f5f9;
+  transform: scale(1.05);
 }
+
 
 /* ===== SCREENSHOT PLACEHOLDER ===== */
 .screenshot-placeholder {
@@ -324,4 +325,46 @@ a:hover {
     gap: 12px;
     text-align: center;
   }
+}
+.nav-links a {
+  padding: 6px 4px;
+  text-decoration: none;
+  color: var(--secondary);
+  font-weight: 500;
+}
+.installation-guide {
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 0 24px;
+}
+details {
+  padding: 18px 20px;
+}
+details summary {
+  padding: 6px 0;
+}
+details ol {
+  margin-top: 18px;
+  padding-left: 24px;
+}
+
+details li {
+  margin-bottom: 16px;
+}
+.screenshot-placeholder {
+  margin-top: 10px;
+  padding: 16px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f1f5f9, #e0e7ff);
+  border: 1px dashed var(--border);
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-style: italic;
+}
+.warning {
+  margin-top: 14px;
+  padding: 12px 14px;
+}
+.footer-content {
+  padding: 32px 20px;
 }
