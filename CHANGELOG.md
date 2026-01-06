@@ -1,3 +1,34 @@
+## [2026-01-06]
+
+### ✨ Features
+-  add camera shutter flash and delay for background capture feedback (b19492c) - @Abhin Vaidya
+-  make capture toast clickable to open extension preview (3c2fd0a) - @Abhin Vaidya
+-  open popup immediately on shortcut to show progress (43a2b94) - @Abhin Vaidya
+-  automatically open popup after background capture (d8cc859) - @Abhin Vaidya
+-  implement background capture functionality and add toast notifications (d7c3c42) - @Abhin Vaidya
+-  add animated dark/light theme switch with refined glass UI (3e834b0) - @Taarun8431
+
+### 🐛 Bug Fixes
+-  prevent infinite message loop in background script (b5115fe) - @Abhin Vaidya
+
+### 📝 Documentation
+-  auto update changelog (b6b2bbd) - @HarshYadav152
+-  auto update changelog (760b73a) - @HarshYadav152
+-  remove keyboard shortcuts from README to avoid conflict (046df71) - @Abhin Vaidya
+-  add keyboard shortcut details to README (af2db3c) - @Abhin Vaidya
+-  auto update changelog (63e2d29) - @HarshYadav152
+-  auto update changelog (9f5576e) - @HarshYadav152
+-  auto update changelog (d0df740) - @HarshYadav152
+-  auto approve changelog PRs workflow (64a62a4) - @HarshYadav152
+
+### 📦 Other Changes
+- Add keyboard shortcuts for quick access (c01bf88) - @Harsh Yadav
+- added logo,navbar and footer (1837f05) - @Sheetal
+- Improve Animation (fb22519) - @sohanjadyal
+- added logo,navbar and footer (ea14b55) - @Sheetal
+- Improve Animation (8c58cf6) - @sohanjadyal
+
+
 ## [2026-01-05]
 
 ### ✨ Features
