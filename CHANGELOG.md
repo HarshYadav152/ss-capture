@@ -296,7 +296,7 @@
 - clean changelog and update changelog workflow (456ce86) - @HarshYadav152
 - preview images added in docs/ (1e2e940) - @HarshYadav152
 - remove moved files (7f3fce6) - @HarshYadav152
-- how this works undersrand (b299f4e) - @HarshYadav152
+- how this works understand (b299f4e) - @HarshYadav152
 - readme updated with new config (3573bf4) - @HarshYadav152
 - add documentation page (845024a) - @HarshYadav152
 - move necessory file to ss-capture/ (c5b3185) - @HarshYadav152
@@ -319,7 +319,7 @@
 - clean changelog and update changelog workflow (456ce86) - @HarshYadav152
 - preview images added in docs/ (1e2e940) - @HarshYadav152
 - remove moved files (7f3fce6) - @HarshYadav152
-- how this works undersrand (b299f4e) - @HarshYadav152
+- how this works understand (b299f4e) - @HarshYadav152
 - readme updated with new config (3573bf4) - @HarshYadav152
 - add documentation page (845024a) - @HarshYadav152
 - move necessory file to ss-capture/ (c5b3185) - @HarshYadav152
