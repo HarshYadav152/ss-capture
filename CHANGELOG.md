@@ -299,4 +299,3 @@
 - enhance popup of extension in terms of design and add a preview (e355a89) - @HarshYadav152
 - delete test scripts (bfa57c6) - @HarshYadav152
 
-
