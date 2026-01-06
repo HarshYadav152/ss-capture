@@ -3,21 +3,42 @@
 const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
+
+const argv = yargs(hideBin(process.argv))
+  .option('dir', {
+    alias: 'd',
+    type: 'string',
+    default: 'src',
+    description: 'Directory to validate (src for source, dist/browser for built)'
+  })
+  .help()
+  .argv;
+
+const validateDir = argv.dir;
 
 async function validateExtension() {
-  console.log(chalk.blue('🔍 Validating extension...'));
+  console.log(chalk.blue(`🔍 Validating extension in ${validateDir}...`));
 
   const errors = [];
   const warnings = [];
 
   try {
     // Check required files
-    const requiredFiles = [
+    const isSrc = validateDir === 'src';
+    const requiredFiles = isSrc ? [
       'src/manifest.json',
       'src/popup/popup.html',
       'src/popup/popup.js',
       'src/js/content.js',
       'src/js/background.js'
+    ] : [
+      path.join(validateDir, 'manifest.json'),
+      path.join(validateDir, 'popup.html'),
+      path.join(validateDir, 'popup.js'),
+      path.join(validateDir, 'content.js'),
+      path.join(validateDir, 'background.js')
     ];
 
     for (const file of requiredFiles) {
@@ -31,7 +52,7 @@ async function validateExtension() {
     }
 
     // Validate manifest.json
-    const manifestPath = path.join(__dirname, '..', 'manifest.json');
+    const manifestPath = path.join(__dirname, '..', isSrc ? 'src/manifest.json' : path.join(validateDir, 'manifest.json'));
     if (await fs.pathExists(manifestPath)) {
       try {
         const manifest = await fs.readJson(manifestPath);
@@ -64,7 +85,7 @@ async function validateExtension() {
     }
 
     // Check icons directory
-    const iconsDir = path.join(__dirname, '..', 'icons');
+    const iconsDir = path.join(__dirname, '..', isSrc ? 'icons' : path.join(validateDir, 'icons'));
     if (await fs.pathExists(iconsDir)) {
       const iconFiles = await fs.readdir(iconsDir);
       if (iconFiles.length === 0) {
@@ -77,7 +98,7 @@ async function validateExtension() {
     }
 
     // Validate HTML files
-    const htmlFiles = ['popup.html'];
+    const htmlFiles = isSrc ? ['src/popup/popup.html'] : [path.join(validateDir, 'popup.html')];
     for (const htmlFile of htmlFiles) {
       const htmlPath = path.join(__dirname, '..', htmlFile);
       if (await fs.pathExists(htmlPath)) {
@@ -103,10 +124,14 @@ async function validateExtension() {
     }
 
     // Check file sizes
-    const maxFileSizes = {
-      'popup.js': 1024 * 10, // 10KB
-      'content.js': 1024 * 50, // 50KB
-      'background.js': 1024 * 10, // 10KB
+    const maxFileSizes = isSrc ? {
+      'src/popup/popup.js': 1024 * 10, // 10KB
+      'src/js/content.js': 1024 * 50, // 50KB
+      'src/js/background.js': 1024 * 10, // 10KB
+    } : {
+      [path.join(validateDir, 'popup.js')]: 1024 * 10, // 10KB
+      [path.join(validateDir, 'content.js')]: 1024 * 50, // 50KB
+      [path.join(validateDir, 'background.js')]: 1024 * 10, // 10KB
     };
 
     for (const [file, maxSize] of Object.entries(maxFileSizes)) {
@@ -120,7 +145,7 @@ async function validateExtension() {
     }
 
     // Security checks
-    const jsFiles = ['popup.js', 'content.js', 'background.js'];
+    const jsFiles = isSrc ? ['src/popup/popup.js', 'src/js/content.js', 'src/js/background.js'] : [path.join(validateDir, 'popup.js'), path.join(validateDir, 'content.js'), path.join(validateDir, 'background.js')];
     for (const jsFile of jsFiles) {
       const jsPath = path.join(__dirname, '..', jsFile);
       if (await fs.pathExists(jsPath)) {

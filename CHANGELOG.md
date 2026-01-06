@@ -6,6 +6,37 @@
 -  open popup immediately on shortcut to show progress (43a2b94) - @Abhin Vaidya
 -  automatically open popup after background capture (d8cc859) - @Abhin Vaidya
 -  implement background capture functionality and add toast notifications (d7c3c42) - @Abhin Vaidya
+
+### 🐛 Bug Fixes
+-  prevent infinite message loop in background script (b5115fe) - @Abhin Vaidya
+
+### 📝 Documentation
+-  fix typo 'undersrand' to 'understand' in changelog (41ad8b2) - @heisenberg7519
+-  auto update changelog (25199be) - @HarshYadav152
+-  auto update changelog (b6b2bbd) - @HarshYadav152
+-  auto update changelog (760b73a) - @HarshYadav152
+-  remove keyboard shortcuts from README to avoid conflict (046df71) - @Abhin Vaidya
+-  add keyboard shortcut details to README (af2db3c) - @Abhin Vaidya
+-  auto update changelog (63e2d29) - @HarshYadav152
+
+### 📦 Other Changes
+- Fix validation script paths and add configurable directory support (ff9621b) - @Gupta-02
+- Add keyboard shortcuts for quick access (c01bf88) - @Harsh Yadav
+- added logo,navbar and footer (1837f05) - @Sheetal
+- Improve Animation (fb22519) - @sohanjadyal
+- added logo,navbar and footer (ea14b55) - @Sheetal
+- Improve manifest version derivation (a77c3b5) - @Gupta-02
+- Fix inconsistent manifest version and metadata (695d39c) - @Gupta-02
+
+
+## [2026-01-06]
+
+### ✨ Features
+-  add camera shutter flash and delay for background capture feedback (b19492c) - @Abhin Vaidya
+-  make capture toast clickable to open extension preview (3c2fd0a) - @Abhin Vaidya
+-  open popup immediately on shortcut to show progress (43a2b94) - @Abhin Vaidya
+-  automatically open popup after background capture (d8cc859) - @Abhin Vaidya
+-  implement background capture functionality and add toast notifications (d7c3c42) - @Abhin Vaidya
 -  add animated dark/light theme switch with refined glass UI (3e834b0) - @Taarun8431
 
 ### 🐛 Bug Fixes
@@ -296,7 +327,7 @@
 - clean changelog and update changelog workflow (456ce86) - @HarshYadav152
 - preview images added in docs/ (1e2e940) - @HarshYadav152
 - remove moved files (7f3fce6) - @HarshYadav152
-- how this works undersrand (b299f4e) - @HarshYadav152
+- how this works understand (b299f4e) - @HarshYadav152
 - readme updated with new config (3573bf4) - @HarshYadav152
 - add documentation page (845024a) - @HarshYadav152
 - move necessory file to ss-capture/ (c5b3185) - @HarshYadav152
@@ -319,7 +350,7 @@
 - clean changelog and update changelog workflow (456ce86) - @HarshYadav152
 - preview images added in docs/ (1e2e940) - @HarshYadav152
 - remove moved files (7f3fce6) - @HarshYadav152
-- how this works undersrand (b299f4e) - @HarshYadav152
+- how this works understand (b299f4e) - @HarshYadav152
 - readme updated with new config (3573bf4) - @HarshYadav152
 - add documentation page (845024a) - @HarshYadav152
 - move necessory file to ss-capture/ (c5b3185) - @HarshYadav152
