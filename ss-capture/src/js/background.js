@@ -196,4 +196,78 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Set up on installation
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Screenshot Extension installed');
+
+  // Create context menu items
+  chrome.contextMenus.create({
+    id: 'capture_full_page_context',
+    title: '📸 Capture Full Page',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'capture_visible_area_context',
+    title: '👀 Capture Visible Area',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'capture_element_context',
+    title: '🎯 Capture Selected Element',
+    contexts: ['all']
+  });
+});
+
+// Context menu click handling
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === 'capture_full_page_context' ||
+    info.menuItemId === 'capture_visible_area_context' ||
+    info.menuItemId === 'capture_element_context') {
+
+    const now = Date.now();
+    if (now - lastCaptureTime < MIN_CAPTURE_INTERVAL) {
+      console.log('Capture rate limit hit, ignoring context menu trigger');
+      return;
+    }
+
+    if (tab && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+      let mode = 'FULL_PAGE';
+
+      if (info.menuItemId === 'capture_visible_area_context') {
+        mode = 'VISIBLE_AREA';
+      } else if (info.menuItemId === 'capture_element_context') {
+        mode = 'SELECTED_ELEMENT';
+      }
+
+      // Helper to initialize script and send message
+      const startCaptureViaContext = async () => {
+        try {
+          await chrome.tabs.sendMessage(tab.id, { type: 'PING' });
+          console.log(`Script already active. Starting ${mode} capture...`);
+          chrome.tabs.sendMessage(tab.id, {
+            type: 'INIT_CAPTURE',
+            isPopup: false,
+            mode: mode
+          });
+        } catch (error) {
+          console.log('Script not found or orphaned. Injecting new instance...');
+          const injectResult = await injectScriptWithPermission(tab.id);
+          if (injectResult.success) {
+            setTimeout(() => {
+              chrome.tabs.sendMessage(tab.id, {
+                type: 'INIT_CAPTURE',
+                isPopup: false,
+                mode: mode
+              });
+            }, 100);
+          } else {
+            console.error('Failed to inject script:', injectResult.error);
+          }
+        }
+      };
+
+      startCaptureViaContext();
+    } else {
+      console.warn('Cannot capture on this URL:', tab?.url);
+    }
+  }
 });
