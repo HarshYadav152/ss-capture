@@ -282,7 +282,18 @@ a:hover {
 
 /* ===== FOOTER ===== */
 .footer {
-  margin-top: 60px;
+  margin-top: 70px;
+  background: var(--secondary);
+  color: #e5e7eb;
+  width: 100%;
+}
+.footer {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+.footer {
+  margin-top: 70px;
+  width: 100%;
   background: var(--secondary);
   color: #e5e7eb;
 }
@@ -290,29 +301,76 @@ a:hover {
   background: linear-gradient(135deg, #0f172a, #1e293b);
 }
 
-.footer-content {
-  max-width: 1100px;
+.footer-wrapper {
+  max-width: 1200px;
   margin: auto;
-  padding: 24px 20px;
+  padding: 50px 20px 30px;
   display: flex;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  gap: 80px;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
 }
 
-.footer-links {
-  display: flex;
-  gap: 16px;
+.footer-left {
+  flex: 4;
+  min-width: 280px;
+  text-align: left;
 }
 
-.footer-links a {
+.footer-desc {
+  max-width: 420px;
+  line-height: 1.8;
   color: #cbd5f5;
-  font-size: 0.9rem;
 }
 
-.footer-links a:hover {
+.footer-center{
+  flex:3;
+  min-width: 200px;
+}
+.footer-right {
+  flex: 1;
+  min-width: 160px;
+  text-align: left;
+}
+
+.footer h3,
+.footer h4 {
+  color: #ffffff;
+  margin-bottom: 12px;
+  font-weight: 600;
+
+}
+
+.footer ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer li {
+  margin-bottom: 8px;
+}
+
+.footer a {
+  text-decoration: none;
+  color: #93c5fd;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.footer a:hover {
   color: #ffffff;
 }
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  padding: 14px 10px;
+  font-size: 13px;
+  color: #9ca3af;
+  background: #020617;
+}
+
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
@@ -320,10 +378,24 @@ a:hover {
     gap: 12px;
   }
 
-  .footer-content {
+  .footer-wrapper {
     flex-direction: column;
-    gap: 12px;
+    align-items: center;
     text-align: center;
+  }
+
+  .footer-left,
+  .footer-center,
+  .footer-right {
+    width: 100%;
+  }
+  .footer-right,.footer-left{
+    text-align: center;
+  }
+
+  .footer-desc {
+    max-width: 100%;
+    margin: auto;
   }
 }
 .nav-links a {
