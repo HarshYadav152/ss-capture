@@ -113,7 +113,22 @@ class Toast {
     }
 
     this.element.style.background = bgColor;
-    this.element.innerHTML = `${icon}<span>${message}</span>`;
+    this.element.textContent = ''; // Clear previous content
+    
+    if (type === 'loading') {
+      const spinner = document.createElement('div');
+      spinner.className = 'spinner';
+      this.element.appendChild(spinner);
+    } else {
+      const iconSpan = document.createElement('span');
+      iconSpan.textContent = icon;
+      this.element.appendChild(iconSpan);
+    }
+    
+    const textSpan = document.createElement('span');
+    textSpan.textContent = message;
+    this.element.appendChild(textSpan);
+    
     requestAnimationFrame(() => this.element.classList.add('visible'));
   }
 
@@ -124,6 +139,175 @@ class Toast {
         if (this.host.isConnected) this.host.remove();
       }, 300);
     }, delay);
+  }
+}
+
+class ElementPicker {
+  constructor() {
+    this.overlay = null;
+    this.onSelect = null;
+    this.onCancel = null;
+    this.hoveredElement = null;
+    this.highlight = null;
+    
+    this.handleMouseMove = this.handleMouseMove.bind(this);
+    this.handleClick = this.handleClick.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
+  }
+
+  start(onSelect, onCancel) {
+    this.onSelect = onSelect;
+    this.onCancel = onCancel;
+
+    this.overlay = document.createElement('div');
+    this.overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2147483646; cursor: crosshair; pointer-events: auto;';
+    
+    this.highlight = document.createElement('div');
+    this.highlight.style.cssText = 'position: fixed; border: 2px solid #fb923c; background: rgba(251, 146, 60, 0.1); pointer-events: none; z-index: 2147483647; transition: all 0.1s ease-out; border-radius: 4px; box-shadow: 0 0 15px rgba(251, 146, 60, 0.3);';
+    
+    const infoLabel = document.createElement('div');
+    infoLabel.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.9); color: white; padding: 10px 20px; border-radius: 20px; font-family: system-ui; font-size: 13px; z-index: 2147483647; pointer-events: none; border: 1px solid rgba(251, 146, 60, 0.5); backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);';
+    
+    const targetIcon = document.createElement('span');
+    targetIcon.textContent = '🎯';
+    const boldText = document.createElement('b');
+    boldText.textContent = 'Capture Mode Active:';
+    const hintText = document.createTextNode(' Select an element.');
+    const escSpan = document.createElement('span');
+    escSpan.style.cssText = 'opacity: 0.6; margin-left: 10px;';
+    escSpan.textContent = 'ESC to cancel';
+    
+    infoLabel.appendChild(targetIcon);
+    infoLabel.appendChild(boldText);
+    infoLabel.appendChild(hintText);
+    infoLabel.appendChild(escSpan);
+    
+    this.overlay.appendChild(infoLabel);
+    document.documentElement.appendChild(this.overlay);
+    document.documentElement.appendChild(this.highlight);
+
+    document.addEventListener('mousemove', this.handleMouseMove, true);
+    document.addEventListener('mousedown', this.handleClick, true);
+    document.addEventListener('keydown', this.handleKeyDown, true);
+  }
+
+  stop() {
+    if (this.overlay) this.overlay.remove();
+    if (this.highlight) this.highlight.remove();
+    
+    document.removeEventListener('mousemove', this.handleMouseMove, true);
+    document.removeEventListener('mousedown', this.handleClick, true);
+    document.removeEventListener('keydown', this.handleKeyDown, true);
+    
+    this.overlay = null;
+    this.highlight = null;
+  }
+
+  handleMouseMove(e) {
+    this.overlay.style.pointerEvents = 'none';
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    this.overlay.style.pointerEvents = 'auto';
+
+    if (el && el !== this.hoveredElement && el !== this.overlay && !this.overlay.contains(el)) {
+      this.hoveredElement = el;
+      const rect = el.getBoundingClientRect();
+      
+      this.highlight.style.top = `${rect.top}px`;
+      this.highlight.style.left = `${rect.left}px`;
+      this.highlight.style.width = `${rect.width}px`;
+      this.highlight.style.height = `${rect.height}px`;
+      this.highlight.style.display = 'block';
+    }
+  }
+
+  handleClick(e) {
+    if (this.hoveredElement) {
+      e.preventDefault();
+      e.stopPropagation();
+      const el = this.hoveredElement;
+      const rect = el.getBoundingClientRect();
+      this.stop();
+      this.onSelect(el, rect);
+    }
+  }
+
+  handleKeyDown(e) {
+    if (e.key === 'Escape') {
+      this.stop();
+      this.onCancel();
+    }
+  }
+}
+
+function startElementPicker(isPopup) {
+  const picker = new ElementPicker();
+  picker.start(
+    async (el, rect) => {
+      // Small delay to let the highlight disappear
+      await sleep(100);
+      captureElement(rect, isPopup);
+    },
+    () => {
+      toast.show('Selection cancelled', 'info');
+      toast.hide(3000);
+      chrome.runtime.sendMessage({ type: 'CAPTURE_ERROR', error: 'Selection cancelled' });
+    }
+  );
+}
+
+async function captureElement(rect, isPopup) {
+  try {
+    toast.show('Capturing element...', 'loading');
+    
+    // Check if element is in viewport, if not scroll to it
+    // For now we assume the user just selected what they see
+    
+    const dataUrl = await new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ type: 'CAPTURE' }, response => {
+        if (response && response.error) reject(new Error(response.error));
+        else resolve(response);
+      });
+    });
+
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+
+    const canvas = document.createElement('canvas');
+    const dpr = window.devicePixelRatio || 1;
+    
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(
+      img,
+      rect.left * dpr, rect.top * dpr, rect.width * dpr, rect.height * dpr,
+      0, 0, rect.width * dpr, rect.height * dpr
+    );
+
+    const croppedDataUrl = canvas.toDataURL('image/png');
+    
+    toast.show('Selected Element Captured! Click to preview.', 'success', () => {
+      chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+      toast.hide();
+    });
+    toast.hide(8000);
+
+    chrome.runtime.sendMessage({
+      type: 'CAPTURE_COMPLETE',
+      dataUrl: croppedDataUrl,
+      fromPopup: isPopup
+    });
+
+  } catch (error) {
+    console.error('Element capture error:', error);
+    toast.show('Capture failed', 'error');
+    toast.hide(4000);
+    sendError(error.message);
   }
 }
 
@@ -140,7 +324,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === 'INIT_CAPTURE' || message.type === 'START_CAPTURE') {
     const isPopup = message.isPopup !== undefined ? message.isPopup : false;
-    captureScreenshot(isPopup);
+    const mode = message.mode || 'FULL_PAGE';
+    captureScreenshot(isPopup, mode);
     if (sendResponse) sendResponse({ status: 'started' });
   }
 
@@ -152,12 +337,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Main capture function
-async function captureScreenshot(isPopup = true) {
-  console.log('Starting screenshot capture...');
+async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
+  console.log(`Starting ${mode} screenshot capture...`);
   isCancelled = false; // Reset cancel flag
   
+  if (mode === 'SELECTED_ELEMENT') {
+    startElementPicker(isPopup);
+    return;
+  }
+
   if (!isPopup) {
-    toast.show('Starting Full Page Capture...', 'loading');
+    const startMsg = mode === 'VISIBLE_AREA' ? 'Capturing Visible Area...' : 'Starting Full Page Capture...';
+    toast.show(startMsg, 'loading');
     
     // Visual feedback: Flash the screen like a camera shutter
     const flash = document.createElement('div');
@@ -201,29 +392,62 @@ async function captureScreenshot(isPopup = true) {
     // Calculate page dimensions
     const body = document.body;
     const html = document.documentElement;
-    const totalWidth = Math.max(body.scrollWidth, html.scrollWidth, body.offsetWidth, html.offsetWidth, body.clientWidth, html.clientWidth);
-    const totalHeight = Math.max(body.scrollHeight, html.scrollHeight, body.offsetHeight, html.offsetHeight, body.clientHeight, html.clientHeight);
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let totalWidth, totalHeight;
+    if (mode === 'VISIBLE_AREA') {
+      totalWidth = viewportWidth;
+      totalHeight = viewportHeight;
+    } else {
+      totalWidth = Math.max(body.scrollWidth, html.scrollWidth, body.offsetWidth, html.offsetWidth, body.clientWidth, html.clientWidth);
+      totalHeight = Math.max(body.scrollHeight, html.scrollHeight, body.offsetHeight, html.offsetHeight, body.clientHeight, html.clientHeight);
+    }
 
     // Check if dimensions are valid
     if (totalWidth <= 0 || totalHeight <= 0) {
       throw new Error('Could not determine page dimensions');
     }
 
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    if (mode === 'VISIBLE_AREA') {
+      sendProgressUpdate('Capturing visible area...', 50);
+      toast.show('Capturing visible area...', 'loading');
+      
+      const dataUrl = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ type: 'CAPTURE' }, response => {
+          if (response && response.error) reject(new Error(response.error));
+          else resolve(response);
+        });
+      });
 
-    // Handle fixed elements
+      toast.show('Visible Area Captured! Click to preview.', 'success', () => {
+        chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+        toast.hide();
+      });
+      toast.hide(8000);
+
+      chrome.runtime.sendMessage({
+        type: 'CAPTURE_COMPLETE',
+        dataUrl: dataUrl,
+        fromPopup: isPopup
+      });
+      return;
+    }
+
+    // Handle fixed elements (only for full page capture)
     fixedElements = [];
-    document.querySelectorAll('*').forEach(el => {
-      const style = window.getComputedStyle(el);
-      if (style.position === 'fixed' || style.position === 'sticky') {
-        fixedElements.push({ el, originalDisplay: style.display });
-        el.style.display = 'none';
-      }
-    });
+    if (mode === 'FULL_PAGE') {
+      document.querySelectorAll('*').forEach(el => {
+        const style = window.getComputedStyle(el);
+        if (style.position === 'fixed' || style.position === 'sticky') {
+          fixedElements.push({ el, originalDisplay: style.display });
+          el.style.display = 'none';
+        }
+      });
+    }
 
     // Determine if we need chunking
-    const needsChunking = totalHeight > MAX_CANVAS_HEIGHT;
+    const needsChunking = mode === 'FULL_PAGE' && totalHeight > MAX_CANVAS_HEIGHT;
     const numChunks = needsChunking ? Math.ceil(totalHeight / CHUNK_HEIGHT) : 1;
 
     if (needsChunking) {
@@ -384,13 +608,11 @@ async function captureScreenshot(isPopup = true) {
 
     cleanup();
 
-    if (!isPopup) {
-      toast.show('Capture Complete! Click to preview.', 'success', () => {
-        chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
-        toast.hide();
-      });
-      toast.hide(8000);
-    }
+    toast.show('Full Page Capture Complete! Click to preview.', 'success', () => {
+      chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+      toast.hide();
+    });
+    toast.hide(8000);
 
     chrome.runtime.sendMessage({
       type: 'CAPTURE_COMPLETE',

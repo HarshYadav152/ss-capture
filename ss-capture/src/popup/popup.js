@@ -16,8 +16,10 @@ function hideErrorAlert() {
   document.getElementById('errorAlert').style.display = 'none';
 }
 
-document.getElementById('captureBtn').addEventListener('click', async () => {
+async function startCapture(mode = 'FULL_PAGE') {
   const captureBtn = document.getElementById('captureBtn');
+  const visibleAreaBtn = document.getElementById('visibleAreaBtn');
+  const selectElementBtn = document.getElementById('selectElementBtn');
   const cancelBtn = document.getElementById('cancelBtn');
   const saveBtn = document.getElementById('saveBtn');
   const copyBtn = document.getElementById('copyBtn');
@@ -28,7 +30,6 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
   const progressPercent = document.getElementById('progressPercent');
   const previewImage = document.getElementById('previewImage');
   const previewContainer = document.getElementById('previewContainer');
-  const previewDimensions = document.getElementById('previewDimensions');
 
   // Reset state
   captureData = null;
@@ -40,15 +41,25 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
   try {
     // Update UI
     captureBtn.disabled = true;
+    visibleAreaBtn.disabled = true;
+    selectElementBtn.disabled = true;
+    
     cancelBtn.style.display = 'flex';
     saveBtn.style.display = 'none';
     copyBtn.style.display = 'none';
     document.getElementById('editBtn').style.display = 'none';
     spinner.style.display = 'block';
-    progressContainer.style.display = 'block';
-    progressBar.style.width = '0%';
-    progressPercent.textContent = '0%';
-    statusText.textContent = 'Preparing to capture screenshot...';
+    
+    if (mode === 'FULL_PAGE') {
+      progressContainer.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressPercent.textContent = '0%';
+      statusText.textContent = 'Preparing to capture full page...';
+    } else if (mode === 'VISIBLE_AREA') {
+      statusText.textContent = 'Capturing visible area...';
+    } else if (mode === 'SELECTED_ELEMENT') {
+      statusText.textContent = 'Select an element on the page...';
+    }
 
     // Set flag
     captureInProgress = true;
@@ -69,15 +80,18 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
 
     // Trigger capture explicitly
     chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', isPopup: true });
+    // Trigger capture explicitly with mode
+    chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', mode, isPopup: true });
 
-    // Set a timeout for very long captures (increased for chunking)
+    // Set a timeout for very long captures
+    const timeout = mode === 'FULL_PAGE' ? 120000 : 30000;
     setTimeout(() => {
       if (captureInProgress) {
-        showErrorAlert('Screenshot capture is taking too long. The page may be extremely large.');
+        showErrorAlert('Screenshot capture timed out.');
         statusText.textContent = 'Capture timeout - please retry';
         resetUI();
       }
-    }, 120000); // 120 second timeout for large pages
+    }, timeout);
 
   } catch (error) {
     showErrorAlert(error.message);
@@ -85,7 +99,11 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
     console.error(error);
     resetUI();
   }
-});
+}
+
+document.getElementById('captureBtn').addEventListener('click', () => startCapture('FULL_PAGE'));
+document.getElementById('visibleAreaBtn').addEventListener('click', () => startCapture('VISIBLE_AREA'));
+document.getElementById('selectElementBtn').addEventListener('click', () => startCapture('SELECTED_ELEMENT'));
 
 // Cancel button handler
 document.getElementById('cancelBtn').addEventListener('click', () => {
@@ -178,6 +196,8 @@ document.getElementById('errorClose').addEventListener('click', hideErrorAlert);
 function resetUI() {
   captureInProgress = false;
   document.getElementById('captureBtn').disabled = false;
+  document.getElementById('visibleAreaBtn').disabled = false;
+  document.getElementById('selectElementBtn').disabled = false;
   document.getElementById('cancelBtn').style.display = 'none';
   document.getElementById('loadingSpinner').style.display = 'none';
   document.getElementById('progressContainer').style.display = 'none';
@@ -250,6 +270,12 @@ chrome.runtime.onMessage.addListener((message) => {
     captureInProgress = false;
     resetUI();
     displayCapture(message.dataUrl);
+
+    // Hide progress after 2 seconds
+    setTimeout(() => {
+      progressContainer.style.display = 'none';
+    }, 2000);
+  }
 
     // Hide progress after 2 seconds
     setTimeout(() => {

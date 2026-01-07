@@ -85,10 +85,12 @@ async function buildForBrowser(browser) {
 }
 
 async function generateManifest(browser, env) {
+  const { version } = require('../package.json');
+
   const baseManifest = {
     manifest_version: 3,
-    name: "Full Page Screenshot Capture",
-    version: "1.1.0",
+    name: "SS-Capture",
+    version: version,
     description: "Capture high-quality full-page screenshots with a modern glassmorphic interface.",
     permissions: [
       "activeTab",

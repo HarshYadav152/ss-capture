@@ -1,4 +1,18 @@
 /* ===== CSS RESET ===== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  transition: 
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -7,15 +21,17 @@
 
 /* ===== ROOT VARIABLES ===== */
 :root {
-  --bg-color: #f8fafc;
-  --card-bg: #ffffff;
-  --primary: #2563eb;
+  --bg-color: linear-gradient(135deg, #f8fafc, #eef2ff);
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --primary: #6366f1;
   --secondary: #0f172a;
   --text: #1e293b;
   --muted: #64748b;
-  --border: #e5e7eb;
+  --border: rgba(0, 0, 0, 0.08);
   --warning: #fee2e2;
+  --glass: blur(14px);
 }
+
 /* ===== LOGO ===== */
 .logo {
   display: flex;
@@ -41,19 +57,42 @@
 body {
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  background-color: var(--bg-color);
+   background: var(--bg-color);
   color: var(--text);
   line-height: 1.7;
 }
 
 /* ===== NAVBAR ===== */
 .navbar {
-  background: var(--card-bg);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: var(--glass);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 1000;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
+
+.nav-links a {
+  position: relative;
+  padding-bottom: 4px;
+}
+
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  height: 2px;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+  width: 100%;
+}
+
 
 .nav-container {
   max-width: 1100px;
@@ -106,11 +145,18 @@ body {
 /* ===== DETAILS / ACCORDIONS ===== */
 details {
   background: var(--card-bg);
+  backdrop-filter: var(--glass);
+  border-radius: 14px;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  margin-bottom: 20px;
-  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  transform: translateY(0);
 }
+
+details:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
 
 details summary {
   cursor: pointer;
@@ -132,6 +178,22 @@ details li {
   margin-bottom: 14px;
 }
 
+details > *:not(summary) {
+  animation: fadeSlide 0.4s ease;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 /* ===== CODE & COPY BUTTON ===== */
 code {
   background: #f1f5f9;
@@ -142,17 +204,29 @@ code {
 
 .copy-btn {
   margin-left: 8px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   font-size: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--card-bg);
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
   cursor: pointer;
+  box-shadow: 0 6px 14px rgba(99,102,241,0.4);
 }
 
 .copy-btn:hover {
-  background: #f1f5f9;
+  transform: scale(1.05);
 }
+
+.copy-btn:active {
+  transform: scale(0.95);
+}
+
+
+.copy-btn:hover {
+  transform: scale(1.05);
+}
+
 
 /* ===== SCREENSHOT PLACEHOLDER ===== */
 .screenshot-placeholder {
@@ -164,6 +238,21 @@ code {
   font-size: 0.85rem;
   color: var(--muted);
 }
+.screenshot-placeholder {
+  background: linear-gradient(135deg, #f1f5f9, #e0e7ff);
+  border: 1px dashed var(--border);
+  font-style: italic;
+}
+.warning {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 rgba(239,68,68,0.4); }
+  50% { box-shadow: 0 0 20px rgba(239,68,68,0.4); }
+  100% { box-shadow: 0 0 0 rgba(239,68,68,0.4); }
+}
+
 
 /* ===== NOTES & WARNINGS ===== */
 .note {
@@ -196,6 +285,9 @@ a:hover {
   margin-top: 60px;
   background: var(--secondary);
   color: #e5e7eb;
+}
+.footer {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
 }
 
 .footer-content {
@@ -233,4 +325,46 @@ a:hover {
     gap: 12px;
     text-align: center;
   }
+}
+.nav-links a {
+  padding: 6px 4px;
+  text-decoration: none;
+  color: var(--secondary);
+  font-weight: 500;
+}
+.installation-guide {
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 0 24px;
+}
+details {
+  padding: 18px 20px;
+}
+details summary {
+  padding: 6px 0;
+}
+details ol {
+  margin-top: 18px;
+  padding-left: 24px;
+}
+
+details li {
+  margin-bottom: 16px;
+}
+.screenshot-placeholder {
+  margin-top: 10px;
+  padding: 16px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f1f5f9, #e0e7ff);
+  border: 1px dashed var(--border);
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-style: italic;
+}
+.warning {
+  margin-top: 14px;
+  padding: 12px 14px;
+}
+.footer-content {
+  padding: 32px 20px;
 }
