@@ -1,6 +1,35 @@
 ## [2026-01-07]
 
 ### ✨ Features
+-  add context menu support for full page, visible area and element capture (00f591f) - @Abhin Vaidya
+-  implement enhanced capture suite with visible area and selective element modes (a063e93) - @Abhin Vaidya
+-  add camera shutter flash and delay for background capture feedback (b19492c) - @Abhin Vaidya
+-  make capture toast clickable to open extension preview (3c2fd0a) - @Abhin Vaidya
+-  open popup immediately on shortcut to show progress (43a2b94) - @Abhin Vaidya
+
+### 📝 Documentation
+-  auto update changelog (5cff341) - @HarshYadav152
+-  auto update changelog (f5d05ce) - @HarshYadav152
+-  auto update changelog (8bb4234) - @HarshYadav152
+-  auto update changelog (bd2f2e0) - @HarshYadav152
+-  fix typo 'undersrand' to 'understand' in changelog (41ad8b2) - @heisenberg7519
+-  auto update changelog (25199be) - @HarshYadav152
+-  auto update changelog (b6b2bbd) - @HarshYadav152
+-  auto update changelog (760b73a) - @HarshYadav152
+
+### 📦 Other Changes
+- Fix over-broad host permissions #43 (371dda5) - @Gupta-02
+- Fixed CSS padding issues (08f202c) - @Sheetal
+- Fix validation script paths and add configurable directory support (ff9621b) - @Gupta-02
+- improved UI for installation guide (7cdae54) - @Sheetal
+- Add keyboard shortcuts for quick access (c01bf88) - @Harsh Yadav
+- added logo,navbar and footer (1837f05) - @Sheetal
+- Improve Animation (fb22519) - @sohanjadyal
+
+
+## [2026-01-07]
+
+### ✨ Features
 -  implement enhanced capture suite with visible area and selective element modes (a063e93) - @Abhin Vaidya
 -  add camera shutter flash and delay for background capture feedback (b19492c) - @Abhin Vaidya
 -  make capture toast clickable to open extension preview (3c2fd0a) - @Abhin Vaidya
