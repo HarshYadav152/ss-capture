@@ -108,6 +108,33 @@
           <img id="previewImage" class="preview" alt="Screenshot preview">
         </div>
       </div>
+
+      <!-- Session Screenshot Panel (collapsible) -->
+      <div id="sessionPanel" class="session-panel collapsed">
+        <button id="sessionToggle" class="session-toggle" aria-expanded="false">Recent Screenshots ▾</button>
+        <div id="sessionContent" class="session-content" aria-hidden="true">
+          <div id="sessionThumbs" class="session-thumbs" role="list"></div>
+          <div class="session-actions">
+            <button id="clearSession" class="btn small">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal for full-size preview/download -->
+      <div id="sessionModal" class="session-modal" role="dialog" aria-hidden="true">
+        <div class="session-modal-content">
+          <button id="sessionModalClose" class="modal-close">&times;</button>
+          <div class="modal-toolbar">
+            <button id="modalDownload" class="btn small">Download</button>
+            <button id="modalCopy" class="btn small">Copy</button>
+            <button id="modalDelete" class="btn small danger">Delete</button>
+          </div>
+          <div class="modal-image-wrapper">
+            <img id="modalImage" alt="Full screenshot preview">
+            <div id="modalInfo" class="modal-info"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Footer -->

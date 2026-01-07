@@ -14,190 +14,199 @@ chrome.storage.local.get(['lastCaptureData'], (result) => {
 // Function to inject script with permission request if needed
 async function injectScriptWithPermission(tabId) {
   return new Promise((resolve) => {
-    chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ['content.js']
-    }, () => {
-      if (chrome.runtime.lastError) {
-        const errorMessage = chrome.runtime.lastError.message;
-        console.error('Injection failed:', errorMessage);
-        
-        // Check if it's a permission error
-        if (errorMessage.includes('permission') || errorMessage.includes('access') || errorMessage.includes('Cannot access')) {
-          console.log('Permission error detected, requesting host permissions...');
-          
-          // Request permission
-          chrome.permissions.request({
-            origins: ['<all_urls>']
-          }, (granted) => {
-            if (granted) {
-              console.log('Permission granted, retrying injection...');
-              // Retry injection
-              chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                files: ['content.js']
-              }, () => {
-                if (chrome.runtime.lastError) {
-                  resolve({ success: false, error: chrome.runtime.lastError.message });
-                } else {
-                  resolve({ success: true });
-                }
-              });
-            } else {
-              resolve({ success: false, error: 'User denied permission request' });
-            }
-          });
-        } else {
-          resolve({ success: false, error: errorMessage });
-        }
-      } else {
-        resolve({ success: true });
-      }
-    });
-  });
-}
-
-// Keyboard shortcuts handling
-chrome.commands.onCommand.addListener(async (command) => {
-  console.log('COMMAND TRIGGERED:', command);
-  if (command === 'capture_full_page') {
-    const now = Date.now();
-    if (now - lastCaptureTime < MIN_CAPTURE_INTERVAL) {
-      console.log('Capture rate limit hit, ignoring shortcut trigger');
-      return;
-    }
-
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-    if (tab && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
-
-      // Try to ping existing script first
-      try {
-        await chrome.tabs.sendMessage(tab.id, { type: 'PING' });
-        console.log('Script already active. Starting capture...');
-        // Explicitly set isPopup: false for background capture
-        chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
-      } catch (error) {
-        console.log('Script not found or orphaned. Injecting new instance...');
-
-        // Try to inject script
-        const injectResult = await injectScriptWithPermission(tab.id);
-        if (injectResult.success) {
-          // Script injected, give it a moment to initialize then trigger
-          setTimeout(() => {
-            chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
-          }, 100);
-        } else {
-          console.error('Failed to inject script:', injectResult.error);
-        }
-      }
-
-    } else {
-      console.warn('Cannot capture on this URL:', tab?.url);
-    }
-  }
-});
-
-// Handle messages
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Handle capture request from content script
-  if (message.type === 'CAPTURE') {
-    const now = Date.now();
-    const timeSinceLastCapture = now - lastCaptureTime;
-
-    // If we're trying to capture too quickly, delay the capture
-    if (timeSinceLastCapture < MIN_CAPTURE_INTERVAL) {
-      const delay = MIN_CAPTURE_INTERVAL - timeSinceLastCapture;
-      setTimeout(() => {
-        performCapture(sender.tab.windowId, sendResponse);
-      }, delay);
-    } else {
-      performCapture(sender.tab.windowId, sendResponse);
-    }
-
-    return true; // Keep message channel open for async response
-  }
-
-  // Helper function to perform the actual capture
-  function performCapture(windowId, sendResponse) {
-    captureInProgress = true;
-    lastCaptureTime = Date.now();
-
-    chrome.tabs.captureVisibleTab(
-      windowId,
-      { format: 'png', quality: 100 },
-      dataUrl => {
+    chrome.scripting.executeScript(
+      { target: { tabId }, files: ['content.js'] },
+      () => {
         if (chrome.runtime.lastError) {
-          captureInProgress = false;
-          sendResponse({ error: chrome.runtime.lastError.message });
+          const errorMessage = chrome.runtime.lastError.message;
+          console.error('Injection failed:', errorMessage);
+
+          if (
+            errorMessage.includes('permission') ||
+            errorMessage.includes('access') ||
+            errorMessage.includes('Cannot access')
+          ) {
+            chrome.permissions.request(
+              { origins: ['<all_urls>'] },
+              (granted) => {
+                if (!granted) {
+                  resolve({ success: false, error: 'Permission denied' });
+                  return;
+                }
+
+                chrome.scripting.executeScript(
+                  { target: { tabId }, files: ['content.js'] },
+                  () => {
+                    if (chrome.runtime.lastError) {
+                      resolve({
+                        success: false,
+                        error: chrome.runtime.lastError.message
+                      });
+                    } else {
+                      resolve({ success: true });
+                    }
+                  }
+                );
+              }
+            );
+          } else {
+            resolve({ success: false, error: errorMessage });
+          }
         } else {
-          sendResponse(dataUrl);
+          resolve({ success: true });
         }
       }
     );
+  });
+}
+
+// Keyboard shortcuts
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command !== 'capture_full_page') return;
+
+  const now = Date.now();
+  if (now - lastCaptureTime < MIN_CAPTURE_INTERVAL) return;
+
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+    return;
   }
 
-  // Handle cancel request from popup
-  if (message.type === 'CANCEL_CAPTURE') {
-    captureInProgress = false;
-    // Forward to content script in active tab
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) {
-        chrome.tabs.sendMessage(tabs[0].id, { type: 'CANCEL_CAPTURE' }).catch(() => {
-          // Ignore if script not present
-        });
-      }
-    });
-  }
-
-  // Forward progress updates and capture complete message to popup
-  if (message.type === 'PROGRESS' || message.type === 'CAPTURE_COMPLETE' ||
-    message.type === 'CAPTURE_ERROR') {
-    
-    if (message.type === 'CAPTURE_COMPLETE') {
-      captureInProgress = false;
-      lastCaptureData = message.dataUrl;
-      chrome.storage.local.set({ lastCaptureData: message.dataUrl });
+  try {
+    await chrome.tabs.sendMessage(tab.id, { type: 'PING' });
+    chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
+  } catch {
+    const injected = await injectScriptWithPermission(tab.id);
+    if (injected.success) {
+      setTimeout(() => {
+        chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
+      }, 100);
     }
-
-    if (message.type === 'CAPTURE_ERROR') {
-      captureInProgress = false;
-    }
-
-    // ONLY forward to popup if the message came from a content script (sender.tab exists)
-    // This prevents an infinite loop where the background script sends a message to itself
-    if (sender.tab) {
-      chrome.runtime.sendMessage(message).catch(() => {
-        // Ignore error if popup is not open
-      });
-    }
-  }
-
-  // Handle request for last capture data from popup
-  if (message.type === 'GET_LAST_CAPTURE') {
-    if (lastCaptureData) {
-      sendResponse(lastCaptureData);
-    } else {
-      chrome.storage.local.get(['lastCaptureData'], (result) => {
-        sendResponse(result.lastCaptureData || null);
-      });
-      return true; // Keep channel open for async
-    }
-  }
-
-  // Handle request to open popup from content script toast
-  if (message.type === 'OPEN_POPUP') {
-    chrome.action.openPopup().catch((err) => {
-      console.warn('Could not open popup from toast click:', err);
-    });
   }
 });
 
-// Set up on installation
-chrome.runtime.onInstalled.addListener(() => {
-  console.log('Screenshot Extension installed');
+// Session store
+import {
+  addScreenshot,
+  getScreenshots,
+  deleteScreenshot,
+  clearScreenshots,
+  setScreenshots,
+  setNotifier
+} from './sessionStore.js';
 
-  // Create context menu items
+// Notify UIs on session updates
+setNotifier((msg) => {
+  try {
+    chrome.runtime.sendMessage(msg);
+  } catch {}
+
+  if (msg?.type === 'SESSION_UPDATED') {
+    const area = chrome.storage.session || chrome.storage.local;
+    area.set({ sessionScreenshots: getScreenshots() });
+  }
+});
+
+// Load persisted session
+(() => {
+  const area = chrome.storage.session || chrome.storage.local;
+  area.get(['sessionScreenshots'], (res) => {
+    if (Array.isArray(res?.sessionScreenshots)) {
+      setScreenshots(res.sessionScreenshots);
+    }
+  });
+})();
+
+// Messages
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+
+  // Capture request
+  if (message.type === 'CAPTURE') {
+    const now = Date.now();
+    const delay = Math.max(0, MIN_CAPTURE_INTERVAL - (now - lastCaptureTime));
+
+    setTimeout(() => {
+      captureInProgress = true;
+      lastCaptureTime = Date.now();
+
+      chrome.tabs.captureVisibleTab(
+        sender.tab.windowId,
+        { format: 'png', quality: 100 },
+        (dataUrl) => {
+          if (chrome.runtime.lastError) {
+            captureInProgress = false;
+            sendResponse({ error: chrome.runtime.lastError.message });
+          } else {
+            sendResponse(dataUrl);
+          }
+        }
+      );
+    }, delay);
+
+    return true;
+  }
+
+  // Cancel capture
+  if (message.type === 'CANCEL_CAPTURE') {
+    captureInProgress = false;
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      tabs[0] && chrome.tabs.sendMessage(tabs[0].id, { type: 'CANCEL_CAPTURE' });
+    });
+  }
+
+  // Session API
+  if (message.type === 'GET_SESSION_SCREENSHOTS') {
+    sendResponse(getScreenshots());
+    return true;
+  }
+
+  if (message.type === 'DELETE_SESSION_SCREENSHOT') {
+    sendResponse({ ok: deleteScreenshot(message.id) });
+    return true;
+  }
+
+  if (message.type === 'CLEAR_SESSION_SCREENSHOTS') {
+    clearScreenshots();
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (message.type === 'ADD_SESSION_SCREENSHOT') {
+    addScreenshot(message);
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  // Progress forwarding
+  if (
+    message.type === 'PROGRESS' ||
+    message.type === 'CAPTURE_COMPLETE' ||
+    message.type === 'CAPTURE_ERROR'
+  ) {
+    if (message.type === 'CAPTURE_COMPLETE') {
+      captureInProgress = false;
+      lastCaptureData = message.dataUrl;
+      chrome.storage.local.set({ lastCaptureData });
+    }
+
+    if (sender.tab) {
+      chrome.runtime.sendMessage(message).catch(() => {});
+    }
+  }
+
+  // Last capture
+  if (message.type === 'GET_LAST_CAPTURE') {
+    sendResponse(lastCaptureData || null);
+    return true;
+  }
+
+  if (message.type === 'OPEN_POPUP') {
+    chrome.action.openPopup().catch(() => {});
+  }
+});
+
+// Install
+chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'capture_full_page_context',
     title: '📸 Capture Full Page',
@@ -217,57 +226,23 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// Context menu click handling
+// Context menu
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (info.menuItemId === 'capture_full_page_context' ||
-    info.menuItemId === 'capture_visible_area_context' ||
-    info.menuItemId === 'capture_element_context') {
+  if (!tab || !tab.url || tab.url.startsWith('chrome://')) return;
 
-    const now = Date.now();
-    if (now - lastCaptureTime < MIN_CAPTURE_INTERVAL) {
-      console.log('Capture rate limit hit, ignoring context menu trigger');
-      return;
-    }
+  let mode = 'FULL_PAGE';
+  if (info.menuItemId === 'capture_visible_area_context') mode = 'VISIBLE_AREA';
+  if (info.menuItemId === 'capture_element_context') mode = 'SELECTED_ELEMENT';
 
-    if (tab && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
-      let mode = 'FULL_PAGE';
-
-      if (info.menuItemId === 'capture_visible_area_context') {
-        mode = 'VISIBLE_AREA';
-      } else if (info.menuItemId === 'capture_element_context') {
-        mode = 'SELECTED_ELEMENT';
-      }
-
-      // Helper to initialize script and send message
-      const startCaptureViaContext = async () => {
-        try {
-          await chrome.tabs.sendMessage(tab.id, { type: 'PING' });
-          console.log(`Script already active. Starting ${mode} capture...`);
-          chrome.tabs.sendMessage(tab.id, {
-            type: 'INIT_CAPTURE',
-            isPopup: false,
-            mode: mode
-          });
-        } catch (error) {
-          console.log('Script not found or orphaned. Injecting new instance...');
-          const injectResult = await injectScriptWithPermission(tab.id);
-          if (injectResult.success) {
-            setTimeout(() => {
-              chrome.tabs.sendMessage(tab.id, {
-                type: 'INIT_CAPTURE',
-                isPopup: false,
-                mode: mode
-              });
-            }, 100);
-          } else {
-            console.error('Failed to inject script:', injectResult.error);
-          }
-        }
-      };
-
-      startCaptureViaContext();
-    } else {
-      console.warn('Cannot capture on this URL:', tab?.url);
+  try {
+    await chrome.tabs.sendMessage(tab.id, { type: 'PING' });
+    chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false, mode });
+  } catch {
+    const injected = await injectScriptWithPermission(tab.id);
+    if (injected.success) {
+      setTimeout(() => {
+        chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false, mode });
+      }, 100);
     }
   }
 });
