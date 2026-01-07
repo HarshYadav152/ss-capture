@@ -3,6 +3,8 @@
 
 A modern, high-quality full-page screenshot extension with a beautiful glassmorphic interface. Capture entire web pages with automatic scrolling and chunked rendering for pages exceeding browser canvas limitations.
 
+> **Note**: This is an enhanced fork of the original [Screenshot Capture](https://github.com/simov/screenshot-capture) by [Simeon Velichkov](https://github.com/simov), featuring full-page capture, modern UI, and advanced chunking capabilities.
+
 ![Extension Preview](https://raw.githubusercontent.com/HarshYadav152/ss-capture/main/docs/PREVIEW.png)
 
 ## ✨ Features
@@ -65,7 +67,7 @@ node scripts/build.js firefox
 
 ###  Keyboard Shortcuts
 - **Alt + Shift + S** (Mac: **Cmd + Shift + S**): Open Extension Popup
-- **Alt + Shift + F** (Mac: **Cmd + Shift + F**): Invoke extension in bankgroud
+- **Alt + Shift + F** (Mac: **Cmd + Shift + F**): Invoke extension in background
 
 ### Supported Page Types
 - ✅ Regular web pages (HTTP/HTTPS)
@@ -316,8 +318,11 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+Original Copyright (c) 2014-present Simeon Velichkov <simeonvelichkov@gmail.com>
+
 ## 🙏 Acknowledgments
 
+- **[Simeon Velichkov](https://github.com/simov)** for the original [Screenshot Capture](https://github.com/simov/screenshot-capture) extension
 - **Chrome Extensions API** for screenshot capabilities
 - **Canvas API** for image stitching
 - **Glassmorphism Design** for modern UI inspiration
@@ -335,5 +340,5 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
 ---
 
-**Made with ❤️ by [Harsh Yadav](https://github.com/HarshYadav152)**
-
+**Enhanced with ❤️ by [Harsh Yadav](https://github.com/HarshYadav152)**  
+**Based on the original [Screenshot Capture](https://github.com/simov/screenshot-capture) by [Simeon Velichkov](https://github.com/simov)**
