@@ -8,7 +8,8 @@
     "scripting",
     "downloads",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "contextMenus"
   ],
   "optional_host_permissions": [
     "<all_urls>"
