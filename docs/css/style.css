@@ -25,6 +25,8 @@ body {
     min-height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
+}
+
 /* ===== ROOT VARIABLES ===== */
 :root {
   --bg-color: linear-gradient(135deg, #f8fafc, #eef2ff);
@@ -330,6 +332,8 @@ button:hover::before {
 button:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
 /* ===== BODY ===== */
 body {
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
@@ -432,6 +436,8 @@ button:active:not(:disabled) {
     background: linear-gradient(135deg, rgba(120, 255, 198, 0.3), rgba(119, 198, 120, 0.3));
     border-color: rgba(120, 255, 198, 0.6);
     box-shadow: 0 8px 28px rgba(120, 255, 198, 0.4);
+}
+
 /* ===== DETAILS / ACCORDIONS ===== */
 details {
   background: var(--card-bg);
@@ -511,6 +517,8 @@ button:disabled {
     bottom: 0;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
     animation: progressShimmer 2s infinite;
+}
+
 details > *:not(summary) {
   animation: fadeSlide 0.4s ease;
 }
