@@ -244,6 +244,30 @@
   </div>
 </footer>
 
+<!-- AI Chatbot -->
+<div id="chatbot">
+  <button id="chatbot-toggle">💬</button>
+
+  <div id="chatbot-window">
+    <div class="chat-header">
+      <span>SS-Capture Assistant</span>
+      <button id="close-chat">✖</button>
+    </div>
+
+    <div class="chat-body" id="chat-body">
+      <div class="bot-msg">
+        👋 Hi! I’m the SS-Capture assistant.  
+        Ask me about installation, errors, or browser support.
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Type your question..." />
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+</div>
+
     
 </body>
 <script>
@@ -261,6 +285,70 @@
     card.style.transform = "translateY(20px)";
     observer.observe(card);
   });
+</script>
+
+
+<script>
+const toggleBtn = document.getElementById("chatbot-toggle");
+const chatWindow = document.getElementById("chatbot-window");
+const closeBtn = document.getElementById("close-chat");
+const sendBtn = document.getElementById("send-btn");
+const input = document.getElementById("user-input");
+const chatBody = document.getElementById("chat-body");
+
+toggleBtn.onclick = () => chatWindow.style.display = "flex";
+closeBtn.onclick = () => chatWindow.style.display = "none";
+
+sendBtn.onclick = sendMessage;
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+function sendMessage() {
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  addMessage(msg, "user-msg");
+  input.value = "";
+
+  setTimeout(() => {
+    addMessage(getBotReply(msg), "bot-msg");
+  }, 500);
+}
+
+function addMessage(text, className) {
+  const div = document.createElement("div");
+  div.className = className;
+  div.textContent = text;
+  chatBody.appendChild(div);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function getBotReply(message) {
+  message = message.toLowerCase();
+
+  if (message.includes("chrome")) {
+    return "For Chrome: open chrome://extensions → enable Developer Mode → Load unpacked → select dist/chrome folder.";
+  }
+
+  if (message.includes("edge")) {
+    return "For Edge: go to edge://extensions → enable Developer Mode → Load unpacked → select dist/edge.";
+  }
+
+  if (message.includes("firefox")) {
+    return "Firefox uses temporary add-ons. Go to about:debugging → This Firefox → Load Temporary Add-on → select manifest.json.";
+  }
+
+  if (message.includes("error") || message.includes("not working")) {
+    return "Ensure Developer Mode is enabled and the correct dist folder is selected. Internal pages like chrome:// cannot be captured.";
+  }
+
+  if (message.includes("support") || message.includes("help")) {
+    return "You can get help via GitHub Discussions or Issues in the SS-Capture repository.";
+  }
+
+  return "🤖 I can help with installation, browser support, and troubleshooting. Try asking about Chrome, Edge, or Firefox.";
+}
 </script>
 
 </html>
