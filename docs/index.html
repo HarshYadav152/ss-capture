@@ -296,8 +296,15 @@ const sendBtn = document.getElementById("send-btn");
 const input = document.getElementById("user-input");
 const chatBody = document.getElementById("chat-body");
 
-toggleBtn.onclick = () => chatWindow.style.display = "flex";
-closeBtn.onclick = () => chatWindow.style.display = "none";
+toggleBtn.onclick = () => {
+  chatWindow.style.display = "flex";
+  toggleBtn.style.display = "none";
+};
+
+closeBtn.onclick = () => {
+  chatWindow.style.display = "none";
+  toggleBtn.style.display = "block";
+};
 
 sendBtn.onclick = sendMessage;
 input.addEventListener("keypress", e => {
@@ -319,36 +326,95 @@ function sendMessage() {
 function addMessage(text, className) {
   const div = document.createElement("div");
   div.className = className;
-  div.textContent = text;
+  div.innerHTML = text;   // 👈 IMPORTANT for links
   chatBody.appendChild(div);
   chatBody.scrollTop = chatBody.scrollHeight;
 }
-
+</script>
+<script>
 function getBotReply(message) {
   message = message.toLowerCase();
 
-  if (message.includes("chrome")) {
-    return "For Chrome: open chrome://extensions → enable Developer Mode → Load unpacked → select dist/chrome folder.";
+  if (
+    message.includes("chrome") ||
+    message.includes("google") ||
+    message.includes("chromium")
+  ) {
+    return `
+      For Chrome installation:<br>
+      Open <code>chrome://extensions</code> → Enable <b>Developer Mode</b> →
+      Click <b>Load unpacked</b> → Select <code>dist/chrome</code>.<br><br>
+      📘 <a href="https://developer.chrome.com/docs/extensions/mv3/getstarted/" target="_blank">
+      Chrome Extensions Guide</a>
+    `;
   }
 
-  if (message.includes("edge")) {
-    return "For Edge: go to edge://extensions → enable Developer Mode → Load unpacked → select dist/edge.";
+  if (
+    message.includes("edge") ||
+    message.includes("microsoft") ||
+    message.includes("windows")
+  ) {
+    return `
+      For Microsoft Edge:<br>
+      Visit <code>edge://extensions</code> → Enable <b>Developer Mode</b> →
+      Load unpacked → Select <code>dist/edge</code>.<br><br>
+      📘 <a href="https://learn.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/" target="_blank">
+      Edge Extensions Documentation</a>
+    `;
   }
 
-  if (message.includes("firefox")) {
-    return "Firefox uses temporary add-ons. Go to about:debugging → This Firefox → Load Temporary Add-on → select manifest.json.";
+  if (
+    message.includes("firefox") ||
+    message.includes("mozilla") ||
+    message.includes("temporary")
+  ) {
+    return `
+      Firefox uses <b>temporary add-ons</b>:<br>
+      Go to <code>about:debugging</code> → This Firefox →
+      Load Temporary Add-on → Select <code>manifest.json</code> from <code>dist/firefox</code>.<br><br>
+      📘 <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions" target="_blank">
+      Firefox WebExtensions Guide</a>
+    `;
   }
 
-  if (message.includes("error") || message.includes("not working")) {
-    return "Ensure Developer Mode is enabled and the correct dist folder is selected. Internal pages like chrome:// cannot be captured.";
+  if (
+    message.includes("error") ||
+    message.includes("not working") ||
+    message.includes("issue") ||
+    message.includes("bug")
+  ) {
+    return `
+      Common fixes:<br>
+      • Ensure <b>Developer Mode</b> is enabled<br>
+      • Select the correct <code>dist</code> folder<br>
+      • Internal pages like <code>chrome://</code> cannot be captured<br><br>
+      🐞 <a href="https://github.com/HarshYadav152/ss-capture/issues" target="_blank">
+      Report an Issue</a>
+    `;
   }
 
-  if (message.includes("support") || message.includes("help")) {
-    return "You can get help via GitHub Discussions or Issues in the SS-Capture repository.";
+  if (
+    message.includes("support") ||
+    message.includes("help") ||
+    message.includes("discussion") ||
+    message.includes("community") ||
+    message.includes("question")
+  ) {
+    return `
+      You can get help via:<br>
+      💬 <a href="https://github.com/HarshYadav152/ss-capture/discussions" target="_blank">
+      GitHub Discussions</a><br>
+      🐛 <a href="https://github.com/HarshYadav152/ss-capture/issues" target="_blank">
+      GitHub Issues</a>
+    `;
   }
 
-  return "🤖 I can help with installation, browser support, and troubleshooting. Try asking about Chrome, Edge, or Firefox.";
+  return `
+    🤖 I can help with installation, browser support, errors, and troubleshooting.<br>
+    Try asking about <b>Chrome</b>, <b>Edge</b>, <b>Firefox</b>, or <b>errors</b>.
+  `;
 }
 </script>
+
 
 </html>
