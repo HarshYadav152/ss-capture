@@ -316,4 +316,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
   });
+
+  // Handle Scroll Mode Toggle
+  const scrollModeToggle = document.getElementById('scrollModeToggle');
+  if (scrollModeToggle) {
+    // Load saved setting
+    chrome.storage.local.get(['premiumScroll'], (result) => {
+      // Default to true (Premium) if not set
+      scrollModeToggle.checked = result.premiumScroll !== false;
+    });
+
+    scrollModeToggle.addEventListener('change', () => {
+      chrome.storage.local.set({ premiumScroll: scrollModeToggle.checked });
+      console.log('Scroll mode preference updated:', scrollModeToggle.checked);
+    });
+  }
 });

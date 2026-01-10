@@ -33,10 +33,22 @@ async function triggerLazyLoading(totalHeight, isPopup) {
   const originalX = window.scrollX;
   const originalY = window.scrollY;
   const viewportHeight = window.innerHeight;
-  const scrollStep = viewportHeight * 1.5; // Faster scroll for asset triggering
-  const scrollDelay = 60; 
   
-  console.log('Starting lazy-load pre-scroll...');
+  // Get user preference for scroll mode
+  const settings = await new Promise(resolve => {
+    chrome.storage.local.get(['premiumScroll'], resolve);
+  });
+  
+  const isPremium = settings.premiumScroll !== false;
+  
+  // Adaptive scroll parameters
+  const scrollStep = isPremium 
+    ? Math.round(viewportHeight * 0.8) // Premium: Smaller steps
+    : viewportHeight * 1.5;            // Fast: Large jumps
+    
+  const scrollDelay = isPremium ? 30 : 60; // 30ms for 33fps feel, 60ms for speed
+  
+  console.log(`Starting ${isPremium ? 'Premium' : 'Fast'} lazy-load pre-scroll...`);
   
   let currentY = 0;
   while (currentY < totalHeight) {
