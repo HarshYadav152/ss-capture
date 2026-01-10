@@ -1,12 +1,11 @@
-// Use a block to avoid redeclaration errors if the script is injected multiple times
-{
 // State variables
-let isCancelled = false;
+// Using var and unique names to avoid SyntaxError on re-injection in restricted environments
+var ssCapture_isCancelled = false;
 
 // Constants
-const MAX_CANVAS_HEIGHT = 32000; // Browser limit
-const CHUNK_HEIGHT = 28000; // Safe chunk size with margin for overlap
-const OVERLAP = 100; // Overlap between chunks to ensure seamless stitching
+var MAX_CANVAS_HEIGHT = 32000; // Browser limit
+var CHUNK_HEIGHT = 28000; // Safe chunk size with margin for overlap
+var OVERLAP = 100; // Overlap between chunks to ensure seamless stitching
 
 // Helper functions
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -54,7 +53,7 @@ async function triggerLazyLoading(totalHeight, isPopup) {
   
   let currentY = 0;
   while (currentY < totalHeight) {
-    if (isCancelled) return;
+    if (ssCapture_isCancelled) return;
     currentY += scrollStep;
     window.scrollTo(0, Math.min(currentY, totalHeight));
     await sleep(scrollDelay);
@@ -107,7 +106,8 @@ async function animatedScrollTo(targetY, duration = 300) {
   });
 }
 // Toast Notification System (Shadow DOM)
-class Toast {
+// Use var to allow re-assignment if injected again
+var Toast = class {
   constructor() {
     this.host = document.createElement('div');
     this.host.style.cssText = 'position: fixed; z-index: 2147483647;';
@@ -224,7 +224,7 @@ class Toast {
   }
 }
 
-class ElementPicker {
+var ElementPicker = class {
   constructor() {
     this.overlay = null;
     this.onSelect = null;
@@ -393,10 +393,10 @@ async function captureElement(rect, isPopup) {
   }
 }
 
-const toast = new Toast();
+var toast = toast || new Toast();
 
-// Listen for messages from background or popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+// Handler function for messages - using a named variable so we can remove/update it
+var ssCapture_MessageHandler = function(message, sender, sendResponse) {
   console.log('Content Script Received Message:', message);
 
   if (message.type === 'PING') {
@@ -405,23 +405,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'INIT_CAPTURE' || message.type === 'START_CAPTURE') {
-    const isPopup = message.isPopup !== undefined ? message.isPopup : false;
-    const mode = message.mode || 'FULL_PAGE';
+    var isPopup = message.isPopup !== undefined ? message.isPopup : false;
+    var mode = message.mode || 'FULL_PAGE';
     captureScreenshot(isPopup, mode);
     if (sendResponse) sendResponse({ status: 'started' });
   }
 
   if (message.type === 'CANCEL_CAPTURE') {
-    isCancelled = true;
+    ssCapture_isCancelled = true;
   }
 
   return true;
-});
+};
+
+// Cleanup old listener if it exists to prevent duplicates
+if (window.ssCapture_ActiveListener) {
+    try {
+        chrome.runtime.onMessage.removeListener(window.ssCapture_ActiveListener);
+    } catch(e) {}
+}
+
+// Add and track new listener
+window.ssCapture_ActiveListener = ssCapture_MessageHandler;
+chrome.runtime.onMessage.addListener(ssCapture_MessageHandler);
+
 
 // Main capture function
 async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
   console.log(`Starting ${mode} screenshot capture...`);
-  isCancelled = false; // Reset cancel flag
+  ssCapture_isCancelled = false; // Reset cancel flag
   
   if (mode === 'SELECTED_ELEMENT') {
     startElementPicker(isPopup);
@@ -494,7 +506,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     // Integrated Pre-Scroll for Lazy-Loaded content
     if (mode === 'FULL_PAGE') {
       await triggerLazyLoading(totalHeight, isPopup);
-      if (isCancelled) throw new Error('Screenshot cancelled');
+      if (ssCapture_isCancelled) throw new Error('Screenshot cancelled');
       
       // Recalculate dimensions after lazy loading as things might have expanded
       const newHeight = Math.max(body.scrollHeight, html.scrollHeight, body.offsetHeight, html.offsetHeight, body.clientHeight, html.clientHeight);
@@ -554,7 +566,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     const chunks = [];
 
     for (let chunkIndex = 0; chunkIndex < numChunks; chunkIndex++) {
-      if (isCancelled) {
+      if (ssCapture_isCancelled) {
         throw new Error('Screenshot cancelled');
       }
 
@@ -583,7 +595,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
       let capturedParts = 0;
 
       while (currentY < chunkEndY) {
-        if (isCancelled) {
+        if (ssCapture_isCancelled) {
           throw new Error('Screenshot cancelled');
         }
 
@@ -735,5 +747,5 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     sendError(error.message || 'Unknown error during screenshot capture');
   }
 }
-}
+
 
