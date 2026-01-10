@@ -493,6 +493,13 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     if (mode === 'FULL_PAGE') {
       await triggerLazyLoading(totalHeight, isPopup);
       if (isCancelled) throw new Error('Screenshot cancelled');
+      
+      // Recalculate dimensions after lazy loading as things might have expanded
+      const newHeight = Math.max(body.scrollHeight, html.scrollHeight, body.offsetHeight, html.offsetHeight, body.clientHeight, html.clientHeight);
+      if (newHeight > totalHeight) {
+          console.log(`Page expanded from ${totalHeight} to ${newHeight} after lazy loading.`);
+          totalHeight = newHeight;
+      }
     }
 
     if (mode === 'VISIBLE_AREA') {
@@ -582,6 +589,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
 
         // Scroll to position smoothly (helps visual tracking and future STOP feature)
         await animatedScrollTo(currentY, 400);
+        const actualY = Math.round(window.scrollY);
         
         // Wait for page layout/animations to settle after scroll (smarter timing)
         await sleep(250);
@@ -643,15 +651,22 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
           img.src = dataUrl;
         });
 
-        // Calculate drawing position relative to chunk
-        const drawY = currentY - chunkStartY;
-        const drawHeight = Math.min(viewportHeight, chunkEndY - currentY);
+        // Use actual scroll position to draw on the chunk canvas.
+        // This solves the "last frame stutter" where the browser hits the bottom 
+        // before currentY reaches chunkEndY.
+        const drawY = actualY - chunkStartY;
+        
+        // Draw the full captured viewport and let the canvas handle clipping.
+        // We use the full img height to ensure no gaps.
+        chunkCtx.drawImage(img, 0, drawY, viewportWidth, viewportHeight);
 
-        // Draw to chunk canvas
-        chunkCtx.drawImage(img, 0, drawY, viewportWidth, drawHeight);
+        // If we've reached the absolute bottom of the page, exit the loop
+        if (actualY + viewportHeight >= totalHeight - 1) {
+          break;
+        }
 
-        // Move to next section
-        currentY += viewportHeight;
+        // Move to next section based on where we actually are + viewport height
+        currentY = actualY + viewportHeight;
 
         // Allow garbage collection
         if (capturedParts % 5 === 0) {
