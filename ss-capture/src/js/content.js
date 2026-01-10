@@ -1,3 +1,5 @@
+// Use a block to avoid redeclaration errors if the script is injected multiple times
+{
 // State variables
 let isCancelled = false;
 
@@ -733,3 +735,5 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     sendError(error.message || 'Unknown error during screenshot capture');
   }
 }
+}
+
