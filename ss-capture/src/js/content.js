@@ -69,7 +69,41 @@ async function triggerLazyLoading(totalHeight, isPopup) {
   window.scrollTo(originalX, originalY);
   await sleep(400); // Give it a bit more time to settle back at top before capture
 }
+/**
+ * Performs a controlled smooth animation to a target Y position
+ * @param {number} targetY The destination Y coordinate
+ * @param {number} duration Animation duration in ms
+ */
+async function animatedScrollTo(targetY, duration = 300) {
+  const startY = window.scrollY;
+  const diff = targetY - startY;
+  if (Math.abs(diff) < 2) {
+    window.scrollTo(0, targetY);
+    return;
+  }
 
+  const startTime = performance.now();
+
+  return new Promise(resolve => {
+    function step(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Sine-based easing for smooth start/stop
+      const ease = 0.5 * (1 - Math.cos(Math.PI * progress));
+      
+      window.scrollTo(0, startY + (diff * ease));
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        window.scrollTo(0, targetY); // Ensure precision
+        resolve();
+      }
+    }
+    requestAnimationFrame(step);
+  });
+}
 // Toast Notification System (Shadow DOM)
 class Toast {
   constructor() {
@@ -546,10 +580,11 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
 
         capturedParts++;
 
-        // Scroll to position
-        window.scrollTo(0, currentY);
+        // Scroll to position smoothly (helps visual tracking and future STOP feature)
+        await animatedScrollTo(currentY, 400);
+        
         // Wait for page layout/animations to settle after scroll (smarter timing)
-        await sleep(350);
+        await sleep(250);
 
         // Capture current viewport with retry mechanism
         let dataUrl;
