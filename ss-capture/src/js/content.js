@@ -1,10 +1,11 @@
 // State variables
-let isCancelled = false;
+// Using var and unique names to avoid SyntaxError on re-injection in restricted environments
+var ssCapture_isCancelled = false;
 
 // Constants
-const MAX_CANVAS_HEIGHT = 32000; // Browser limit
-const CHUNK_HEIGHT = 28000; // Safe chunk size with margin for overlap
-const OVERLAP = 100; // Overlap between chunks to ensure seamless stitching
+var MAX_CANVAS_HEIGHT = 32000; // Browser limit
+var CHUNK_HEIGHT = 28000; // Safe chunk size with margin for overlap
+var OVERLAP = 100; // Overlap between chunks to ensure seamless stitching
 
 // Helper functions
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -24,8 +25,89 @@ function sendError(errorMessage) {
   });
 }
 
+/**
+ * Smoothly scrolls to the bottom of the page to trigger lazy loading
+ * @param {number} totalHeight The total height of the page
+ * @param {boolean} isPopup Whether the capture was triggered from the popup
+ */
+async function triggerLazyLoading(totalHeight, isPopup) {
+  const originalX = window.scrollX;
+  const originalY = window.scrollY;
+  const viewportHeight = window.innerHeight;
+  
+  // Get user preference for scroll mode
+  const settings = await new Promise(resolve => {
+    chrome.storage.local.get(['premiumScroll'], resolve);
+  });
+  
+  const isPremium = settings.premiumScroll !== false;
+  
+  // Adaptive scroll parameters
+  const scrollStep = isPremium 
+    ? Math.round(viewportHeight * 0.8) // Premium: Smaller steps
+    : viewportHeight * 1.5;            // Fast: Large jumps
+    
+  const scrollDelay = isPremium ? 30 : 60; // 30ms for 33fps feel, 60ms for speed
+  
+  console.log(`Starting ${isPremium ? 'Premium' : 'Fast'} lazy-load pre-scroll...`);
+  
+  let currentY = 0;
+  while (currentY < totalHeight) {
+    if (ssCapture_isCancelled) return;
+    currentY += scrollStep;
+    window.scrollTo(0, Math.min(currentY, totalHeight));
+    await sleep(scrollDelay);
+    
+    const progress = Math.min(Math.round((currentY / totalHeight) * 100), 100);
+    sendProgressUpdate(`Triggering lazy loading... ${progress}%`, Math.round(progress / 10));
+    if (!isPopup) toast.show(`Triggering lazy loading... ${progress}%`, 'loading');
+  }
+
+  // Brief pause at the bottom to let last images trigger
+  await sleep(250);
+  
+  // Return to top
+  window.scrollTo(originalX, originalY);
+  await sleep(400); // Give it a bit more time to settle back at top before capture
+}
+/**
+ * Performs a controlled smooth animation to a target Y position
+ * @param {number} targetY The destination Y coordinate
+ * @param {number} duration Animation duration in ms
+ */
+async function animatedScrollTo(targetY, duration = 300) {
+  const startY = window.scrollY;
+  const diff = targetY - startY;
+  if (Math.abs(diff) < 2) {
+    window.scrollTo(0, targetY);
+    return;
+  }
+
+  const startTime = performance.now();
+
+  return new Promise(resolve => {
+    function step(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Sine-based easing for smooth start/stop
+      const ease = 0.5 * (1 - Math.cos(Math.PI * progress));
+      
+      window.scrollTo(0, startY + (diff * ease));
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        window.scrollTo(0, targetY); // Ensure precision
+        resolve();
+      }
+    }
+    requestAnimationFrame(step);
+  });
+}
 // Toast Notification System (Shadow DOM)
-class Toast {
+// Use var to allow re-assignment if injected again
+var Toast = class {
   constructor() {
     this.host = document.createElement('div');
     this.host.style.cssText = 'position: fixed; z-index: 2147483647;';
@@ -142,7 +224,7 @@ class Toast {
   }
 }
 
-class ElementPicker {
+var ElementPicker = class {
   constructor() {
     this.overlay = null;
     this.onSelect = null;
@@ -311,10 +393,10 @@ async function captureElement(rect, isPopup) {
   }
 }
 
-const toast = new Toast();
+var toast = toast || new Toast();
 
-// Listen for messages from background or popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+// Handler function for messages - using a named variable so we can remove/update it
+var ssCapture_MessageHandler = function(message, sender, sendResponse) {
   console.log('Content Script Received Message:', message);
 
   if (message.type === 'PING') {
@@ -323,23 +405,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'INIT_CAPTURE' || message.type === 'START_CAPTURE') {
-    const isPopup = message.isPopup !== undefined ? message.isPopup : false;
-    const mode = message.mode || 'FULL_PAGE';
+    var isPopup = message.isPopup !== undefined ? message.isPopup : false;
+    var mode = message.mode || 'FULL_PAGE';
     captureScreenshot(isPopup, mode);
     if (sendResponse) sendResponse({ status: 'started' });
   }
 
   if (message.type === 'CANCEL_CAPTURE') {
-    isCancelled = true;
+    ssCapture_isCancelled = true;
   }
 
   return true;
-});
+};
+
+// Cleanup old listener if it exists to prevent duplicates
+if (window.ssCapture_ActiveListener) {
+    try {
+        chrome.runtime.onMessage.removeListener(window.ssCapture_ActiveListener);
+    } catch(e) {}
+}
+
+// Add and track new listener
+window.ssCapture_ActiveListener = ssCapture_MessageHandler;
+chrome.runtime.onMessage.addListener(ssCapture_MessageHandler);
+
 
 // Main capture function
 async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
   console.log(`Starting ${mode} screenshot capture...`);
-  isCancelled = false; // Reset cancel flag
+  ssCapture_isCancelled = false; // Reset cancel flag
   
   if (mode === 'SELECTED_ELEMENT') {
     startElementPicker(isPopup);
@@ -409,6 +503,19 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
       throw new Error('Could not determine page dimensions');
     }
 
+    // Integrated Pre-Scroll for Lazy-Loaded content
+    if (mode === 'FULL_PAGE') {
+      await triggerLazyLoading(totalHeight, isPopup);
+      if (ssCapture_isCancelled) throw new Error('Screenshot cancelled');
+      
+      // Recalculate dimensions after lazy loading as things might have expanded
+      const newHeight = Math.max(body.scrollHeight, html.scrollHeight, body.offsetHeight, html.offsetHeight, body.clientHeight, html.clientHeight);
+      if (newHeight > totalHeight) {
+          console.log(`Page expanded from ${totalHeight} to ${newHeight} after lazy loading.`);
+          totalHeight = newHeight;
+      }
+    }
+
     if (mode === 'VISIBLE_AREA') {
       sendProgressUpdate('Capturing visible area...', 50);
       toast.show('Capturing visible area...', 'loading');
@@ -459,7 +566,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     const chunks = [];
 
     for (let chunkIndex = 0; chunkIndex < numChunks; chunkIndex++) {
-      if (isCancelled) {
+      if (ssCapture_isCancelled) {
         throw new Error('Screenshot cancelled');
       }
 
@@ -469,9 +576,9 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
 
       sendProgressUpdate(
         `Capturing section ${chunkIndex + 1}/${numChunks}...`,
-        Math.round((chunkIndex / numChunks) * 85) + 5
+        Math.round((chunkIndex / numChunks) * 75) + 15
       );
-      if (!isPopup) toast.show(`Capturing... ${Math.round((chunkIndex / numChunks) * 85)}%`, 'loading');
+      if (!isPopup) toast.show(`Capturing section ${chunkIndex + 1}...`, 'loading');
 
       // Create canvas for this chunk
       const chunkCanvas = document.createElement('canvas');
@@ -488,15 +595,18 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
       let capturedParts = 0;
 
       while (currentY < chunkEndY) {
-        if (isCancelled) {
+        if (ssCapture_isCancelled) {
           throw new Error('Screenshot cancelled');
         }
 
         capturedParts++;
 
-        // Scroll to position
-        window.scrollTo(0, currentY);
-        await sleep(300);
+        // Scroll to position smoothly (helps visual tracking and future STOP feature)
+        await animatedScrollTo(currentY, 400);
+        const actualY = Math.round(window.scrollY);
+        
+        // Wait for page layout/animations to settle after scroll (smarter timing)
+        await sleep(250);
 
         // Capture current viewport with retry mechanism
         let dataUrl;
@@ -555,15 +665,22 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
           img.src = dataUrl;
         });
 
-        // Calculate drawing position relative to chunk
-        const drawY = currentY - chunkStartY;
-        const drawHeight = Math.min(viewportHeight, chunkEndY - currentY);
+        // Use actual scroll position to draw on the chunk canvas.
+        // This solves the "last frame stutter" where the browser hits the bottom 
+        // before currentY reaches chunkEndY.
+        const drawY = actualY - chunkStartY;
+        
+        // Draw the full captured viewport and let the canvas handle clipping.
+        // We use the full img height to ensure no gaps.
+        chunkCtx.drawImage(img, 0, drawY, viewportWidth, viewportHeight);
 
-        // Draw to chunk canvas
-        chunkCtx.drawImage(img, 0, drawY, viewportWidth, drawHeight);
+        // If we've reached the absolute bottom of the page, exit the loop
+        if (actualY + viewportHeight >= totalHeight - 1) {
+          break;
+        }
 
-        // Move to next section
-        currentY += viewportHeight;
+        // Move to next section based on where we actually are + viewport height
+        currentY = actualY + viewportHeight;
 
         // Allow garbage collection
         if (capturedParts % 5 === 0) {
@@ -630,3 +747,5 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     sendError(error.message || 'Unknown error during screenshot capture');
   }
 }
+
+
