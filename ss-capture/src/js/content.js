@@ -24,6 +24,40 @@ function sendError(errorMessage) {
   });
 }
 
+/**
+ * Smoothly scrolls to the bottom of the page to trigger lazy loading
+ * @param {number} totalHeight The total height of the page
+ * @param {boolean} isPopup Whether the capture was triggered from the popup
+ */
+async function triggerLazyLoading(totalHeight, isPopup) {
+  const originalX = window.scrollX;
+  const originalY = window.scrollY;
+  const viewportHeight = window.innerHeight;
+  const scrollStep = viewportHeight * 1.5; // Faster scroll for asset triggering
+  const scrollDelay = 60; 
+  
+  console.log('Starting lazy-load pre-scroll...');
+  
+  let currentY = 0;
+  while (currentY < totalHeight) {
+    if (isCancelled) return;
+    currentY += scrollStep;
+    window.scrollTo(0, Math.min(currentY, totalHeight));
+    await sleep(scrollDelay);
+    
+    const progress = Math.min(Math.round((currentY / totalHeight) * 100), 100);
+    sendProgressUpdate(`Triggering lazy loading... ${progress}%`, Math.round(progress / 10));
+    if (!isPopup) toast.show(`Triggering lazy loading... ${progress}%`, 'loading');
+  }
+
+  // Brief pause at the bottom to let last images trigger
+  await sleep(250);
+  
+  // Return to top
+  window.scrollTo(originalX, originalY);
+  await sleep(400); // Give it a bit more time to settle back at top before capture
+}
+
 // Toast Notification System (Shadow DOM)
 class Toast {
   constructor() {
@@ -409,6 +443,12 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
       throw new Error('Could not determine page dimensions');
     }
 
+    // Integrated Pre-Scroll for Lazy-Loaded content
+    if (mode === 'FULL_PAGE') {
+      await triggerLazyLoading(totalHeight, isPopup);
+      if (isCancelled) throw new Error('Screenshot cancelled');
+    }
+
     if (mode === 'VISIBLE_AREA') {
       sendProgressUpdate('Capturing visible area...', 50);
       toast.show('Capturing visible area...', 'loading');
@@ -469,9 +509,9 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
 
       sendProgressUpdate(
         `Capturing section ${chunkIndex + 1}/${numChunks}...`,
-        Math.round((chunkIndex / numChunks) * 85) + 5
+        Math.round((chunkIndex / numChunks) * 75) + 15
       );
-      if (!isPopup) toast.show(`Capturing... ${Math.round((chunkIndex / numChunks) * 85)}%`, 'loading');
+      if (!isPopup) toast.show(`Capturing section ${chunkIndex + 1}...`, 'loading');
 
       // Create canvas for this chunk
       const chunkCanvas = document.createElement('canvas');
@@ -496,7 +536,8 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
 
         // Scroll to position
         window.scrollTo(0, currentY);
-        await sleep(300);
+        // Wait for page layout/animations to settle after scroll (smarter timing)
+        await sleep(350);
 
         // Capture current viewport with retry mechanism
         let dataUrl;
