@@ -29,6 +29,16 @@ A modern, high-quality full-page screenshot extension with a beautiful glassmorp
 4. Enable "Developer mode"
 5. Click "Load unpacked" and select the `dist/chrome` folder (or `dist/edge`)
 
+## 🚀 How to Load the Extension in Chrome
+
+1. Run `npm install`
+2. Run `npm run build`
+3. Open Chrome and go to `chrome://extensions`
+4. Enable **Developer mode**
+5. Click **Load unpacked**
+6. Select the `dist` or `build` folder
+
+
 #### Firefox
 1. Download the latest release from [Releases](https://github.com/HarshYadav152/ss-capture/releases)
 2. Extract the ZIP file
