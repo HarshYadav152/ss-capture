@@ -177,30 +177,40 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
 document.getElementById('copyBtn').addEventListener('click', async () => {
   if (captureData) {
     try {
-      // Convert base64 to blob
-      const res = await fetch(captureData);
-      const blob = await res.blob();
+      // Check if modern clipboard API is supported
+      if (navigator.clipboard && window.ClipboardItem) {
+        // Convert base64 to blob
+        const res = await fetch(captureData);
+        const blob = await res.blob();
 
-      // Write to clipboard
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          'image/png': blob
-        })
-      ]);
+        // Write to clipboard using modern API
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'image/png': blob
+          })
+        ]);
 
-      const statusText = document.getElementById('statusText');
-      statusText.textContent = 'Screenshot copied to clipboard!';
+        const statusText = document.getElementById('statusText');
+        statusText.textContent = 'Screenshot copied to clipboard!';
 
-      // Visual feedback
-      const originalText = document.querySelector('#copyBtn .btn-text').textContent;
-      document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
-      setTimeout(() => {
-        document.querySelector('#copyBtn .btn-text').textContent = originalText;
-      }, 2000);
+        // Visual feedback
+        const originalText = document.querySelector('#copyBtn .btn-text').textContent;
+        document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
+        setTimeout(() => {
+          document.querySelector('#copyBtn .btn-text').textContent = originalText;
+        }, 2000);
+      } else {
+        // Fallback for browsers without ClipboardItem support
+        throw new Error('CLIPBOARD_NOT_SUPPORTED');
+      }
 
     } catch (err) {
       console.error('Failed to copy: ', err);
-      showErrorAlert('Failed to copy to clipboard');
+      if (err.message === 'CLIPBOARD_NOT_SUPPORTED') {
+        showErrorAlert('Copy to clipboard not supported in this browser. Please use the Save button instead.');
+      } else {
+        showErrorAlert('Failed to copy to clipboard. Please try again or use the Save button.');
+      }
     }
   } else {
     showErrorAlert('No screenshot data available');
