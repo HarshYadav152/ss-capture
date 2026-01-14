@@ -94,7 +94,8 @@ async function generateManifest(browser, env) {
       "scripting",
       "downloads",
       "storage",
-      "unlimitedStorage"
+      "unlimitedStorage",
+      "contextMenus"
     ],
     host_permissions: [
       "<all_urls>"

@@ -8,9 +8,10 @@
     "scripting",
     "downloads",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "contextMenus"
   ],
-  "host_permissions": [
+  "optional_host_permissions": [
     "<all_urls>"
   ],
   "background": {

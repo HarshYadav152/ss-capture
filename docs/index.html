@@ -25,6 +25,211 @@
         <button class="error-close" id="errorClose">&times;</button>
       </div>
     </div>
+    <ul class="nav-links">
+      <li><a href="https://harshyadav152.github.io/ss-capture">Home</a></li>
+      <li><a href="https://github.com/HarshYadav152/ss-capture#readme">Docs</a></li>
+      <li><a href="https://github.com/HarshYadav152/ss-capture">GitHub</a></li>
+      <li><a href="https://github.com/HarshYadav152/ss-capture/discussions">Support</a></li>
+    </ul>
+  </div>
+</nav>
+
+
+    <section class="installation-guide">
+    <h2>Installation Guide</h2>
+
+    <p>
+      This guide explains how to install the <strong>SS-Capture</strong> browser
+      extension on Chrome, Microsoft Edge, and Firefox. The steps are written
+      for beginners and follow the project README.
+    </p>
+
+    <!-- Chrome -->
+    <details open>
+      <summary>Install on Google Chrome</summary>
+
+      <ol>
+        <li>
+          Download the latest release from the GitHub <strong>Releases</strong> page.
+          <div class="screenshot-placeholder">
+            <img src="./images/release-page.png" alt="Github Release Page" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          Open Chrome and navigate to
+          <code>chrome://extensions/</code>
+          <button class="copy-btn" data-copy="chrome://extensions/">Copy</button>
+          <div class="screenshot-placeholder">
+            <img src="./images/extension-page.png" alt="Chrome Extension Page" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          Enable <strong>Developer mode</strong> using the toggle in the top-right corner.
+          <p class="note">
+            Developer mode allows loading unpacked extensions for development and testing.
+          </p>
+          <div class="screenshot-placeholder">
+            <img src="./images/developer-mode.jpg" alt="Developer Mode" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          Click <strong>Load unpacked</strong> and select the
+          <code>dist/chrome</code> folder.
+          <div class="screenshot-placeholder">
+            <img src="./images/load-unpacked.jpg" alt="Load Unpacked" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          The extension will appear in the extensions list and is ready to use.
+          <div class="screenshot-placeholder">
+            [Screenshot: Extension Installed Successfully]
+          </div>
+          <div class="warning">
+            Make sure you select the <code>dist/chrome</code> folder, not the project root.
+          </div>
+        </li>
+      </ol>
+
+      <p>
+        Official documentation:
+        <a href="https://developer.chrome.com/docs/extensions/mv3/getstarted/" target="_blank">
+          Chrome Extensions Getting Started
+        </a>
+      </p>
+    </details>
+
+    <!-- Edge -->
+    <details>
+      <summary>Install on Microsoft Edge</summary>
+
+      <ol>
+        <li>
+          Download the latest release from the GitHub <strong>Releases</strong> page.
+          <div class="screenshot-placeholder">
+            <img src="./images/release-page.png" alt="Github Release Page" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          Open Microsoft Edge and navigate to
+          <code>edge://extensions/</code>
+          <button class="copy-btn" data-copy="edge://extensions/">Copy</button>
+          <div class="screenshot-placeholder">
+            <img src="./images/extension-page-edge.png" alt="Edge Extension Page" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          Enable <strong>Developer mode</strong> using the toggle in the left.
+          <div class="screenshot-placeholder">
+            <img src="./images/developer-mode-edge.jpg" alt="Developer Mode" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          Click <strong>Load unpacked</strong> and select the
+          <code>edge/</code> folder.
+          <div class="screenshot-placeholder">
+            <img src="./images/load-unpacked-edge.jpg" alt="Load Unpacked" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          The extension will now be installed and ready to use.
+          <div class="screenshot-placeholder">
+            [Screenshot: Extension Installed Successfully]
+          </div>
+        </li>
+      </ol>
+
+      <p>
+        Official documentation:
+        <a href="https://learn.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/" target="_blank">
+          Edge Extensions Documentation
+        </a>
+      </p>
+    </details>
+
+    <!-- Firefox -->
+    <details>
+      <summary>Install on Firefox</summary>
+
+      <ol>
+        <li>
+          Download the latest release from the GitHub <strong>Releases</strong> page.
+          <div class="screenshot-placeholder">
+            <img src="./images/release-page.png" alt="Github Release Page" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          Extract the ZIP file to a known location.
+          <div class="screenshot-placeholder">
+            [Screenshot: Extract ZIP File]
+          </div>
+        </li>
+
+        <li>
+          Open Firefox and navigate to
+          <code>about:debugging</code>
+          <button class="copy-btn" data-copy="about:debugging">Copy</button>
+          <div class="screenshot-placeholder">
+            <img src="./images/about-firefox.png" alt="About Firefox" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          Click <strong>This Firefox</strong>.
+        </li>
+
+        <li>
+          Click <strong>Load Temporary Add-on</strong> and select
+          <code>manifest.json</code> from the <code>dist/firefox</code> folder.
+          <div class="screenshot-placeholder">
+            <img src="./images/load-temporary.jpg" alt="About Firefox" width="750px" />
+          </div>
+        </li>
+
+        <li>
+          The extension will remain active until Firefox is restarted.
+          <div class="screenshot-placeholder">
+            [Screenshot: Firefox Extension Loaded]
+          </div>
+          <div class="warning">
+            Firefox temporary add-ons are removed when the browser is closed.
+          </div>
+        </li>
+      </ol>
+
+      <p>
+        Official documentation:
+        <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension" target="_blank">
+          Firefox WebExtensions Guide
+        </a>
+      </p>
+    </details>
+
+    <!-- Troubleshooting -->
+    <details>
+      <summary>Troubleshooting</summary>
+      <ul>
+        <li>Ensure <strong>Developer mode</strong> is enabled before loading the extension.</li>
+        <li>
+          Confirm that the correct folder was selected:
+          <code>dist/chrome</code>, <code>dist/edge</code>, or <code>dist/firefox</code>.
+        </li>
+        <li>Firefox temporary add-ons are removed when the browser is restarted.</li>
+        <li>
+          Internal browser pages such as <code>chrome://</code> and <code>edge://</code>
+          cannot be captured due to browser security restrictions.
+        </li>
+      </ul>
+    </details>
+  </section>
 
     <!-- Main Content -->
     <div class="content">
@@ -76,10 +281,67 @@
         <a href="#" class="footer-link">SS-Capture</a>
       </div>
       <div class="footer-version">v1.0.0</div>
+  
+ <footer class="footer">
+  <div class="footer-wrapper">
+
+    <div class="footer-left">
+      <h3>SS-Capture</h3>
+      <p class="footer-desc">
+        SS-Capture is a simple open-source browser extension for taking screenshots
+        quickly and efficiently across multiple browsers.
+      </p>
     </div>
+
+    <div class="footer-center">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="https://harshyadav152.github.io/ss-capture">Docs</a></li>
+        <li><a href="https://github.com/harshyadav152/ss-capture/discussions">Support</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-right">
+      <h4>Project</h4>
+      <ul>
+        <li><a href=" https://github.com/harshyadav152/ss-capture" target="_blank">GitHub</a></li>
+        <li><a href="https://github.com/harshyadav152/ss-capture" target="_blank">Bug Report</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    © 2026 SS-Capture · Open-source browser extension
   </div>
 
   <script src="js/script.js"></script>
+<!-- AI Chatbot -->
+<div id="chatbot">
+  <button id="chatbot-toggle">💬</button>
+
+  <div id="chatbot-window">
+    <div class="chat-header">
+      <span>SS-Capture Assistant</span>
+      <button id="close-chat">✖</button>
+    </div>
+
+    <div class="chat-body" id="chat-body">
+      <div class="bot-msg">
+        👋 Hi! I’m the SS-Capture assistant.  
+        Ask me about installation, errors, or browser support.
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Type your question..." />
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+</div>
+
+    
 </body>
 <script>
   const observer = new IntersectionObserver(entries => {
@@ -97,5 +359,135 @@
     observer.observe(card);
   });
 </script>
+
+
+<script>
+const toggleBtn = document.getElementById("chatbot-toggle");
+const chatWindow = document.getElementById("chatbot-window");
+const closeBtn = document.getElementById("close-chat");
+const sendBtn = document.getElementById("send-btn");
+const input = document.getElementById("user-input");
+const chatBody = document.getElementById("chat-body");
+
+toggleBtn.onclick = () => {
+  chatWindow.style.display = "flex";
+  toggleBtn.style.display = "none";
+};
+
+closeBtn.onclick = () => {
+  chatWindow.style.display = "none";
+  toggleBtn.style.display = "block";
+};
+
+sendBtn.onclick = sendMessage;
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+function sendMessage() {
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  addMessage(msg, "user-msg");
+  input.value = "";
+
+  setTimeout(() => {
+    addMessage(getBotReply(msg), "bot-msg");
+  }, 500);
+}
+
+function addMessage(text, className) {
+  const div = document.createElement("div");
+  div.className = className;
+  div.innerHTML = text;   // 👈 IMPORTANT for links
+  chatBody.appendChild(div);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+</script>
+<script>
+function getBotReply(message) {
+  message = message.toLowerCase();
+
+  if (
+    message.includes("chrome") ||
+    message.includes("google") ||
+    message.includes("chromium")
+  ) {
+    return `
+      For Chrome installation:<br>
+      Open <code>chrome://extensions</code> → Enable <b>Developer Mode</b> →
+      Click <b>Load unpacked</b> → Select <code>dist/chrome</code>.<br><br>
+      📘 <a href="https://developer.chrome.com/docs/extensions/mv3/getstarted/" target="_blank">
+      Chrome Extensions Guide</a>
+    `;
+  }
+
+  if (
+    message.includes("edge") ||
+    message.includes("microsoft") ||
+    message.includes("windows")
+  ) {
+    return `
+      For Microsoft Edge:<br>
+      Visit <code>edge://extensions</code> → Enable <b>Developer Mode</b> →
+      Load unpacked → Select <code>dist/edge</code>.<br><br>
+      📘 <a href="https://learn.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/" target="_blank">
+      Edge Extensions Documentation</a>
+    `;
+  }
+
+  if (
+    message.includes("firefox") ||
+    message.includes("mozilla") ||
+    message.includes("temporary")
+  ) {
+    return `
+      Firefox uses <b>temporary add-ons</b>:<br>
+      Go to <code>about:debugging</code> → This Firefox →
+      Load Temporary Add-on → Select <code>manifest.json</code> from <code>dist/firefox</code>.<br><br>
+      📘 <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions" target="_blank">
+      Firefox WebExtensions Guide</a>
+    `;
+  }
+
+  if (
+    message.includes("error") ||
+    message.includes("not working") ||
+    message.includes("issue") ||
+    message.includes("bug")
+  ) {
+    return `
+      Common fixes:<br>
+      • Ensure <b>Developer Mode</b> is enabled<br>
+      • Select the correct <code>dist</code> folder<br>
+      • Internal pages like <code>chrome://</code> cannot be captured<br><br>
+      🐞 <a href="https://github.com/HarshYadav152/ss-capture/issues" target="_blank">
+      Report an Issue</a>
+    `;
+  }
+
+  if (
+    message.includes("support") ||
+    message.includes("help") ||
+    message.includes("discussion") ||
+    message.includes("community") ||
+    message.includes("question")
+  ) {
+    return `
+      You can get help via:<br>
+      💬 <a href="https://github.com/HarshYadav152/ss-capture/discussions" target="_blank">
+      GitHub Discussions</a><br>
+      🐛 <a href="https://github.com/HarshYadav152/ss-capture/issues" target="_blank">
+      GitHub Issues</a>
+    `;
+  }
+
+  return `
+    🤖 I can help with installation, browser support, errors, and troubleshooting.<br>
+    Try asking about <b>Chrome</b>, <b>Edge</b>, <b>Firefox</b>, or <b>errors</b>.
+  `;
+}
+</script>
+
 
 </html>

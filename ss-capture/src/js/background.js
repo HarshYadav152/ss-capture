@@ -11,6 +11,52 @@ chrome.storage.local.get(['lastCaptureData'], (result) => {
   }
 });
 
+// Function to inject script with permission request if needed
+async function injectScriptWithPermission(tabId) {
+  return new Promise((resolve) => {
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ['content.js']
+    }, () => {
+      if (chrome.runtime.lastError) {
+        const errorMessage = chrome.runtime.lastError.message;
+        console.error('Injection failed:', errorMessage);
+        
+        // Check if it's a permission error
+        if (errorMessage.includes('permission') || errorMessage.includes('access') || errorMessage.includes('Cannot access')) {
+          console.log('Permission error detected, requesting host permissions...');
+          
+          // Request permission
+          chrome.permissions.request({
+            origins: ['<all_urls>']
+          }, (granted) => {
+            if (granted) {
+              console.log('Permission granted, retrying injection...');
+              // Retry injection
+              chrome.scripting.executeScript({
+                target: { tabId: tabId },
+                files: ['content.js']
+              }, () => {
+                if (chrome.runtime.lastError) {
+                  resolve({ success: false, error: chrome.runtime.lastError.message });
+                } else {
+                  resolve({ success: true });
+                }
+              });
+            } else {
+              resolve({ success: false, error: 'User denied permission request' });
+            }
+          });
+        } else {
+          resolve({ success: false, error: errorMessage });
+        }
+      } else {
+        resolve({ success: true });
+      }
+    });
+  });
+}
+
 // Keyboard shortcuts handling
 chrome.commands.onCommand.addListener(async (command) => {
   console.log('COMMAND TRIGGERED:', command);
@@ -34,20 +80,16 @@ chrome.commands.onCommand.addListener(async (command) => {
       } catch (error) {
         console.log('Script not found or orphaned. Injecting new instance...');
 
-        // Inject script
-        chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          files: ['content.js']
-        }, () => {
-          if (chrome.runtime.lastError) {
-            console.error('Injection failed:', chrome.runtime.lastError.message);
-          } else {
-            // Script injected, give it a moment to initialize then trigger
-            setTimeout(() => {
-              chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
-            }, 100);
-          }
-        });
+        // Try to inject script
+        const injectResult = await injectScriptWithPermission(tab.id);
+        if (injectResult.success) {
+          // Script injected, give it a moment to initialize then trigger
+          setTimeout(() => {
+            chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
+          }, 100);
+        } else {
+          console.error('Failed to inject script:', injectResult.error);
+        }
       }
 
     } else {
@@ -154,4 +196,78 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Set up on installation
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Screenshot Extension installed');
+
+  // Create context menu items
+  chrome.contextMenus.create({
+    id: 'capture_full_page_context',
+    title: '📸 Capture Full Page',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'capture_visible_area_context',
+    title: '👀 Capture Visible Area',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'capture_element_context',
+    title: '🎯 Capture Selected Element',
+    contexts: ['all']
+  });
+});
+
+// Context menu click handling
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === 'capture_full_page_context' ||
+    info.menuItemId === 'capture_visible_area_context' ||
+    info.menuItemId === 'capture_element_context') {
+
+    const now = Date.now();
+    if (now - lastCaptureTime < MIN_CAPTURE_INTERVAL) {
+      console.log('Capture rate limit hit, ignoring context menu trigger');
+      return;
+    }
+
+    if (tab && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+      let mode = 'FULL_PAGE';
+
+      if (info.menuItemId === 'capture_visible_area_context') {
+        mode = 'VISIBLE_AREA';
+      } else if (info.menuItemId === 'capture_element_context') {
+        mode = 'SELECTED_ELEMENT';
+      }
+
+      // Helper to initialize script and send message
+      const startCaptureViaContext = async () => {
+        try {
+          await chrome.tabs.sendMessage(tab.id, { type: 'PING' });
+          console.log(`Script already active. Starting ${mode} capture...`);
+          chrome.tabs.sendMessage(tab.id, {
+            type: 'INIT_CAPTURE',
+            isPopup: false,
+            mode: mode
+          });
+        } catch (error) {
+          console.log('Script not found or orphaned. Injecting new instance...');
+          const injectResult = await injectScriptWithPermission(tab.id);
+          if (injectResult.success) {
+            setTimeout(() => {
+              chrome.tabs.sendMessage(tab.id, {
+                type: 'INIT_CAPTURE',
+                isPopup: false,
+                mode: mode
+              });
+            }, 100);
+          } else {
+            console.error('Failed to inject script:', injectResult.error);
+          }
+        }
+      };
+
+      startCaptureViaContext();
+    } else {
+      console.warn('Cannot capture on this URL:', tab?.url);
+    }
+  }
 });

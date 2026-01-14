@@ -695,6 +695,10 @@ code {
     display: flex;
     justify-content: space-between;
     align-items: center;
+   margin-top: 70px;
+  background: var(--secondary);
+  color: #e5e7eb;
+   width: 100%;
 }
 .footer {
   background: linear-gradient(135deg, #0f172a, #1e293b);
@@ -751,7 +755,6 @@ code {
 
 /* ===============================
    FEATURES PAGE LAYOUT
-================================ */
 /* Use this for your landing/marketing page */
 .features-page {
     display: block !important;
@@ -921,6 +924,99 @@ code {
     .main-icon {
         font-size: 28px;
     }
+.footer-wrapper {
+  max-width: 1200px;
+  margin: auto;
+  padding: 50px 20px 30px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  gap: 80px;
+  flex-wrap: wrap;
+}
+.footer-left {
+  flex: 4;
+  min-width: 280px;
+  text-align: left;
+}
+.footer-desc {
+  max-width: 420px;
+  line-height: 1.8;
+  color: #cbd5f5;
+}
+.footer-center{
+  flex:3;
+  min-width: 200px;
+}
+.footer-right {
+  flex: 1;
+  min-width: 160px;
+  text-align: left;
+}
+
+.footer h3,
+.footer h4 {
+  color: #ffffff;
+  margin-bottom: 12px;
+  font-weight: 600;
+
+}
+
+.footer ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer li {
+  margin-bottom: 8px;
+}
+
+.footer a {
+  text-decoration: none;
+  color: #93c5fd;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.footer a:hover {
+  color: #ffffff;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  padding: 14px 10px;
+  font-size: 13px;
+  color: #9ca3af;
+  background: #020617;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .nav-links {
+    gap: 12px;
+  }
+
+   .footer-wrapper {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-left,
+  .footer-center,
+  .footer-right {
+    width: 100%;
+  }
+  .footer-right,.footer-left{
+    text-align: center;
+  }
+
+  .footer-desc {
+    max-width: 100%;
+    margin: auto;
+  }
 }
 .nav-links a {
   padding: 6px 4px;
@@ -963,4 +1059,101 @@ details li {
 }
 .footer-content {
   padding: 32px 20px;
+}
+
+
+/* Chatbot Styles */
+#chatbot {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+#chatbot-toggle {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+#chatbot-window {
+  width: 320px;
+  height: 420px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header {
+  background: #1e40af;
+  color: white;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.chat-body {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: #f8fafc;
+}
+
+.chat-input {
+  display: flex;
+  border-top: 1px solid #ddd;
+}
+
+.chat-input input {
+  flex: 1;
+  border: none;
+  padding: 10px;
+  outline: none;
+}
+
+.chat-input button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.bot-msg, .user-msg {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  max-width: 85%;
+}
+
+.bot-msg {
+  background: #e5e7eb;
+}
+
+.user-msg {
+  background: #2563eb;
+  color: white;
+  margin-left: auto;
+}
+.chat-header button {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px 10px;   /* ✅ Added padding */
+  border-radius: 6px;
+}
+
+.chat-header button:hover {
+  background: rgba(255,255,255,0.15);
 }
