@@ -109,10 +109,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (timeSinceLastCapture < MIN_CAPTURE_INTERVAL) {
       const delay = MIN_CAPTURE_INTERVAL - timeSinceLastCapture;
       setTimeout(() => {
-        performCapture(sender.tab.windowId, sendResponse);
+        performCapture(sender.tab ? sender.tab.windowId : null, sendResponse);
       }, delay);
     } else {
-      performCapture(sender.tab.windowId, sendResponse);
+      performCapture(sender.tab ? sender.tab.windowId : null, sendResponse);
     }
 
     return true; // Keep message channel open for async response
@@ -123,13 +123,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     captureInProgress = true;
     lastCaptureTime = Date.now();
 
+    // Use null as fallback to capture active tab in current window
+    const targetWindowId = windowId || chrome.windows.WINDOW_ID_CURRENT;
+
     chrome.tabs.captureVisibleTab(
-      windowId,
+      targetWindowId,
       { format: 'png', quality: 100 },
       dataUrl => {
         if (chrome.runtime.lastError) {
+          const errorMsg = chrome.runtime.lastError.message;
+          console.error('Capture failed:', errorMsg);
+          
           captureInProgress = false;
-          sendResponse({ error: chrome.runtime.lastError.message });
+          sendResponse({ error: errorMsg });
         } else {
           sendResponse(dataUrl);
         }
