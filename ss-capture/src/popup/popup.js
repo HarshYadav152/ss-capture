@@ -109,32 +109,40 @@ async function startCapture(mode = 'FULL_PAGE') {
     // Set flag
     captureInProgress = true;
 
-    // Get current tab
-    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    // Get current tab using callback for cross-browser compatibility
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      try {
+        const tab = tabs[0];
+        // Check if we can inject scripts into this tab
+        if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+          throw new Error('Cannot capture screenshots on this page type');
+        }
 
-    // Check if we can inject scripts into this tab
-    if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-      throw new Error('Cannot capture screenshots on this page type');
-    }
+        // Execute the content script
+        const injectResult = await injectScriptWithPermission(tab.id);
+        if (!injectResult.success) {
+          throw new Error(injectResult.error);
+        }
 
-    // Execute the content script
-    const injectResult = await injectScriptWithPermission(tab.id);
-    if (!injectResult.success) {
-      throw new Error(injectResult.error);
-    }
+        // Trigger capture explicitly with mode
+        chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', mode, isPopup: true });
 
-    // Trigger capture explicitly with mode
-    chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', mode, isPopup: true });
-
-    // Set a timeout for very long captures
-    const timeout = mode === 'FULL_PAGE' ? 120000 : 30000;
-    setTimeout(() => {
-      if (captureInProgress) {
-        showErrorAlert('Screenshot capture timed out.');
-        statusText.textContent = 'Capture timeout - please retry';
+        // Set a timeout for very long captures
+        const timeout = mode === 'FULL_PAGE' ? 120000 : 30000;
+        setTimeout(() => {
+          if (captureInProgress) {
+            showErrorAlert('Screenshot capture timed out.');
+            statusText.textContent = 'Capture timeout - please retry';
+            resetUI();
+          }
+        }, timeout);
+      } catch (err) {
+        showErrorAlert(err.message);
+        statusText.textContent = 'Failed to start capture';
+        console.error(err);
         resetUI();
       }
-    }, timeout);
+    });
 
   } catch (error) {
     showErrorAlert(error.message);
@@ -223,10 +231,15 @@ function resetUI() {
 
 // Initialize popup
 async function initPopup() {
-  const response = await chrome.runtime.sendMessage({ type: 'GET_LAST_CAPTURE' });
-  if (response) {
-    displayCapture(response);
-  }
+  chrome.runtime.sendMessage({ type: 'GET_LAST_CAPTURE' }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.warn('Error fetching last capture:', chrome.runtime.lastError.message);
+      return;
+    }
+    if (response) {
+      displayCapture(response);
+    }
+  });
 }
 
 function displayCapture(dataUrl) {
