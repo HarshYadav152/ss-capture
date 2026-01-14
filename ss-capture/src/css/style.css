@@ -577,6 +577,21 @@ button:active:not(:disabled) {
     box-shadow: 0 8px 28px rgba(251, 146, 60, 0.4);
 }
 
+/* Edit Button - Privacy Editor */
+.btn-edit {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.2));
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    box-shadow: 0 4px 16px rgba(251, 191, 36, 0.2);
+    transition: background 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), border-color 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.btn-edit:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.3));
+    border-color: rgba(251, 191, 36, 0.6);
+    box-shadow: 0 8px 28px rgba(251, 191, 36, 0.4);
+}
+
 button:disabled {
     opacity: 0.4;
     cursor: not-allowed;

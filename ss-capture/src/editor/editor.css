@@ -1,0 +1,454 @@
+/* ===============================
+   PRIVACY EDITOR STYLES
+   Glassmorphic Design System
+   =============================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, 
+    rgba(20, 10, 40, 1) 0%, 
+    rgba(40, 20, 80, 1) 25%,
+    rgba(30, 15, 60, 1) 50%,
+    rgba(50, 25, 100, 1) 75%,
+    rgba(20, 10, 40, 1) 100%);
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animated background particles */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+  animation: backgroundShift 8s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes backgroundShift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-10px, -10px) scale(1.1); }
+  66% { transform: translate(10px, 10px) scale(1.05); }
+}
+
+/* ===============================
+   EDITOR CONTAINER
+   =============================== */
+
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 16px;
+  gap: 12px;
+}
+
+/* ===============================
+   TOOLBAR
+   =============================== */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tool-group, .action-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* Tool Buttons */
+.tool-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 12px;
+  min-width: 70px;
+}
+
+.tool-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(120, 219, 255, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+}
+
+.tool-btn.active {
+  background: linear-gradient(135deg, rgba(120, 219, 255, 0.2), rgba(120, 119, 198, 0.2));
+  border-color: rgba(120, 219, 255, 0.5);
+  color: #78dbff;
+  box-shadow: 0 0 20px rgba(120, 219, 255, 0.3);
+}
+
+.tool-icon {
+  font-size: 20px;
+}
+
+.tool-label {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* Intensity Control */
+.intensity-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.intensity-control label {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+#intensityValue {
+  color: #78dbff;
+  font-weight: 600;
+}
+
+#intensitySlider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+#intensitySlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #78dbff, #7877c6);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(120, 219, 255, 0.5);
+  transition: transform 0.2s ease;
+}
+
+#intensitySlider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+#intensitySlider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #78dbff, #7877c6);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 10px rgba(120, 219, 255, 0.5);
+}
+
+/* Action Buttons */
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+}
+
+.action-btn.danger:hover {
+  background: rgba(255, 119, 119, 0.15);
+  border-color: rgba(255, 119, 119, 0.4);
+  color: #ff7777;
+}
+
+.action-icon {
+  font-size: 16px;
+}
+
+/* Save Button */
+.save-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, rgba(120, 255, 198, 0.2), rgba(119, 198, 120, 0.2));
+  border: 1px solid rgba(120, 255, 198, 0.4);
+  border-radius: 12px;
+  color: #78ffc6;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 16px rgba(120, 255, 198, 0.2);
+}
+
+.save-btn:hover {
+  background: linear-gradient(135deg, rgba(120, 255, 198, 0.3), rgba(119, 198, 120, 0.3));
+  border-color: rgba(120, 255, 198, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(120, 255, 198, 0.4);
+}
+
+.save-icon {
+  font-size: 18px;
+}
+
+/* ===============================
+   CANVAS CONTAINER
+   =============================== */
+
+.canvas-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: auto;
+  position: relative;
+  padding: 20px;
+}
+
+#editorCanvas {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  cursor: crosshair;
+}
+
+/* Selection Box */
+.selection-box {
+  position: absolute;
+  border: 2px dashed rgba(120, 219, 255, 0.8);
+  background: rgba(120, 219, 255, 0.1);
+  pointer-events: none;
+  display: none;
+  z-index: 10;
+}
+
+/* Custom Cursors */
+.cursor-blur #editorCanvas {
+  cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2378dbff" stroke-width="2" opacity="0.6"/><circle cx="12" cy="12" r="4" fill="%2378dbff" opacity="0.4"/></svg>') 12 12, crosshair;
+}
+
+.cursor-pixelate #editorCanvas {
+  cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" fill="%23ff77c6"/><rect x="14" y="4" width="6" height="6" fill="%23ff77c6" opacity="0.7"/><rect x="4" y="14" width="6" height="6" fill="%23ff77c6" opacity="0.7"/><rect x="14" y="14" width="6" height="6" fill="%23ff77c6"/></svg>') 12 12, crosshair;
+}
+
+.cursor-select #editorCanvas {
+  cursor: default;
+}
+
+/* ===============================
+   STATUS BAR
+   =============================== */
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.status-left, .status-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.separator {
+  opacity: 0.3;
+}
+
+#effectCount {
+  color: #78dbff;
+  font-weight: 500;
+}
+
+#statusMessage {
+  color: #78ffc6;
+  font-weight: 500;
+}
+
+.keyboard-hint {
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+/* ===============================
+   INSTRUCTIONS PANEL
+   =============================== */
+
+.instructions-panel {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.instruction-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+}
+
+.instruction-item .step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, rgba(120, 219, 255, 0.2), rgba(120, 119, 198, 0.2));
+  border-radius: 50%;
+  color: #78dbff;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.instruction-item strong {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===============================
+   ANIMATIONS
+   =============================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toolbar, .canvas-container, .status-bar, .instructions-panel {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.toolbar { animation-delay: 0.1s; }
+.canvas-container { animation-delay: 0.2s; }
+.status-bar { animation-delay: 0.3s; }
+.instructions-panel { animation-delay: 0.4s; }
+
+/* ===============================
+   RESPONSIVE DESIGN
+   =============================== */
+
+@media (max-width: 900px) {
+  .toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .instructions-panel {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .keyboard-hint {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .editor-container {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .toolbar {
+    padding: 10px 12px;
+  }
+  
+  .tool-btn {
+    padding: 8px 12px;
+    min-width: 60px;
+  }
+  
+  .tool-label, .action-label, .save-label {
+    display: none;
+  }
+  
+  .save-btn {
+    padding: 10px 16px;
+  }
+  
+  .instructions-panel {
+    display: none;
+  }
+}

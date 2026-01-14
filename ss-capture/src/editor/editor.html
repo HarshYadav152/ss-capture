@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Editor - SS-Capture</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <div class="editor-container">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-section">
+        <div class="tool-group">
+          <button id="selectTool" class="tool-btn active" title="Select Tool (V)">
+            <span class="tool-icon">👆</span>
+            <span class="tool-label">Select</span>
+          </button>
+          <button id="blurTool" class="tool-btn" title="Blur Tool (B)">
+            <span class="tool-icon">🌫️</span>
+            <span class="tool-label">Blur</span>
+          </button>
+          <button id="pixelateTool" class="tool-btn" title="Pixelate Tool (P)">
+            <span class="tool-icon">🔲</span>
+            <span class="tool-label">Pixelate</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="toolbar-section">
+        <div class="intensity-control">
+          <label for="intensitySlider">
+            <span id="intensityLabel">Intensity:</span>
+            <span id="intensityValue">15</span>
+          </label>
+          <input type="range" id="intensitySlider" min="5" max="50" value="15">
+        </div>
+      </div>
+      
+      <div class="toolbar-section">
+        <div class="action-group">
+          <button id="undoBtn" class="action-btn" title="Undo (Ctrl+Z)">
+            <span class="action-icon">↶</span>
+            <span class="action-label">Undo</span>
+          </button>
+          <button id="clearAllBtn" class="action-btn danger" title="Clear All Effects">
+            <span class="action-icon">🗑️</span>
+            <span class="action-label">Clear All</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="toolbar-section">
+        <button id="saveBtn" class="save-btn" title="Save & Close (Ctrl+S)">
+          <span class="save-icon">💾</span>
+          <span class="save-label">Save & Close</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Canvas Container -->
+    <div class="canvas-container">
+      <canvas id="editorCanvas"></canvas>
+      <div id="selectionBox" class="selection-box"></div>
+    </div>
+    
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-left">
+        <span id="effectCount">Effects: 0</span>
+        <span class="separator">|</span>
+        <span id="canvasDimensions">0 × 0</span>
+      </div>
+      <div class="status-center">
+        <span id="statusMessage">Ready to edit</span>
+      </div>
+      <div class="status-right">
+        <span class="keyboard-hint">B: Blur | P: Pixelate | V: Select | Ctrl+Z: Undo | Ctrl+S: Save</span>
+      </div>
+    </div>
+    
+    <!-- Instructions Panel -->
+    <div class="instructions-panel">
+      <div class="instruction-item">
+        <span class="step">1</span>
+        <span class="text">Select <strong>Blur</strong> or <strong>Pixelate</strong> tool</span>
+      </div>
+      <div class="instruction-item">
+        <span class="step">2</span>
+        <span class="text">Adjust <strong>intensity</strong> using the slider</span>
+      </div>
+      <div class="instruction-item">
+        <span class="step">3</span>
+        <span class="text"><strong>Click and drag</strong> to select area</span>
+      </div>
+      <div class="instruction-item">
+        <span class="step">4</span>
+        <span class="text">Click <strong>Save & Close</strong> when done</span>
+      </div>
+    </div>
+  </div>
+  
+  <script src="editor.js"></script>
+</body>
+</html>
