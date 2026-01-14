@@ -3,9 +3,9 @@
 var ssCapture_isCancelled = false;
 
 // Constants
-var MAX_CANVAS_HEIGHT = 32000; // Browser limit
-var CHUNK_HEIGHT = 20000; // Reduced chunk size for better memory stability on large pages
-var OVERLAP = 200; // Increased overlap for safer stitching with dynamic content
+var MAX_CANVAS_HEIGHT = 16383; // Safer limit for many GPUs/browsers
+var CHUNK_HEIGHT = 10000; // Further reduced for better stability
+var OVERLAP = 200; 
 
 // Helper functions
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -315,14 +315,30 @@ async function captureElement(rect, isPopup) {
     var canvas = document.createElement('canvas');
     var dpr = window.devicePixelRatio || 1;
     
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    // Calculate the intersection of the element and the viewport
+    var viewportWidth = window.innerWidth;
+    var viewportHeight = window.innerHeight;
+    
+    var visibleLeft = Math.max(0, rect.left);
+    var visibleTop = Math.max(0, rect.top);
+    var visibleRight = Math.min(viewportWidth, rect.right);
+    var visibleBottom = Math.min(viewportHeight, rect.bottom);
+    
+    var visibleWidth = visibleRight - visibleLeft;
+    var visibleHeight = visibleBottom - visibleTop;
+
+    if (visibleWidth <= 0 || visibleHeight <= 0) {
+      throw new Error('Element is partially or fully off-screen. Please scroll it into view.');
+    }
+    
+    canvas.width = visibleWidth * dpr;
+    canvas.height = visibleHeight * dpr;
     
     var ctx = canvas.getContext('2d');
     ctx.drawImage(
       img,
-      rect.left * dpr, rect.top * dpr, rect.width * dpr, rect.height * dpr,
-      0, 0, rect.width * dpr, rect.height * dpr
+      visibleLeft * dpr, visibleTop * dpr, visibleWidth * dpr, visibleHeight * dpr,
+      0, 0, visibleWidth * dpr, visibleHeight * dpr
     );
 
     var croppedDataUrl = canvas.toDataURL('image/png');
@@ -414,16 +430,14 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
   var originalX = window.scrollX;
   var originalY = window.scrollY;
   var fixedElements = [];
-
-  // Get user preference for scroll mode to optimize wait times
-  var settings = await new Promise(resolve => {
-    chrome.storage.local.get(['premiumScroll'], resolve);
-  });
-  var isPremium = settings.premiumScroll !== false;
-  var captureWaitTime = isPremium ? 800 : 300; // Longer wait for premium to handle lazy loading better
-  var scrollDuration = isPremium ? 400 : 250;
+  var originalStyles = [];
 
   function cleanup() {
+    // Restore original styles
+    originalStyles.forEach(({ el, property, value }) => {
+      try { el.style.setProperty(property, value); } catch (e) {}
+    });
+
     // Restore original scroll position
     window.scrollTo(originalX, originalY);
 
@@ -439,6 +453,20 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
 
   try {
     sendProgressUpdate('Preparing page dimensions...', 2);
+    
+    // Get user preference for scroll mode to optimize wait times
+    var settings = await new Promise(resolve => {
+      chrome.storage.local.get(['premiumScroll'], resolve);
+    });
+    var isPremium = settings.premiumScroll !== false;
+    var captureWaitTime = isPremium ? 800 : 300; 
+    var scrollDuration = isPremium ? 400 : 250;
+
+    // Disable smooth scrolling during capture to prevent sync issues
+    document.querySelectorAll('html, body').forEach(el => {
+      originalStyles.push({ el, property: 'scroll-behavior', value: el.style.scrollBehavior });
+      el.style.setProperty('scroll-behavior', 'auto', 'important');
+    });
 
     // Check browser compatibility
     if (!chrome.runtime) {
@@ -493,6 +521,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     // Handle fixed elements (only for full page capture)
     fixedElements = [];
     if (mode === 'FULL_PAGE') {
+      // Hide fixed/sticky elements
       document.querySelectorAll('*').forEach(el => {
         var style = window.getComputedStyle(el);
         if (style.position === 'fixed' || style.position === 'sticky') {
@@ -500,6 +529,11 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
           el.style.display = 'none';
         }
       });
+
+      // Scroll to the very top to start capture from a consistent state
+      sendProgressUpdate('Scrolling to top...', 4);
+      await animatedScrollTo(0, 400);
+      await sleep(500); // Allow layout to settle
     }
 
     // Determine if we need chunking
@@ -550,11 +584,11 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
 
         capturedParts++;
 
-        // Scroll to position smoothly (helps visual tracking and future STOP feature)
+        // Scroll to position smoothly
         await animatedScrollTo(currentY, scrollDuration);
         var actualY = Math.round(window.scrollY);
         
-        // Wait for page layout/animations to settle after scroll (smarter timing)
+        // Wait for page layout/animations to settle
         await sleep(captureWaitTime);
 
         // Capture current viewport with retry mechanism
@@ -566,8 +600,8 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
           try {
             dataUrl = await new Promise((resolve, reject) => {
               var captureTimeout = setTimeout(() => {
-                reject(new Error('Screenshot capture timed out'));
-              }, 10000);
+                reject(new Error('Screenshot capture timed out (30s)'));
+              }, 30000);
 
               chrome.runtime.sendMessage({ type: 'CAPTURE' }, (response) => {
                 clearTimeout(captureTimeout);
@@ -588,7 +622,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
           } catch (error) {
             retryCount++;
             if (error.message === 'RATE_LIMIT_EXCEEDED' && retryCount < maxRetries) {
-              await sleep(1000);
+              await sleep(1000); // Wait longer on rate limit
               continue;
             } else {
               throw error;
@@ -601,7 +635,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
         await new Promise((resolve, reject) => {
           var imgTimeout = setTimeout(() => {
             reject(new Error('Image loading timed out'));
-          }, 5000);
+          }, 10000); // 10s for image load
 
           img.onload = () => {
             clearTimeout(imgTimeout);
@@ -615,48 +649,52 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
         });
 
         // Use actual scroll position to draw on the chunk canvas.
-        // This solves the "last frame stutter" where the browser hits the bottom 
-        // before currentY reaches chunkEndY.
         var drawY = actualY - chunkStartY;
-        
-        // Draw the full captured viewport and var the canvas handle clipping.
-        // We use the full img height to ensure no gaps.
         chunkCtx.drawImage(img, 0, drawY, viewportWidth, viewportHeight);
 
-        // If we've reached the absolute bottom of the page, exit the loop
+        // If we've reached the absolute bottom of the page, exit ALL loops
         if (actualY + viewportHeight >= totalHeight - 1) {
+          currentY = totalHeight + 1; // Force break while loop
+          chunkIndex = numChunks + 1; // Force break for loop
           break;
         }
 
-        // Move to next section based on where we actually are + viewport height
+        // Move to next section
         currentY = actualY + viewportHeight;
 
         // Allow garbage collection
-        if (capturedParts % 5 === 0) {
-          await sleep(100);
+        if (capturedParts % 3 === 0) {
+          await sleep(50);
         }
       }
 
       chunks.push(chunkCanvas);
     }
 
-    // Combine chunks into final canvas
+        // Combine chunks into final canvas
     sendProgressUpdate('Combining chunks into final image...', 92);
+
+    if (totalHeight > MAX_CANVAS_HEIGHT) {
+      console.warn(`Page height ${totalHeight}px exceeds safer limit of ${MAX_CANVAS_HEIGHT}px. The image might be truncated or fail to render.`);
+    }
 
     var finalCanvas = document.createElement('canvas');
     finalCanvas.width = viewportWidth;
-    finalCanvas.height = totalHeight;
+    finalCanvas.height = Math.min(totalHeight, MAX_CANVAS_HEIGHT);
     var finalCtx = finalCanvas.getContext('2d', { willReadFrequently: false });
 
     if (!finalCtx) {
-      throw new Error('Could not create final canvas context');
+      throw new Error('Could not create final canvas context. The page might be too complex or large.');
     }
 
     for (var i = 0; i < chunks.length; i++) {
       var yPosition = i * CHUNK_HEIGHT;
-      finalCtx.drawImage(chunks[i], 0, yPosition);
+      // Don't draw outside final canvas
+      if (yPosition < finalCanvas.height) {
+        finalCtx.drawImage(chunks[i], 0, yPosition);
+      }
       
-      // Clear chunk from memory as we stitch to final canvas
+      // Clear chunk from memory
       chunks[i].width = 0;
       chunks[i].height = 0;
 
@@ -665,7 +703,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
         92 + Math.round((i / chunks.length) * 5)
       );
     }
-    chunks.length = 0; // Final cleanup
+    chunks.length = 0;
 
     sendProgressUpdate('Processing final screenshot...', 98);
 
@@ -673,8 +711,12 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     var finalScreenshot;
     try {
       finalScreenshot = finalCanvas.toDataURL('image/png');
+      if (!finalScreenshot || finalScreenshot.length < 100) {
+        throw new Error('Generated image is empty');
+      }
     } catch (error) {
-      throw new Error('Failed to convert screenshot to image. The page may be too large.');
+      console.error('Canvas toDataURL failed:', error);
+      throw new Error('Failed to convert screenshot to image. This usually happens on extremely long pages.');
     }
 
     cleanup();

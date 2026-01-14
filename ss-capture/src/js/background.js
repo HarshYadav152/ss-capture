@@ -2,7 +2,7 @@
 let captureInProgress = false;
 let lastCaptureTime = 0;
 let lastCaptureData = null;
-const MIN_CAPTURE_INTERVAL = 600;
+const MIN_CAPTURE_INTERVAL = 700; // Increased buffer for stability and rate-limit safety
 
 // Initialize from storage
 chrome.storage.local.get(['lastCaptureData'], (result) => {
