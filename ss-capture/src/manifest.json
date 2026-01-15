@@ -11,7 +11,7 @@
     "unlimitedStorage",
     "contextMenus"
   ],
-  "optional_host_permissions": [
+  "host_permissions": [
     "<all_urls>"
   ],
   "background": {

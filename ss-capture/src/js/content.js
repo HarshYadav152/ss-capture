@@ -1,10 +1,11 @@
 // State variables
-let isCancelled = false;
+// Using var and unique names to avoid SyntaxError on re-injection in restricted environments
+var ssCapture_isCancelled = false;
 
 // Constants
-const MAX_CANVAS_HEIGHT = 32000; // Browser limit
-const CHUNK_HEIGHT = 28000; // Safe chunk size with margin for overlap
-const OVERLAP = 100; // Overlap between chunks to ensure seamless stitching
+var MAX_CANVAS_HEIGHT = 16383; // Safer limit for many GPUs/browsers
+var CHUNK_HEIGHT = 10000; // Further reduced for better stability
+var OVERLAP = 200; 
 
 // Helper functions
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -23,15 +24,50 @@ function sendError(errorMessage) {
     error: errorMessage
   });
 }
+/**
+ * Performs a controlled smooth animation to a target Y position
+ * @param {number} targetY The destination Y coordinate
+ * @param {number} duration Animation duration in ms
+ */
+async function animatedScrollTo(targetY, duration = 300) {
+  var startY = window.scrollY;
+  var diff = targetY - startY;
+  if (Math.abs(diff) < 2) {
+    window.scrollTo(0, targetY);
+    return;
+  }
 
+  var startTime = performance.now();
+
+  return new Promise(resolve => {
+    function step(currentTime) {
+      var elapsed = currentTime - startTime;
+      var progress = Math.min(elapsed / duration, 1);
+      
+      // Sine-based easing for smooth start/stop
+      var ease = 0.5 * (1 - Math.cos(Math.PI * progress));
+      
+      window.scrollTo(0, startY + (diff * ease));
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        window.scrollTo(0, targetY); // Ensure precision
+        resolve();
+      }
+    }
+    requestAnimationFrame(step);
+  });
+}
 // Toast Notification System (Shadow DOM)
-class Toast {
+// Use var to allow re-assignment if injected again
+var Toast = class {
   constructor() {
     this.host = document.createElement('div');
     this.host.style.cssText = 'position: fixed; z-index: 2147483647;';
-    const shadow = this.host.attachShadow({ mode: 'open' });
+    var shadow = this.host.attachShadow({ mode: 'open' });
 
-    const style = document.createElement('style');
+    var style = document.createElement('style');
     style.textContent = `
         .toast {
           position: fixed;
@@ -98,8 +134,8 @@ class Toast {
       this.element.classList.remove('clickable');
     }
 
-    let icon = '';
-    let bgColor = 'rgba(15, 23, 42, 0.95)';
+    var icon = '';
+    var bgColor = 'rgba(15, 23, 42, 0.95)';
     if (type === 'loading') {
       icon = '<div class="spinner"></div>';
     }
@@ -116,16 +152,16 @@ class Toast {
     this.element.textContent = ''; // Clear previous content
     
     if (type === 'loading') {
-      const spinner = document.createElement('div');
+      var spinner = document.createElement('div');
       spinner.className = 'spinner';
       this.element.appendChild(spinner);
     } else {
-      const iconSpan = document.createElement('span');
+      var iconSpan = document.createElement('span');
       iconSpan.textContent = icon;
       this.element.appendChild(iconSpan);
     }
     
-    const textSpan = document.createElement('span');
+    var textSpan = document.createElement('span');
     textSpan.textContent = message;
     this.element.appendChild(textSpan);
     
@@ -142,7 +178,7 @@ class Toast {
   }
 }
 
-class ElementPicker {
+var ElementPicker = class {
   constructor() {
     this.overlay = null;
     this.onSelect = null;
@@ -165,15 +201,15 @@ class ElementPicker {
     this.highlight = document.createElement('div');
     this.highlight.style.cssText = 'position: fixed; border: 2px solid #fb923c; background: rgba(251, 146, 60, 0.1); pointer-events: none; z-index: 2147483647; transition: all 0.1s ease-out; border-radius: 4px; box-shadow: 0 0 15px rgba(251, 146, 60, 0.3);';
     
-    const infoLabel = document.createElement('div');
+    var infoLabel = document.createElement('div');
     infoLabel.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.9); color: white; padding: 10px 20px; border-radius: 20px; font-family: system-ui; font-size: 13px; z-index: 2147483647; pointer-events: none; border: 1px solid rgba(251, 146, 60, 0.5); backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);';
     
-    const targetIcon = document.createElement('span');
+    var targetIcon = document.createElement('span');
     targetIcon.textContent = '🎯';
-    const boldText = document.createElement('b');
+    var boldText = document.createElement('b');
     boldText.textContent = 'Capture Mode Active:';
-    const hintText = document.createTextNode(' Select an element.');
-    const escSpan = document.createElement('span');
+    var hintText = document.createTextNode(' Select an element.');
+    var escSpan = document.createElement('span');
     escSpan.style.cssText = 'opacity: 0.6; margin-left: 10px;';
     escSpan.textContent = 'ESC to cancel';
     
@@ -205,12 +241,12 @@ class ElementPicker {
 
   handleMouseMove(e) {
     this.overlay.style.pointerEvents = 'none';
-    const el = document.elementFromPoint(e.clientX, e.clientY);
+    var el = document.elementFromPoint(e.clientX, e.clientY);
     this.overlay.style.pointerEvents = 'auto';
 
     if (el && el !== this.hoveredElement && el !== this.overlay && !this.overlay.contains(el)) {
       this.hoveredElement = el;
-      const rect = el.getBoundingClientRect();
+      var rect = el.getBoundingClientRect();
       
       this.highlight.style.top = `${rect.top}px`;
       this.highlight.style.left = `${rect.left}px`;
@@ -224,8 +260,8 @@ class ElementPicker {
     if (this.hoveredElement) {
       e.preventDefault();
       e.stopPropagation();
-      const el = this.hoveredElement;
-      const rect = el.getBoundingClientRect();
+      var el = this.hoveredElement;
+      var rect = el.getBoundingClientRect();
       this.stop();
       this.onSelect(el, rect);
     }
@@ -240,10 +276,10 @@ class ElementPicker {
 }
 
 function startElementPicker(isPopup) {
-  const picker = new ElementPicker();
+  var picker = new ElementPicker();
   picker.start(
     async (el, rect) => {
-      // Small delay to let the highlight disappear
+      // Small delay to var the highlight disappear
       await sleep(100);
       captureElement(rect, isPopup);
     },
@@ -262,34 +298,50 @@ async function captureElement(rect, isPopup) {
     // Check if element is in viewport, if not scroll to it
     // For now we assume the user just selected what they see
     
-    const dataUrl = await new Promise((resolve, reject) => {
+    var dataUrl = await new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ type: 'CAPTURE' }, response => {
         if (response && response.error) reject(new Error(response.error));
         else resolve(response);
       });
     });
 
-    const img = new Image();
+    var img = new Image();
     await new Promise((resolve, reject) => {
       img.onload = resolve;
       img.onerror = reject;
       img.src = dataUrl;
     });
 
-    const canvas = document.createElement('canvas');
-    const dpr = window.devicePixelRatio || 1;
+    var canvas = document.createElement('canvas');
+    var dpr = window.devicePixelRatio || 1;
     
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    // Calculate the intersection of the element and the viewport
+    var viewportWidth = window.innerWidth;
+    var viewportHeight = window.innerHeight;
     
-    const ctx = canvas.getContext('2d');
+    var visibleLeft = Math.max(0, rect.left);
+    var visibleTop = Math.max(0, rect.top);
+    var visibleRight = Math.min(viewportWidth, rect.right);
+    var visibleBottom = Math.min(viewportHeight, rect.bottom);
+    
+    var visibleWidth = visibleRight - visibleLeft;
+    var visibleHeight = visibleBottom - visibleTop;
+
+    if (visibleWidth <= 0 || visibleHeight <= 0) {
+      throw new Error('Element is partially or fully off-screen. Please scroll it into view.');
+    }
+    
+    canvas.width = visibleWidth * dpr;
+    canvas.height = visibleHeight * dpr;
+    
+    var ctx = canvas.getContext('2d');
     ctx.drawImage(
       img,
-      rect.left * dpr, rect.top * dpr, rect.width * dpr, rect.height * dpr,
-      0, 0, rect.width * dpr, rect.height * dpr
+      visibleLeft * dpr, visibleTop * dpr, visibleWidth * dpr, visibleHeight * dpr,
+      0, 0, visibleWidth * dpr, visibleHeight * dpr
     );
 
-    const croppedDataUrl = canvas.toDataURL('image/png');
+    var croppedDataUrl = canvas.toDataURL('image/png');
     
     toast.show('Selected Element Captured! Click to preview.', 'success', () => {
       chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
@@ -311,10 +363,10 @@ async function captureElement(rect, isPopup) {
   }
 }
 
-const toast = new Toast();
+var toast = toast || new Toast();
 
-// Listen for messages from background or popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+// Handler function for messages - using a named variable so we can remove/update it
+var ssCapture_MessageHandler = function(message, sender, sendResponse) {
   console.log('Content Script Received Message:', message);
 
   if (message.type === 'PING') {
@@ -323,23 +375,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'INIT_CAPTURE' || message.type === 'START_CAPTURE') {
-    const isPopup = message.isPopup !== undefined ? message.isPopup : false;
-    const mode = message.mode || 'FULL_PAGE';
+    var isPopup = message.isPopup !== undefined ? message.isPopup : false;
+    var mode = message.mode || 'FULL_PAGE';
     captureScreenshot(isPopup, mode);
     if (sendResponse) sendResponse({ status: 'started' });
   }
 
   if (message.type === 'CANCEL_CAPTURE') {
-    isCancelled = true;
+    ssCapture_isCancelled = true;
   }
 
   return true;
-});
+};
+
+// Cleanup old listener if it exists to prevent duplicates
+if (window.ssCapture_ActiveListener) {
+    try {
+        chrome.runtime.onMessage.removeListener(window.ssCapture_ActiveListener);
+    } catch(e) {}
+}
+
+// Add and track new listener
+window.ssCapture_ActiveListener = ssCapture_MessageHandler;
+chrome.runtime.onMessage.addListener(ssCapture_MessageHandler);
+
 
 // Main capture function
 async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
   console.log(`Starting ${mode} screenshot capture...`);
-  isCancelled = false; // Reset cancel flag
+  ssCapture_isCancelled = false; // Reset cancel flag
   
   if (mode === 'SELECTED_ELEMENT') {
     startElementPicker(isPopup);
@@ -347,11 +411,11 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
   }
 
   if (!isPopup) {
-    const startMsg = mode === 'VISIBLE_AREA' ? 'Capturing Visible Area...' : 'Starting Full Page Capture...';
+    var startMsg = mode === 'VISIBLE_AREA' ? 'Capturing Visible Area...' : 'Starting Full Page Capture...';
     toast.show(startMsg, 'loading');
     
     // Visual feedback: Flash the screen like a camera shutter
-    const flash = document.createElement('div');
+    var flash = document.createElement('div');
     flash.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2147483647; pointer-events: none; opacity: 0.6; transition: opacity 0.4s ease-out;';
     (document.documentElement || document.body).appendChild(flash);
     
@@ -363,11 +427,17 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     await sleep(800); // Give user a moment to see the notification
   }
 
-  let originalX = window.scrollX;
-  let originalY = window.scrollY;
-  let fixedElements = [];
+  var originalX = window.scrollX;
+  var originalY = window.scrollY;
+  var fixedElements = [];
+  var originalStyles = [];
 
   function cleanup() {
+    // Restore original styles
+    originalStyles.forEach(({ el, property, value }) => {
+      try { el.style.setProperty(property, value); } catch (e) {}
+    });
+
     // Restore original scroll position
     window.scrollTo(originalX, originalY);
 
@@ -383,6 +453,20 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
 
   try {
     sendProgressUpdate('Preparing page dimensions...', 2);
+    
+    // Get user preference for scroll mode to optimize wait times
+    var settings = await new Promise(resolve => {
+      chrome.storage.local.get(['premiumScroll'], resolve);
+    });
+    var isPremium = settings.premiumScroll !== false;
+    var captureWaitTime = isPremium ? 800 : 300; 
+    var scrollDuration = isPremium ? 400 : 250;
+
+    // Disable smooth scrolling during capture to prevent sync issues
+    document.querySelectorAll('html, body').forEach(el => {
+      originalStyles.push({ el, property: 'scroll-behavior', value: el.style.scrollBehavior });
+      el.style.setProperty('scroll-behavior', 'auto', 'important');
+    });
 
     // Check browser compatibility
     if (!chrome.runtime) {
@@ -390,12 +474,12 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     }
 
     // Calculate page dimensions
-    const body = document.body;
-    const html = document.documentElement;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    var body = document.body;
+    var html = document.documentElement;
+    var viewportWidth = window.innerWidth;
+    var viewportHeight = window.innerHeight;
 
-    let totalWidth, totalHeight;
+    var totalWidth, totalHeight;
     if (mode === 'VISIBLE_AREA') {
       totalWidth = viewportWidth;
       totalHeight = viewportHeight;
@@ -413,7 +497,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
       sendProgressUpdate('Capturing visible area...', 50);
       toast.show('Capturing visible area...', 'loading');
       
-      const dataUrl = await new Promise((resolve, reject) => {
+      var dataUrl = await new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({ type: 'CAPTURE' }, response => {
           if (response && response.error) reject(new Error(response.error));
           else resolve(response);
@@ -437,18 +521,24 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     // Handle fixed elements (only for full page capture)
     fixedElements = [];
     if (mode === 'FULL_PAGE') {
+      // Hide fixed/sticky elements
       document.querySelectorAll('*').forEach(el => {
-        const style = window.getComputedStyle(el);
+        var style = window.getComputedStyle(el);
         if (style.position === 'fixed' || style.position === 'sticky') {
           fixedElements.push({ el, originalDisplay: style.display });
           el.style.display = 'none';
         }
       });
+
+      // Scroll to the very top to start capture from a consistent state
+      sendProgressUpdate('Scrolling to top...', 4);
+      await animatedScrollTo(0, 400);
+      await sleep(500); // Allow layout to settle
     }
 
     // Determine if we need chunking
-    const needsChunking = mode === 'FULL_PAGE' && totalHeight > MAX_CANVAS_HEIGHT;
-    const numChunks = needsChunking ? Math.ceil(totalHeight / CHUNK_HEIGHT) : 1;
+    var needsChunking = mode === 'FULL_PAGE' && totalHeight > MAX_CANVAS_HEIGHT;
+    var numChunks = needsChunking ? Math.ceil(totalHeight / CHUNK_HEIGHT) : 1;
 
     if (needsChunking) {
       sendProgressUpdate(`Page height: ${totalHeight}px. Dividing into ${numChunks} chunks...`, 5);
@@ -456,59 +546,62 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     }
 
     // Capture chunks
-    const chunks = [];
+    var chunks = [];
 
-    for (let chunkIndex = 0; chunkIndex < numChunks; chunkIndex++) {
-      if (isCancelled) {
+    for (var chunkIndex = 0; chunkIndex < numChunks; chunkIndex++) {
+      if (ssCapture_isCancelled) {
         throw new Error('Screenshot cancelled');
       }
 
-      const chunkStartY = chunkIndex * CHUNK_HEIGHT;
-      const chunkEndY = Math.min(chunkStartY + CHUNK_HEIGHT + OVERLAP, totalHeight);
-      const actualChunkHeight = chunkEndY - chunkStartY;
+      var chunkStartY = chunkIndex * CHUNK_HEIGHT;
+      var chunkEndY = Math.min(chunkStartY + CHUNK_HEIGHT + OVERLAP, totalHeight);
+      var actualChunkHeight = chunkEndY - chunkStartY;
 
       sendProgressUpdate(
         `Capturing section ${chunkIndex + 1}/${numChunks}...`,
-        Math.round((chunkIndex / numChunks) * 85) + 5
+        Math.round((chunkIndex / numChunks) * 75) + 15
       );
-      if (!isPopup) toast.show(`Capturing... ${Math.round((chunkIndex / numChunks) * 85)}%`, 'loading');
+      if (!isPopup) toast.show(`Capturing section ${chunkIndex + 1}...`, 'loading');
 
       // Create canvas for this chunk
-      const chunkCanvas = document.createElement('canvas');
+      var chunkCanvas = document.createElement('canvas');
       chunkCanvas.width = viewportWidth;
       chunkCanvas.height = actualChunkHeight;
-      const chunkCtx = chunkCanvas.getContext('2d', { willReadFrequently: false });
+      var chunkCtx = chunkCanvas.getContext('2d', { willReadFrequently: false });
 
       if (!chunkCtx) {
         throw new Error('Could not create canvas context');
       }
 
       // Capture this chunk viewport by viewport
-      let currentY = chunkStartY;
-      let capturedParts = 0;
+      var currentY = chunkStartY;
+      var capturedParts = 0;
 
       while (currentY < chunkEndY) {
-        if (isCancelled) {
+        if (ssCapture_isCancelled) {
           throw new Error('Screenshot cancelled');
         }
 
         capturedParts++;
 
-        // Scroll to position
-        window.scrollTo(0, currentY);
-        await sleep(300);
+        // Scroll to position smoothly
+        await animatedScrollTo(currentY, scrollDuration);
+        var actualY = Math.round(window.scrollY);
+        
+        // Wait for page layout/animations to settle
+        await sleep(captureWaitTime);
 
         // Capture current viewport with retry mechanism
-        let dataUrl;
-        let retryCount = 0;
-        const maxRetries = 3;
+        var dataUrl;
+        var retryCount = 0;
+        var maxRetries = 3;
 
         while (retryCount < maxRetries) {
           try {
             dataUrl = await new Promise((resolve, reject) => {
-              const captureTimeout = setTimeout(() => {
-                reject(new Error('Screenshot capture timed out'));
-              }, 10000);
+              var captureTimeout = setTimeout(() => {
+                reject(new Error('Screenshot capture timed out (30s)'));
+              }, 30000);
 
               chrome.runtime.sendMessage({ type: 'CAPTURE' }, (response) => {
                 clearTimeout(captureTimeout);
@@ -529,7 +622,7 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
           } catch (error) {
             retryCount++;
             if (error.message === 'RATE_LIMIT_EXCEEDED' && retryCount < maxRetries) {
-              await sleep(1000);
+              await sleep(1000); // Wait longer on rate limit
               continue;
             } else {
               throw error;
@@ -538,11 +631,11 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
         }
 
         // Load image onto canvas
-        const img = new Image();
+        var img = new Image();
         await new Promise((resolve, reject) => {
-          const imgTimeout = setTimeout(() => {
+          var imgTimeout = setTimeout(() => {
             reject(new Error('Image loading timed out'));
-          }, 5000);
+          }, 10000); // 10s for image load
 
           img.onload = () => {
             clearTimeout(imgTimeout);
@@ -555,55 +648,75 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
           img.src = dataUrl;
         });
 
-        // Calculate drawing position relative to chunk
-        const drawY = currentY - chunkStartY;
-        const drawHeight = Math.min(viewportHeight, chunkEndY - currentY);
+        // Use actual scroll position to draw on the chunk canvas.
+        var drawY = actualY - chunkStartY;
+        chunkCtx.drawImage(img, 0, drawY, viewportWidth, viewportHeight);
 
-        // Draw to chunk canvas
-        chunkCtx.drawImage(img, 0, drawY, viewportWidth, drawHeight);
+        // If we've reached the absolute bottom of the page, exit ALL loops
+        if (actualY + viewportHeight >= totalHeight - 1) {
+          currentY = totalHeight + 1; // Force break while loop
+          chunkIndex = numChunks + 1; // Force break for loop
+          break;
+        }
 
         // Move to next section
-        currentY += viewportHeight;
+        currentY = actualY + viewportHeight;
 
         // Allow garbage collection
-        if (capturedParts % 5 === 0) {
-          await sleep(100);
+        if (capturedParts % 3 === 0) {
+          await sleep(50);
         }
       }
 
       chunks.push(chunkCanvas);
     }
 
-    // Combine chunks into final canvas
+        // Combine chunks into final canvas
     sendProgressUpdate('Combining chunks into final image...', 92);
 
-    const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = viewportWidth;
-    finalCanvas.height = totalHeight;
-    const finalCtx = finalCanvas.getContext('2d', { willReadFrequently: false });
-
-    if (!finalCtx) {
-      throw new Error('Could not create final canvas context');
+    if (totalHeight > MAX_CANVAS_HEIGHT) {
+      console.warn(`Page height ${totalHeight}px exceeds safer limit of ${MAX_CANVAS_HEIGHT}px. The image might be truncated or fail to render.`);
     }
 
-    for (let i = 0; i < chunks.length; i++) {
-      const yPosition = i * CHUNK_HEIGHT;
-      finalCtx.drawImage(chunks[i], 0, yPosition);
+    var finalCanvas = document.createElement('canvas');
+    finalCanvas.width = viewportWidth;
+    finalCanvas.height = Math.min(totalHeight, MAX_CANVAS_HEIGHT);
+    var finalCtx = finalCanvas.getContext('2d', { willReadFrequently: false });
+
+    if (!finalCtx) {
+      throw new Error('Could not create final canvas context. The page might be too complex or large.');
+    }
+
+    for (var i = 0; i < chunks.length; i++) {
+      var yPosition = i * CHUNK_HEIGHT;
+      // Don't draw outside final canvas
+      if (yPosition < finalCanvas.height) {
+        finalCtx.drawImage(chunks[i], 0, yPosition);
+      }
+      
+      // Clear chunk from memory
+      chunks[i].width = 0;
+      chunks[i].height = 0;
 
       sendProgressUpdate(
         'Stitching chunks...',
         92 + Math.round((i / chunks.length) * 5)
       );
     }
+    chunks.length = 0;
 
     sendProgressUpdate('Processing final screenshot...', 98);
 
     // Convert canvas to data URL
-    let finalScreenshot;
+    var finalScreenshot;
     try {
       finalScreenshot = finalCanvas.toDataURL('image/png');
+      if (!finalScreenshot || finalScreenshot.length < 100) {
+        throw new Error('Generated image is empty');
+      }
     } catch (error) {
-      throw new Error('Failed to convert screenshot to image. The page may be too large.');
+      console.error('Canvas toDataURL failed:', error);
+      throw new Error('Failed to convert screenshot to image. This usually happens on extremely long pages.');
     }
 
     cleanup();
@@ -630,3 +743,5 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     sendError(error.message || 'Unknown error during screenshot capture');
   }
 }
+
+
