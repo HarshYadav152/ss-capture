@@ -1,3 +1,34 @@
+## [2026-01-15]
+
+### ✨ Features
+-  Implement Privacy Blur/Pixelate Tool for Screenshot Editor (#33) (54d7533) - @motalib-code
+-  add watch.js script for development file watching (53f0528) - @Diksha78-bot
+-  add context menu support for full page, visible area and element capture (00f591f) - @Abhin Vaidya
+
+### 🐛 Bug Fixes
+-  complete dev script command with watch (7a57cfd) - @Diksha Dabhole
+
+### 📝 Documentation
+-  auto update changelog (158b03f) - @HarshYadav152
+-  auto update changelog (d539efd) - @HarshYadav152
+-  auto update changelog (4ddd83a) - @HarshYadav152
+-  auto update changelog (c7d6ed7) - @HarshYadav152
+-  auto update changelog (ab022f3) - @HarshYadav152
+-  auto update changelog (ca60888) - @HarshYadav152
+-  auto update changelog (5cff341) - @HarshYadav152
+
+### 📦 Other Changes
+- Split Save button into Save Edits & Close and Download buttons (661cd57) - @motalib-code
+- Edge (f5cfe9e) - @Gaurav Karakoti
+- 2 left (07fcb0c) - @Gaurav Karakoti
+- Create CNAME (d5173ed) - @Harsh Yadav
+- fixed chatbot to an advanced version (c5a53f8) - @Sheetal
+- Footer done with changes (0c253e6) - @Souradeep858
+- Added advanced AI chatbot (6c69487) - @Sheetal
+- linked navbar to the respective destinations (82bf8b0) - @Sheetal
+- Fix over-broad host permissions #43 (371dda5) - @Gupta-02
+
+
 ## [2026-01-14]
 
 ### ✨ Features
