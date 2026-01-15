@@ -41,7 +41,7 @@ function initializeEditor() {
   canvas = document.getElementById('editorCanvas');
   ctx = canvas.getContext('2d', { willReadFrequently: true });
   selectionBox = document.getElementById('selectionBox');
-  
+
   updateStatus('Ready to edit');
 }
 
@@ -50,25 +50,26 @@ function setupEventListeners() {
   document.getElementById('selectTool').addEventListener('click', () => selectTool('select'));
   document.getElementById('blurTool').addEventListener('click', () => selectTool('blur'));
   document.getElementById('pixelateTool').addEventListener('click', () => selectTool('pixelate'));
-  
+
   // Action buttons
   document.getElementById('undoBtn').addEventListener('click', undoEffect);
   document.getElementById('clearAllBtn').addEventListener('click', clearAllEffects);
   document.getElementById('saveBtn').addEventListener('click', saveAndClose);
-  
+  document.getElementById('downloadBtn').addEventListener('click', downloadScreenshot);
+
   // Intensity slider
   const intensitySlider = document.getElementById('intensitySlider');
   intensitySlider.addEventListener('input', (e) => {
     intensity = parseInt(e.target.value);
     document.getElementById('intensityValue').textContent = intensity;
   });
-  
+
   // Canvas mouse events
   canvas.addEventListener('mousedown', handleMouseDown);
   canvas.addEventListener('mousemove', handleMouseMove);
   canvas.addEventListener('mouseup', handleMouseUp);
   canvas.addEventListener('mouseleave', handleMouseUp);
-  
+
   // Keyboard shortcuts
   document.addEventListener('keydown', handleKeyDown);
 }
@@ -79,37 +80,37 @@ function setupEventListeners() {
 
 function loadScreenshot() {
   const screenshotData = localStorage.getItem('screenshotForEdit');
-  
+
   if (!screenshotData) {
     updateStatus('No screenshot data found', true);
     return;
   }
-  
+
   const img = new Image();
   img.onload = () => {
     // Set canvas dimensions
     canvas.width = img.width;
     canvas.height = img.height;
-    
+
     // Draw image
     ctx.drawImage(img, 0, 0);
-    
+
     // Store original image data
     originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
+
     // Update UI
     document.getElementById('canvasDimensions').textContent = `${img.width} × ${img.height}`;
     updateStatus('Screenshot loaded - Select a tool to start editing');
-    
+
     // Clear localStorage
     localStorage.removeItem('screenshotForEdit');
   };
-  
+
   img.onerror = () => {
     updateStatus('Failed to load screenshot', true);
   };
-  
+
   img.src = screenshotData;
 }
 
@@ -119,15 +120,15 @@ function loadScreenshot() {
 
 function selectTool(tool) {
   currentTool = tool;
-  
+
   // Update button states
   document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
   document.getElementById(`${tool}Tool`).classList.add('active');
-  
+
   // Update cursor
   document.body.classList.remove('cursor-blur', 'cursor-pixelate', 'cursor-select');
   document.body.classList.add(`cursor-${tool}`);
-  
+
   // Update intensity label based on tool
   const intensityLabel = document.getElementById('intensityLabel');
   if (tool === 'blur') {
@@ -139,7 +140,7 @@ function selectTool(tool) {
   } else {
     intensityLabel.textContent = 'Intensity:';
   }
-  
+
   updateStatus(`${tool.charAt(0).toUpperCase() + tool.slice(1)} tool selected`);
 }
 
@@ -149,15 +150,15 @@ function selectTool(tool) {
 
 function handleMouseDown(e) {
   if (currentTool === 'select') return;
-  
+
   isDrawing = true;
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
-  
+
   startX = (e.clientX - rect.left) * scaleX;
   startY = (e.clientY - rect.top) * scaleY;
-  
+
   // Show selection box
   selectionBox.style.display = 'block';
   updateSelectionBox(e);
@@ -171,30 +172,30 @@ function handleMouseMove(e) {
 function handleMouseUp(e) {
   if (!isDrawing) return;
   isDrawing = false;
-  
+
   // Hide selection box
   selectionBox.style.display = 'none';
-  
+
   // Get final coordinates
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
-  
+
   const endX = (e.clientX - rect.left) * scaleX;
   const endY = (e.clientY - rect.top) * scaleY;
-  
+
   // Calculate selection rectangle
   const x = Math.min(startX, endX);
   const y = Math.min(startY, endY);
   const width = Math.abs(endX - startX);
   const height = Math.abs(endY - startY);
-  
+
   // Minimum selection size
   if (width < 10 || height < 10) {
     updateStatus('Selection too small - drag a larger area');
     return;
   }
-  
+
   // Apply effect
   applyEffect(x, y, width, height);
 }
@@ -202,21 +203,21 @@ function handleMouseUp(e) {
 function updateSelectionBox(e) {
   const rect = canvas.getBoundingClientRect();
   const containerRect = document.querySelector('.canvas-container').getBoundingClientRect();
-  
+
   const currentX = e.clientX - containerRect.left;
   const currentY = e.clientY - containerRect.top;
-  
+
   const canvasOffsetX = rect.left - containerRect.left;
   const canvasOffsetY = rect.top - containerRect.top;
-  
+
   const scaleX = rect.width / canvas.width;
   const scaleY = rect.height / canvas.height;
-  
+
   const boxX = Math.min(startX * scaleX + canvasOffsetX, currentX);
   const boxY = Math.min(startY * scaleY + canvasOffsetY, currentY);
   const boxWidth = Math.abs(currentX - (startX * scaleX + canvasOffsetX));
   const boxHeight = Math.abs(currentY - (startY * scaleY + canvasOffsetY));
-  
+
   selectionBox.style.left = `${boxX}px`;
   selectionBox.style.top = `${boxY}px`;
   selectionBox.style.width = `${boxWidth}px`;
@@ -237,19 +238,19 @@ function applyEffect(x, y, width, height) {
     height: Math.round(height),
     intensity: intensity
   };
-  
+
   effects.push(effect);
-  
+
   // Apply the effect
   if (currentTool === 'blur') {
     applyBlur(effect.x, effect.y, effect.width, effect.height, effect.intensity);
   } else if (currentTool === 'pixelate') {
     applyPixelate(effect.x, effect.y, effect.width, effect.height, effect.intensity);
   }
-  
+
   // Update current image data
   currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  
+
   // Update UI
   updateEffectCount();
   updateStatus(`${currentTool.charAt(0).toUpperCase() + currentTool.slice(1)} effect applied`);
@@ -265,20 +266,20 @@ function applyBlur(x, y, width, height, radius) {
   y = Math.max(0, Math.min(y, canvas.height));
   width = Math.min(width, canvas.width - x);
   height = Math.min(height, canvas.height - y);
-  
+
   if (width <= 0 || height <= 0) return;
-  
+
   // Get image data for the region
   const imageData = ctx.getImageData(x, y, width, height);
   const pixels = imageData.data;
-  
+
   // Apply box blur multiple times for smoother result (approximates Gaussian)
   const iterations = 3;
   for (let i = 0; i < iterations; i++) {
     boxBlurH(pixels, width, height, Math.floor(radius / iterations));
     boxBlurV(pixels, width, height, Math.floor(radius / iterations));
   }
-  
+
   // Put the blurred data back
   ctx.putImageData(imageData, x, y);
 }
@@ -288,13 +289,13 @@ function applyBlur(x, y, width, height, radius) {
  */
 function boxBlurH(pixels, width, height, radius) {
   const w4 = width * 4;
-  
+
   for (let y = 0; y < height; y++) {
     let rowStart = y * w4;
-    
+
     for (let x = 0; x < width; x++) {
       let r = 0, g = 0, b = 0, a = 0, count = 0;
-      
+
       for (let i = -radius; i <= radius; i++) {
         const px = x + i;
         if (px >= 0 && px < width) {
@@ -306,7 +307,7 @@ function boxBlurH(pixels, width, height, radius) {
           count++;
         }
       }
-      
+
       const idx = rowStart + x * 4;
       pixels[idx] = r / count;
       pixels[idx + 1] = g / count;
@@ -322,11 +323,11 @@ function boxBlurH(pixels, width, height, radius) {
 function boxBlurV(pixels, width, height, radius) {
   const w4 = width * 4;
   const tempPixels = new Float32Array(pixels.length);
-  
+
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       let r = 0, g = 0, b = 0, a = 0, count = 0;
-      
+
       for (let i = -radius; i <= radius; i++) {
         const py = y + i;
         if (py >= 0 && py < height) {
@@ -338,7 +339,7 @@ function boxBlurV(pixels, width, height, radius) {
           count++;
         }
       }
-      
+
       const idx = y * w4 + x * 4;
       tempPixels[idx] = r / count;
       tempPixels[idx + 1] = g / count;
@@ -346,7 +347,7 @@ function boxBlurV(pixels, width, height, radius) {
       tempPixels[idx + 3] = a / count;
     }
   }
-  
+
   // Copy back
   for (let i = 0; i < pixels.length; i++) {
     pixels[i] = tempPixels[i];
@@ -362,13 +363,13 @@ function applyPixelate(x, y, width, height, pixelSize) {
   y = Math.max(0, Math.min(y, canvas.height));
   width = Math.min(width, canvas.width - x);
   height = Math.min(height, canvas.height - y);
-  
+
   if (width <= 0 || height <= 0) return;
-  
+
   // Get image data for the region
   const imageData = ctx.getImageData(x, y, width, height);
   const pixels = imageData.data;
-  
+
   // Process in blocks
   for (let blockY = 0; blockY < height; blockY += pixelSize) {
     for (let blockX = 0; blockX < width; blockX += pixelSize) {
@@ -376,12 +377,12 @@ function applyPixelate(x, y, width, height, pixelSize) {
       const sampleX = Math.min(blockX + Math.floor(pixelSize / 2), width - 1);
       const sampleY = Math.min(blockY + Math.floor(pixelSize / 2), height - 1);
       const sampleIdx = (sampleY * width + sampleX) * 4;
-      
+
       const r = pixels[sampleIdx];
       const g = pixels[sampleIdx + 1];
       const b = pixels[sampleIdx + 2];
       const a = pixels[sampleIdx + 3];
-      
+
       // Fill the entire block with sampled color
       for (let py = blockY; py < Math.min(blockY + pixelSize, height); py++) {
         for (let px = blockX; px < Math.min(blockX + pixelSize, width); px++) {
@@ -394,7 +395,7 @@ function applyPixelate(x, y, width, height, pixelSize) {
       }
     }
   }
-  
+
   // Put the pixelated data back
   ctx.putImageData(imageData, x, y);
 }
@@ -408,13 +409,13 @@ function undoEffect() {
     updateStatus('Nothing to undo');
     return;
   }
-  
+
   // Remove last effect
   effects.pop();
-  
+
   // Redraw from original and reapply remaining effects
   redrawWithEffects();
-  
+
   updateEffectCount();
   updateStatus('Last effect undone');
 }
@@ -424,14 +425,14 @@ function clearAllEffects() {
     updateStatus('No effects to clear');
     return;
   }
-  
+
   if (confirm('Are you sure you want to remove all effects?')) {
     effects = [];
-    
+
     // Restore original image
     ctx.putImageData(originalImageData, 0, 0);
     currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
+
     updateEffectCount();
     updateStatus('All effects cleared');
   }
@@ -440,7 +441,7 @@ function clearAllEffects() {
 function redrawWithEffects() {
   // Restore original
   ctx.putImageData(originalImageData, 0, 0);
-  
+
   // Reapply all effects
   for (const effect of effects) {
     if (effect.type === 'blur') {
@@ -449,7 +450,7 @@ function redrawWithEffects() {
       applyPixelate(effect.x, effect.y, effect.width, effect.height, effect.intensity);
     }
   }
-  
+
   // Update current image data
   currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
@@ -461,7 +462,7 @@ function redrawWithEffects() {
 function saveAndClose() {
   // Get edited image as data URL
   const editedDataUrl = canvas.toDataURL('image/png');
-  
+
   // Send message to parent/popup
   try {
     chrome.runtime.sendMessage({
@@ -471,16 +472,41 @@ function saveAndClose() {
   } catch (e) {
     console.log('Could not send message to extension, storing in localStorage');
   }
-  
+
   // Store in localStorage as backup
   localStorage.setItem('editedScreenshot', editedDataUrl);
-  
-  updateStatus('Saving...');
-  
+
+  updateStatus('Saving edits...');
+
   // Close the window after a short delay
   setTimeout(() => {
     window.close();
   }, 500);
+}
+
+/**
+ * Download the edited screenshot directly to the computer
+ */
+function downloadScreenshot() {
+  // Get edited image as data URL
+  const editedDataUrl = canvas.toDataURL('image/png');
+
+  // Create a timestamp for the filename
+  const now = new Date();
+  const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const filename = `screenshot-edited-${timestamp}.png`;
+
+  // Create a temporary download link
+  const downloadLink = document.createElement('a');
+  downloadLink.href = editedDataUrl;
+  downloadLink.download = filename;
+
+  // Append to body, click, and remove
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+
+  updateStatus(`Downloaded: ${filename}`);
 }
 
 // ===============================
@@ -490,7 +516,7 @@ function saveAndClose() {
 function handleKeyDown(e) {
   // Prevent default for our shortcuts
   const key = e.key.toLowerCase();
-  
+
   // Tool shortcuts
   if (key === 'b' && !e.ctrlKey && !e.metaKey) {
     selectTool('blur');
@@ -502,19 +528,25 @@ function handleKeyDown(e) {
     selectTool('select');
     e.preventDefault();
   }
-  
+
   // Undo: Ctrl+Z / Cmd+Z
   if (key === 'z' && (e.ctrlKey || e.metaKey)) {
     undoEffect();
     e.preventDefault();
   }
-  
+
   // Save: Ctrl+S / Cmd+S
   if (key === 's' && (e.ctrlKey || e.metaKey)) {
     saveAndClose();
     e.preventDefault();
   }
-  
+
+  // Download: Ctrl+D / Cmd+D
+  if (key === 'd' && (e.ctrlKey || e.metaKey)) {
+    downloadScreenshot();
+    e.preventDefault();
+  }
+
   // Escape: Close without saving
   if (key === 'escape') {
     if (confirm('Close editor without saving changes?')) {

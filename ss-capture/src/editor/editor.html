@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Editor - SS-Capture</title>
   <link rel="stylesheet" href="editor.css">
 </head>
+
 <body>
   <div class="editor-container">
     <!-- Toolbar -->
@@ -26,7 +28,7 @@
           </button>
         </div>
       </div>
-      
+
       <div class="toolbar-section">
         <div class="intensity-control">
           <label for="intensitySlider">
@@ -36,7 +38,7 @@
           <input type="range" id="intensitySlider" min="5" max="50" value="15">
         </div>
       </div>
-      
+
       <div class="toolbar-section">
         <div class="action-group">
           <button id="undoBtn" class="action-btn" title="Undo (Ctrl+Z)">
@@ -49,21 +51,25 @@
           </button>
         </div>
       </div>
-      
-      <div class="toolbar-section">
-        <button id="saveBtn" class="save-btn" title="Save & Close (Ctrl+S)">
+
+      <div class="toolbar-section save-section">
+        <button id="saveBtn" class="save-btn" title="Save Edits & Close (Ctrl+S)">
           <span class="save-icon">💾</span>
-          <span class="save-label">Save & Close</span>
+          <span class="save-label">Save Edits & Close</span>
+        </button>
+        <button id="downloadBtn" class="download-btn" title="Download Screenshot (Ctrl+D)">
+          <span class="download-icon">⬇️</span>
+          <span class="download-label">Download</span>
         </button>
       </div>
     </div>
-    
+
     <!-- Canvas Container -->
     <div class="canvas-container">
       <canvas id="editorCanvas"></canvas>
       <div id="selectionBox" class="selection-box"></div>
     </div>
-    
+
     <!-- Status Bar -->
     <div class="status-bar">
       <div class="status-left">
@@ -75,10 +81,11 @@
         <span id="statusMessage">Ready to edit</span>
       </div>
       <div class="status-right">
-        <span class="keyboard-hint">B: Blur | P: Pixelate | V: Select | Ctrl+Z: Undo | Ctrl+S: Save</span>
+        <span class="keyboard-hint">B: Blur | P: Pixelate | V: Select | Ctrl+Z: Undo | Ctrl+S: Save | Ctrl+D:
+          Download</span>
       </div>
     </div>
-    
+
     <!-- Instructions Panel -->
     <div class="instructions-panel">
       <div class="instruction-item">
@@ -95,11 +102,12 @@
       </div>
       <div class="instruction-item">
         <span class="step">4</span>
-        <span class="text">Click <strong>Save & Close</strong> when done</span>
+        <span class="text">Click <strong>Save Edits & Close</strong> or <strong>Download</strong></span>
       </div>
     </div>
   </div>
-  
+
   <script src="editor.js"></script>
 </body>
+
 </html>

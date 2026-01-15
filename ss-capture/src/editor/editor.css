@@ -11,12 +11,12 @@
 
 body {
   font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(135deg, 
-    rgba(20, 10, 40, 1) 0%, 
-    rgba(40, 20, 80, 1) 25%,
-    rgba(30, 15, 60, 1) 50%,
-    rgba(50, 25, 100, 1) 75%,
-    rgba(20, 10, 40, 1) 100%);
+  background: linear-gradient(135deg,
+      rgba(20, 10, 40, 1) 0%,
+      rgba(40, 20, 80, 1) 25%,
+      rgba(30, 15, 60, 1) 50%,
+      rgba(50, 25, 100, 1) 75%,
+      rgba(20, 10, 40, 1) 100%);
   min-height: 100vh;
   overflow: hidden;
   position: relative;
@@ -30,7 +30,7 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
@@ -39,9 +39,19 @@ body::before {
 }
 
 @keyframes backgroundShift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(-10px, -10px) scale(1.1); }
-  66% { transform: translate(10px, 10px) scale(1.05); }
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  33% {
+    transform: translate(-10px, -10px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(10px, 10px) scale(1.05);
+  }
 }
 
 /* ===============================
@@ -70,7 +80,7 @@ body::before {
   -webkit-backdrop-filter: blur(20px);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   flex-wrap: wrap;
@@ -83,7 +93,8 @@ body::before {
   gap: 12px;
 }
 
-.tool-group, .action-group {
+.tool-group,
+.action-group {
   display: flex;
   gap: 8px;
 }
@@ -247,6 +258,41 @@ body::before {
   font-size: 18px;
 }
 
+/* Save Section Layout */
+.save-section {
+  display: flex;
+  gap: 10px;
+}
+
+/* Download Button */
+.download-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, rgba(120, 160, 255, 0.2), rgba(160, 119, 198, 0.2));
+  border: 1px solid rgba(120, 160, 255, 0.4);
+  border-radius: 12px;
+  color: #78a0ff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 16px rgba(120, 160, 255, 0.2);
+}
+
+.download-btn:hover {
+  background: linear-gradient(135deg, rgba(120, 160, 255, 0.3), rgba(160, 119, 198, 0.3));
+  border-color: rgba(120, 160, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(120, 160, 255, 0.4);
+}
+
+.download-icon {
+  font-size: 18px;
+}
+
 /* ===============================
    CANVAS CONTAINER
    =============================== */
@@ -315,7 +361,8 @@ body::before {
   color: rgba(255, 255, 255, 0.6);
 }
 
-.status-left, .status-right {
+.status-left,
+.status-right {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -390,20 +437,35 @@ body::before {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.toolbar, .canvas-container, .status-bar, .instructions-panel {
+.toolbar,
+.canvas-container,
+.status-bar,
+.instructions-panel {
   animation: fadeIn 0.5s ease-out;
 }
 
-.toolbar { animation-delay: 0.1s; }
-.canvas-container { animation-delay: 0.2s; }
-.status-bar { animation-delay: 0.3s; }
-.instructions-panel { animation-delay: 0.4s; }
+.toolbar {
+  animation-delay: 0.1s;
+}
+
+.canvas-container {
+  animation-delay: 0.2s;
+}
+
+.status-bar {
+  animation-delay: 0.3s;
+}
+
+.instructions-panel {
+  animation-delay: 0.4s;
+}
 
 /* ===============================
    RESPONSIVE DESIGN
@@ -414,12 +476,12 @@ body::before {
     flex-wrap: wrap;
     justify-content: center;
   }
-  
+
   .instructions-panel {
     flex-wrap: wrap;
     gap: 12px;
   }
-  
+
   .keyboard-hint {
     display: none;
   }
@@ -430,24 +492,27 @@ body::before {
     padding: 8px;
     gap: 8px;
   }
-  
+
   .toolbar {
     padding: 10px 12px;
   }
-  
+
   .tool-btn {
     padding: 8px 12px;
     min-width: 60px;
   }
-  
-  .tool-label, .action-label, .save-label {
+
+  .tool-label,
+  .action-label,
+  .save-label,
+  .download-label {
     display: none;
   }
-  
+
   .save-btn {
     padding: 10px 16px;
   }
-  
+
   .instructions-panel {
     display: none;
   }
