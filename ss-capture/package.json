@@ -22,7 +22,9 @@
     "zip": "node scripts/zip.js",
     "release": "npm run build && npm run zip",
     "docs": "node scripts/generate-docs.js",
-    "validate": "node scripts/validate.js"
+    "validate": "node scripts/validate.js",
+    "test:e2e": "playwright test",
+    "test:e2e:debug": "playwright test --debug"
   },
   "keywords": [
     "screenshot",
@@ -57,6 +59,7 @@
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
+    "@playwright/test": "^1.57.0",
     "@types/chrome": "^0.0.254",
     "@types/jest": "^29.5.8",
     "@types/node": "^20.8.10",
@@ -70,6 +73,7 @@
     "glob": "^10.3.10",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "prettier": "^3.0.3",
     "rimraf": "^5.0.5",
     "standard-version": "^9.5.0",

@@ -22,7 +22,7 @@ module.exports = {
       statements: 70,
     },
   },
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
   testPathIgnorePatterns: [
@@ -34,21 +34,7 @@ module.exports = {
     '^.+\\.js$': 'babel-jest',
   },
   globals: {
-    chrome: {
-      runtime: {
-        sendMessage: jest.fn(),
-        onMessage: {
-          addListener: jest.fn(),
-        },
-      },
-      tabs: {
-        query: jest.fn(),
-        captureVisibleTab: jest.fn(),
-        sendMessage: jest.fn(),
-      },
-      scripting: {
-        executeScript: jest.fn(),
-      },
-    },
+    // chrome globals are initialized in tests/setup.js so they can use jest.fn()
+    chrome: {}
   },
 }; 
