@@ -1,7 +1,7 @@
 let captureInProgress = false;
 let captureData = null;
 
-// -------------------- Helpers --------------------
+
 
 function showErrorAlert(message) {
   document.getElementById('errorMessage').textContent = message;
@@ -52,6 +52,7 @@ async function startCapture(mode = 'FULL_PAGE') {
   captureInProgress = true;
   captureData = null;
 
+
   document.getElementById('captureBtn').disabled = true;
   document.getElementById('visibleAreaBtn').disabled = true;
   document.getElementById('selectElementBtn').disabled = true;
@@ -89,14 +90,6 @@ async function startCapture(mode = 'FULL_PAGE') {
 
 // -------------------- Buttons --------------------
 
-document.getElementById('captureBtn').onclick = () => startCapture('FULL_PAGE');
-document.getElementById('visibleAreaBtn').onclick = () => startCapture('VISIBLE_AREA');
-document.getElementById('selectElementBtn').onclick = () => startCapture('SELECTED_ELEMENT');
-
-document.getElementById('cancelBtn').onclick = () => {
-  chrome.runtime.sendMessage({ type: 'CANCEL_CAPTURE' });
-  resetUI();
-};
 
 document.getElementById('saveBtn').onclick = () => {
   if (!captureData) return;
@@ -112,8 +105,6 @@ document.getElementById('copyBtn').onclick = async () => {
 };
 
 document.getElementById('errorClose').onclick = hideErrorAlert;
-
-// -------------------- Messages --------------------
 
 chrome.runtime.onMessage.addListener((message) => {
   const statusText = document.getElementById('statusText');
@@ -147,18 +138,7 @@ chrome.runtime.onMessage.addListener((message) => {
     previewImage.style.display = 'block';
     previewContainer.style.display = 'block';
 
-    const img = new Image();
-    img.onload = () => {
-      previewDimensions.textContent = `${img.width} × ${img.height}px`;
-      const thumbnail = createThumbnail(captureData);
-      chrome.runtime.sendMessage({
-        type: 'ADD_SESSION_SCREENSHOT',
-        dataUrl: captureData,
-        thumbnail,
-        filename: `screenshot-${Date.now()}.png`
-      });
-    };
-    img.src = captureData;
+
   }
 
   if (message.type === 'CAPTURE_ERROR') {
