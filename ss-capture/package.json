@@ -4,7 +4,7 @@
   "description": "A modern, high-quality full-page screenshot extension with beautiful glassmorphic interface",
   "main": "background.js",
   "scripts": {
-    "dev": "npm run build:dev && npm run watch",
+    "dev": "npm run build:dev",
     "build": "npm run build:all",
     "build:all": "npm run build:chrome && npm run build:firefox && npm run build:edge",
     "build:dev": "node scripts/build.js --env development",
