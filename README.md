@@ -3,7 +3,25 @@
 
 A modern, high-quality full-page screenshot extension with a beautiful glassmorphic interface. Capture entire web pages with automatic scrolling and chunked rendering for pages exceeding browser canvas limitations.
 
-![Extension Preview](https://raw.githubusercontent.com/HarshYadav152/ss-capture/main/docs/PREVIEW.png)
+🪜 How to Use SS-Capture (Step-by-Step)
+Step 1: Navigate to a Webpage
+Open the webpage you want to capture (articles, documentation, long pages, etc.).
+
+![Image](https://github.com/user-attachments/assets/7eed61c3-28e2-4dd1-8add-c06e569edf7c)
+
+Step 2: Start Capture
+Click the SS-Capture icon in your browser toolbar and select Capture Full Page.
+![Image](https://github.com/user-attachments/assets/4be252cb-8616-4056-8aa0-f41f5199c02f)
+
+Step 3: Capture in Progress
+For long pages, the extension automatically scrolls and captures the page in chunks.
+You’ll see real-time progress like “Capturing chunk X of Y”.
+![Image](https://github.com/user-attachments/assets/429f5a7d-62e2-48d6-a1f6-588299c73fe9)
+
+Step 4: Preview & Save
+Once complete, preview the stitched screenshot and click Save to download it as a PNG.
+![Image](https://github.com/user-attachments/assets/b1160d19-ed17-4fd5-9351-fffbc5b9d908)
+
 
 ## ✨ Features
 
@@ -34,7 +52,7 @@ A modern, high-quality full-page screenshot extension with a beautiful glassmorp
 2. Extract the ZIP file
 3. Open Firefox and go to `about:debugging`
 4. Click "This Firefox" tab
-5. Click "Load Temporary Add-on" and select `manifest.json` from the `dist/firefox` folder
+5. Click "Load Temporary Add-on" and select `manifest.json` from the
 
 ### For Developers
 
@@ -125,7 +143,6 @@ ss-capture/
 ├── package.json
 └── jest.config.js
 ```
-
 ### Key Components
 
 #### [`src/manifest.json`](src/manifest.json)
@@ -187,7 +204,7 @@ Glassmorphic design:
 npm run build
 
 # Validate extension structure
-npm run validate
+  npm run validate
 
 # Create distribution ZIP files
 npm run zip
@@ -270,7 +287,6 @@ chrome.runtime.sendMessage({
 ```
 
 ## 🚀 Publishing
-
 ### Chrome Web Store
 1. Build: `node scripts/build.js chrome`
 2. Package: `node scripts/zip.js chrome`
@@ -336,4 +352,5 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 ---
 
 **Made with ❤️ by [Harsh Yadav](https://github.com/HarshYadav152)**
+
 
