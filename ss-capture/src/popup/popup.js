@@ -105,21 +105,23 @@ function toggleQualitySlider() {
 }
 
 // Format radio button handlers
-document.querySelectorAll('input[name="imageFormat"]').forEach(radio => {
-  radio.addEventListener('change', (e) => {
-    imageFormat = e.target.value;
-    toggleQualitySlider();
+function setupFormatListeners() {
+  document.querySelectorAll('input[name="imageFormat"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      imageFormat = e.target.value;
+      toggleQualitySlider();
+      saveFormatSettings();
+    });
+  });
+
+  // Quality slider handler
+  document.getElementById('qualitySlider').addEventListener('input', (e) => {
+    const value = parseInt(e.target.value);
+    imageQuality = value / 100;
+    document.getElementById('qualityValue').textContent = value + '%';
     saveFormatSettings();
   });
-});
-
-// Quality slider handler
-document.getElementById('qualitySlider').addEventListener('input', (e) => {
-  const value = parseInt(e.target.value);
-  imageQuality = value / 100;
-  document.getElementById('qualityValue').textContent = value + '%';
-  saveFormatSettings();
-});
+}
 
 // Get file extension based on format
 function getFileExtension() {
@@ -241,6 +243,7 @@ document.getElementById('selectElementBtn').addEventListener('click', () => star
 document.getElementById('cancelBtn').addEventListener('click', () => {
   if (captureInProgress) {
     chrome.runtime.sendMessage({ type: 'CANCEL_CAPTURE' });
+    const statusText = document.getElementById('statusText');
     statusText.textContent = 'Screenshot capture cancelled';
     resetUI();
   }
@@ -327,7 +330,8 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
       ]);
 
       const statusText = document.getElementById('statusText');
-      statusText.textContent = `Screenshot copied as ${imageFormat.toUpperCase()}!`-text').textContent;
+      statusText.textContent = `Screenshot copied as ${imageFormat.toUpperCase()}!`;
+      const originalText = document.querySelector('#copyBtn .btn-text').textContent;
       document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
       setTimeout(() => {
         document.querySelector('#copyBtn .btn-text').textContent = originalText;
@@ -479,10 +483,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   themeToggle.addEventListener('click', () => {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-);
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
   });
+
+  // Setup format listeners after DOM is ready
+  setupFormatListeners();
 });
-}

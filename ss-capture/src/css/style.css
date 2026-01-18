@@ -253,7 +253,7 @@ body::before {
   min-height: 500px;  /* Change to 550px or 600px */
   max-height: 600px; 
     position: relative;
-    overflow: hidden;
+    overflow-y: auto;
     will-change: background, border-color;
 }
 
