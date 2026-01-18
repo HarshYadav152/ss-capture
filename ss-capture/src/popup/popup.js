@@ -62,6 +62,86 @@ function hideErrorAlert() {
   document.getElementById('errorAlert').style.display = 'none';
 }
 
+// ✅ ADD FORMAT MANAGEMENT CODE HERE (NEW CODE)
+// ========================================
+// Format Settings Management
+// ========================================
+
+let imageFormat = 'png';
+let imageQuality = 0.9;
+
+// Load saved format settings
+function loadFormatSettings() {
+  chrome.storage.local.get(['imageFormat', 'imageQuality'], (result) => {
+    imageFormat = result.imageFormat || 'png';
+    imageQuality = result.imageQuality || 0.9;
+    
+    // Set UI to match saved settings
+    document.querySelector(`input[name="imageFormat"][value="${imageFormat}"]`).checked = true;
+    document.getElementById('qualitySlider').value = imageQuality * 100;
+    document.getElementById('qualityValue').textContent = Math.round(imageQuality * 100) + '%';
+    
+    // Show/hide quality slider
+    toggleQualitySlider();
+  });
+}
+
+// Save format settings
+function saveFormatSettings() {
+  chrome.storage.local.set({
+    imageFormat: imageFormat,
+    imageQuality: imageQuality
+  });
+}
+
+// Toggle quality slider visibility
+function toggleQualitySlider() {
+  const qualityContainer = document.getElementById('qualityContainer');
+  if (imageFormat === 'jpeg' || imageFormat === 'webp') {
+    qualityContainer.style.display = 'block';
+  } else {
+    qualityContainer.style.display = 'none';
+  }
+}
+
+// Format radio button handlers
+document.querySelectorAll('input[name="imageFormat"]').forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    imageFormat = e.target.value;
+    toggleQualitySlider();
+    saveFormatSettings();
+  });
+});
+
+// Quality slider handler
+document.getElementById('qualitySlider').addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  imageQuality = value / 100;
+  document.getElementById('qualityValue').textContent = value + '%';
+  saveFormatSettings();
+});
+
+// Get file extension based on format
+function getFileExtension() {
+  const extensions = {
+    'png': 'png',
+    'jpeg': 'jpg',
+    'webp': 'webp'
+  };
+  return extensions[imageFormat] || 'png';
+}
+
+// Get MIME type based on format
+function getMimeType() {
+  const mimeTypes = {
+    'png': 'image/png',
+    'jpeg': 'image/jpeg',
+    'webp': 'image/webp'
+  };
+  return mimeTypes[imageFormat] || 'image/png';
+}
+// ✅ END FORMAT MANAGEMENT CODE
+
 async function startCapture(mode = 'FULL_PAGE') {
   const captureBtn = document.getElementById('captureBtn');
   const visibleAreaBtn = document.getElementById('visibleAreaBtn');
@@ -111,20 +191,29 @@ async function startCapture(mode = 'FULL_PAGE') {
 
     // Get current tab
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    console.log('Current tab:', tab);
 
     // Check if we can inject scripts into this tab
     if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
       throw new Error('Cannot capture screenshots on this page type');
     }
 
+    console.log('Injecting content script into tab:', tab.id);
     // Execute the content script
     const injectResult = await injectScriptWithPermission(tab.id);
     if (!injectResult.success) {
       throw new Error(injectResult.error);
     }
 
+    console.log('Content script injected, sending START_CAPTURE message with mode:', mode);
     // Trigger capture explicitly with mode
-    chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', mode, isPopup: true });
+    chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', mode, isPopup: true }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Message send error:', chrome.runtime.lastError);
+      } else {
+        console.log('Message sent successfully, response:', response);
+      }
+    });
 
     // Set a timeout for very long captures
     const timeout = mode === 'FULL_PAGE' ? 120000 : 30000;
@@ -158,41 +247,87 @@ document.getElementById('cancelBtn').addEventListener('click', () => {
 });
 
 // Save button handler
+// Save button handler (UPDATED FOR FORMAT SUPPORT)
 document.getElementById('saveBtn').addEventListener('click', async () => {
   if (captureData) {
-    const a = document.createElement('a');
-    a.href = captureData;
-    a.download = `screenshot-${Date.now()}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    document.getElementById('statusText').textContent = 'Screenshot saved successfully!';
+    try {
+      let dataUrlToSave = captureData;
+      
+      // Convert format if needed
+      if (imageFormat !== 'png') {
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = captureData;
+        });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        const mimeType = getMimeType();
+        const quality = (imageFormat === 'png') ? undefined : imageQuality;
+        dataUrlToSave = canvas.toDataURL(mimeType, quality);
+      }
+      
+      const link = document.createElement('a');
+      link.href = dataUrlToSave;
+      link.download = `screenshot-${Date.now()}.${getFileExtension()}`;
+      link.click();
+      
+      const statusText = document.getElementById('statusText');
+      statusText.textContent = `Screenshot saved as ${imageFormat.toUpperCase()}!`;
+    } catch (err) {
+      console.error('Failed to save: ', err);
+      showErrorAlert('Failed to save screenshot');
+    }
   } else {
     showErrorAlert('No screenshot data available');
   }
 });
 
-// Copy button handler
+// Copy button handler (UPDATED FOR FORMAT SUPPORT)
 document.getElementById('copyBtn').addEventListener('click', async () => {
   if (captureData) {
     try {
-      // Convert base64 to blob
-      const res = await fetch(captureData);
+      let dataUrlToCopy = captureData;
+      
+      // Convert format if needed
+      if (imageFormat !== 'png') {
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = captureData;
+        });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        const mimeType = getMimeType();
+        const quality = (imageFormat === 'png') ? undefined : imageQuality;
+        dataUrlToCopy = canvas.toDataURL(mimeType, quality);
+      }
+      
+      // Convert to blob
+      const res = await fetch(dataUrlToCopy);
       const blob = await res.blob();
 
       // Write to clipboard
       await navigator.clipboard.write([
         new ClipboardItem({
-          'image/png': blob
+          [getMimeType()]: blob
         })
       ]);
 
       const statusText = document.getElementById('statusText');
-      statusText.textContent = 'Screenshot copied to clipboard!';
-
-      // Visual feedback
-      const originalText = document.querySelector('#copyBtn .btn-text').textContent;
+      statusText.textContent = `Screenshot copied as ${imageFormat.toUpperCase()}!`-text').textContent;
       document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
       setTimeout(() => {
         document.querySelector('#copyBtn .btn-text').textContent = originalText;
@@ -222,7 +357,9 @@ function resetUI() {
 }
 
 // Initialize popup
+// Initialize popup (UPDATED)
 async function initPopup() {
+  loadFormatSettings(); // ✅ ADD THIS LINE
   const response = await chrome.runtime.sendMessage({ type: 'GET_LAST_CAPTURE' });
   if (response) {
     displayCapture(response);
@@ -343,8 +480,9 @@ document.addEventListener('DOMContentLoaded', () => {
   themeToggle.addEventListener('click', () => {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
+);
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
   });
 });
+}
