@@ -62,6 +62,91 @@ function hideErrorAlert() {
   document.getElementById('errorAlert').style.display = 'none';
 }
 
+<<<<<<< HEAD
+=======
+// ✅ ADD FORMAT MANAGEMENT CODE HERE (NEW CODE)
+// ========================================
+// Format Settings Management
+// ========================================
+
+let imageFormat = 'png';
+let imageQuality = 0.9;
+
+// Load saved format settings
+function loadFormatSettings() {
+  chrome.storage.local.get(['imageFormat', 'imageQuality'], (result) => {
+    imageFormat = result.imageFormat || 'png';
+    imageQuality = result.imageQuality || 0.9;
+    
+    // Set UI to match saved settings
+    document.querySelector(`input[name="imageFormat"][value="${imageFormat}"]`).checked = true;
+    document.getElementById('qualitySlider').value = imageQuality * 100;
+    document.getElementById('qualityValue').textContent = Math.round(imageQuality * 100) + '%';
+    
+    // Show/hide quality slider
+    toggleQualitySlider();
+  });
+}
+
+// Save format settings
+function saveFormatSettings() {
+  chrome.storage.local.set({
+    imageFormat: imageFormat,
+    imageQuality: imageQuality
+  });
+}
+
+// Toggle quality slider visibility
+function toggleQualitySlider() {
+  const qualityContainer = document.getElementById('qualityContainer');
+  if (imageFormat === 'jpeg' || imageFormat === 'webp') {
+    qualityContainer.style.display = 'block';
+  } else {
+    qualityContainer.style.display = 'none';
+  }
+}
+
+// Format radio button handlers
+function setupFormatListeners() {
+  document.querySelectorAll('input[name="imageFormat"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      imageFormat = e.target.value;
+      toggleQualitySlider();
+      saveFormatSettings();
+    });
+  });
+
+  // Quality slider handler
+  document.getElementById('qualitySlider').addEventListener('input', (e) => {
+    const value = parseInt(e.target.value);
+    imageQuality = value / 100;
+    document.getElementById('qualityValue').textContent = value + '%';
+    saveFormatSettings();
+  });
+}
+
+// Get file extension based on format
+function getFileExtension() {
+  const extensions = {
+    'png': 'png',
+    'jpeg': 'jpg',
+    'webp': 'webp'
+  };
+  return extensions[imageFormat] || 'png';
+}
+
+// Get MIME type based on format
+function getMimeType() {
+  const mimeTypes = {
+    'png': 'image/png',
+    'jpeg': 'image/jpeg',
+    'webp': 'image/webp'
+  };
+  return mimeTypes[imageFormat] || 'image/png';
+}
+// ✅ END FORMAT MANAGEMENT CODE
+
+>>>>>>> d7c6e51 (Add multiple image export formats with quality settings)
 async function startCapture(mode = 'FULL_PAGE') {
   const captureBtn = document.getElementById('captureBtn');
   const visibleAreaBtn = document.getElementById('visibleAreaBtn');
@@ -152,6 +237,7 @@ document.getElementById('selectElementBtn').addEventListener('click', () => star
 document.getElementById('cancelBtn').addEventListener('click', () => {
   if (captureInProgress) {
     chrome.runtime.sendMessage({ type: 'CANCEL_CAPTURE' });
+    const statusText = document.getElementById('statusText');
     statusText.textContent = 'Screenshot capture cancelled';
     resetUI();
   }
@@ -189,9 +275,13 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
       ]);
 
       const statusText = document.getElementById('statusText');
+<<<<<<< HEAD
       statusText.textContent = 'Screenshot copied to clipboard!';
 
       // Visual feedback
+=======
+      statusText.textContent = `Screenshot copied as ${imageFormat.toUpperCase()}!`;
+>>>>>>> d7c6e51 (Add multiple image export formats with quality settings)
       const originalText = document.querySelector('#copyBtn .btn-text').textContent;
       document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
       setTimeout(() => {
@@ -342,9 +432,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   themeToggle.addEventListener('click', () => {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+<<<<<<< HEAD
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
+=======
+>>>>>>> d7c6e51 (Add multiple image export formats with quality settings)
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
   });
+
+  // Setup format listeners after DOM is ready
+  setupFormatListeners();
 });

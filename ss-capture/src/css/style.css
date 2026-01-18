@@ -250,7 +250,7 @@ body::before {
     width: 100%;
     max-width: 420px;
     position: relative;
-    overflow: hidden;
+    overflow-y: auto;
     will-change: background, border-color;
 }
 
