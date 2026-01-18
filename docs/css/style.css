@@ -32,6 +32,18 @@ html {
   --glass: blur(14px);
 }
 
+/* ===== DARK MODE VARIABLES ===== */
+body.dark {
+  --bg-color: linear-gradient(135deg, #0f172a, #1a1f35);
+  --card-bg: rgba(30, 41, 59, 0.85);
+  --primary: #a5b4fc;
+  --secondary: #e2e8f0;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.08);
+  --warning: #7f1d1d;
+}
+
 /* ===== LOGO ===== */
 .logo {
   display: flex;
@@ -73,6 +85,33 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
 
+body.dark .navbar {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+/* ===== THEME TOGGLE BUTTON ===== */
+#theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#theme-toggle:hover {
+  background-color: var(--card-bg);
+}
+
+#theme-toggle:active {
+  transform: scale(0.95);
+}
+
 .nav-links a {
   position: relative;
   padding-bottom: 4px;
@@ -101,6 +140,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 15px;
 }
 
 .logo {
@@ -202,6 +242,11 @@ code {
   font-size: 0.9rem;
 }
 
+body.dark code {
+  background: #334155;
+  color: #e2e8f0;
+}
+
 .copy-btn {
   margin-left: 8px;
   padding: 5px 12px;
@@ -242,6 +287,10 @@ code {
   background: linear-gradient(135deg, #f1f5f9, #e0e7ff);
   border: 1px dashed var(--border);
   font-style: italic;
+}
+
+body.dark .screenshot-placeholder {
+  background: linear-gradient(135deg, #1e293b, #334155);
 }
 .warning {
   animation: pulse 2s infinite;
