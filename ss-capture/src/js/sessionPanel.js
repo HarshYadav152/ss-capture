@@ -46,9 +46,14 @@
 
     clearBtn.addEventListener('click', async () => {
       if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-        chrome.runtime.sendMessage({ type: 'CLEAR_SESSION_SCREENSHOTS' }, () => {
+        try {
+          chrome.runtime.sendMessage({ type: 'CLEAR_SESSION_SCREENSHOTS' }, () => {
+            refresh();
+          });
+        } catch (error) {
+          console.error('Failed to clear session screenshots:', error);
           refresh();
-        });
+        }
       } else {
         // Non-extension environments (tests) - just refresh
         refresh();
@@ -115,10 +120,16 @@
       const id = imgEl.dataset.id;
       if (!id) return;
       if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-        chrome.runtime.sendMessage({ type: 'DELETE_SESSION_SCREENSHOT', id }, () => {
+        try {
+          chrome.runtime.sendMessage({ type: 'DELETE_SESSION_SCREENSHOT', id }, () => {
+            closeModal();
+            refresh();
+          });
+        } catch (error) {
+          console.error('Failed to delete session screenshot:', error);
           closeModal();
           refresh();
-        });
+        }
       } else {
         // Test/non-extension environment: just close and refresh (fetchItems will return [] here)
         closeModal();
@@ -136,9 +147,9 @@
     setTimeout(() => { info.textContent = ''; }, 2000);
   }
 
-  function openModalForItem(item) {
-    const modal = createModal();
-    const overlay = document.getElementById(MODAL_ID);
+function openModalForItem(item) {
+  createModal();
+  const overlay = document.getElementById(MODAL_ID);
     const img = document.getElementById('ss-modal-image');
     img.src = item.dataUrl;
     img.dataset.id = item.id;
@@ -160,9 +171,14 @@
       return [];
     }
     return new Promise((resolve) => {
-      chrome.runtime.sendMessage({ type: 'GET_SESSION_SCREENSHOTS' }, (res) => {
-        resolve(res || []);
-      });
+      try {
+        chrome.runtime.sendMessage({ type: 'GET_SESSION_SCREENSHOTS' }, (res) => {
+          resolve(res || []);
+        });
+      } catch (error) {
+        console.error('Failed to fetch session screenshots:', error);
+        resolve([]);
+      }
     });
   }
 
@@ -241,8 +257,18 @@
     // ignore
   }
 
-  // Create UI and initial fetch
-  createPanel(); createModal(); refresh();
+  // Wait for DOM to be ready before creating UI
+  function initPanel() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        createPanel(); createModal(); refresh();
+      });
+    } else {
+      createPanel(); createModal(); refresh();
+    }
+  }
+
+  initPanel();
 
   // Small keyboard handler to close modal with Esc
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeModal(); });

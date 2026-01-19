@@ -10,14 +10,14 @@
     "storage",
     "tabs",
     "unlimitedStorage",
-    "contextMenus"
+    "contextMenus",
+    "alarms"
   ],
-  "optional_host_permissions": [
+  "host_permissions": [
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "src/js/background.js",
-    "type": "module"
+    "service_worker": "src/js/background.js"
   },
   "action": {
     "default_popup": "src/popup/popup.html",
@@ -29,8 +29,8 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/js/content.js"],
-      "css": ["css/sessionPanel.css"],
+      "js": ["src/js/content.js", "src/js/sessionPanel.js"],
+      "css": ["src/css/sessionPanel.css"],
       "run_at": "document_idle"
     }
   ],

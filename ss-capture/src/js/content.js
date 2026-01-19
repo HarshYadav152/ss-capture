@@ -1,28 +1,149 @@
-// State variables
-let isCancelled = false;
 
+// State variables
+// Function to ensure html2canvas is loaded in the page context
+async function ensureHtml2Canvas() {
+  console.log('Ensuring html2canvas is available in page context...');
+
+  // Check if html2canvas is already available in the page context
+  const checkPageContext = () => {
+    try {
+      // Access the page's window through unsafeWindow or direct injection
+      const pageWindow = window.wrappedJSObject || window;
+      if (pageWindow.html2canvas && typeof pageWindow.html2canvas === 'function') {
+        console.log('html2canvas found in page context');
+        return pageWindow.html2canvas;
+      }
+    } catch (e) {
+      console.warn('Could not access page context directly:', e.message);
+    }
+    return null;
+  };
+
+  let html2canvasLib = checkPageContext();
+  if (html2canvasLib) return html2canvasLib;
+
+  // Inject html2canvas directly into the page's head to make it available in page context
+  console.log('Injecting html2canvas into page context...');
+  return new Promise((resolve, reject) => {
+    // Fetch the html2canvas script content
+    fetch(chrome.runtime.getURL('src/js/html2canvas.min.js'))
+      .then(response => response.text())
+      .then(scriptContent => {
+        console.log('html2canvas script fetched, injecting into page...');
+
+        // Create a script element with the content directly injected
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.textContent = scriptContent;
+
+        let loaded = false;
+        let timeoutId;
+
+        script.onload = () => {
+          if (loaded) return;
+          loaded = true;
+          clearTimeout(timeoutId);
+
+          console.log('html2canvas script injected, verifying availability...');
+
+          // Give it a moment to initialize and check multiple times
+          let attempts = 0;
+          const checkLoaded = () => {
+            attempts++;
+            const lib = checkPageContext();
+            if (lib) {
+              console.log('html2canvas successfully loaded and available in page context');
+              resolve(lib);
+            } else if (attempts < 10) {
+              setTimeout(checkLoaded, 100); // Check again in 100ms
+            } else {
+              console.error('html2canvas script injected but not accessible in page context after multiple attempts');
+              reject(new Error('html2canvas loaded but not available in page context'));
+            }
+          };
+
+          setTimeout(checkLoaded, 50);
+        };
+
+        script.onerror = (e) => {
+          if (loaded) return;
+          loaded = true;
+          clearTimeout(timeoutId);
+          console.error('Failed to inject html2canvas script:', e);
+          reject(new Error('Failed to inject html2canvas script'));
+        };
+
+        // Inject into page head - this makes it available in the page's global scope
+        const target = document.head || document.documentElement;
+        if (target) {
+          try {
+            target.appendChild(script);
+            console.log('html2canvas injected into page head');
+          } catch (e) {
+            console.error('Failed to inject html2canvas script:', e);
+            reject(new Error('Failed to inject html2canvas script: ' + e.message));
+            return;
+          }
+        } else {
+          reject(new Error('No suitable element found to inject html2canvas script'));
+          return;
+        }
+
+        // Set timeout for loading
+        timeoutId = setTimeout(() => {
+          if (!loaded) {
+            loaded = true;
+            console.error('html2canvas injection timed out');
+            reject(new Error('html2canvas failed to load within timeout'));
+          }
+        }, 15000); // 15 second timeout
+      })
+      .catch(error => {
+        console.error('Failed to fetch html2canvas script:', error);
+        reject(new Error('Failed to fetch html2canvas script: ' + error.message));
+      });
+  });
+}
 // Constants
 const MAX_CANVAS_HEIGHT = 32000; // Browser limit
 const CHUNK_HEIGHT = 28000; // Safe chunk size with margin for overlap
-const OVERLAP = 100; // Overlap between chunks to ensure seamless stitching
 
 // Helper functions
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 function sendProgressUpdate(message, percentComplete = null) {
-  chrome.runtime.sendMessage({
-    type: 'PROGRESS',
-    message,
-    percentComplete
-  });
+  try {
+    chrome.runtime.sendMessage({
+      type: 'PROGRESS',
+      message,
+      percentComplete
+    });
+  } catch (error) {
+    console.error('Failed to send progress update:', error);
+    // Ignore extension context invalidated errors
+    if (!error.message.includes('Extension context invalidated')) {
+      throw error;
+    }
+  }
 }
 
 function sendError(errorMessage) {
-  chrome.runtime.sendMessage({
-    type: 'CAPTURE_ERROR',
-    error: errorMessage
-  });
+  try {
+    chrome.runtime.sendMessage({
+      type: 'CAPTURE_ERROR',
+      error: errorMessage
+    });
+  } catch (error) {
+    console.error('Failed to send error:', error);
+    // Ignore extension context invalidated errors
+    if (!error.message.includes('Extension context invalidated')) {
+      throw error;
+    }
+  }
 }
+
+// Debug logging
+console.log('Content script loaded');
 
 // Toast Notification System (Shadow DOM)
 class Toast {
@@ -245,69 +366,139 @@ function startElementPicker(isPopup) {
     async (el, rect) => {
       // Small delay to let the highlight disappear
       await sleep(100);
-      captureElement(rect, isPopup);
+      captureElement(el, rect, isPopup);
     },
     () => {
       toast.show('Selection cancelled', 'info');
       toast.hide(3000);
-      chrome.runtime.sendMessage({ type: 'CAPTURE_ERROR', error: 'Selection cancelled' });
+      try {
+        chrome.runtime.sendMessage({ type: 'CAPTURE_ERROR', error: 'Selection cancelled' });
+      } catch (error) {
+        console.error('Failed to send capture error:', error);
+      }
+      // Ensure popup is reopened if it was closed
+      try {
+        chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+      } catch (error) {
+        console.error('Failed to reopen popup:', error);
+      }
     }
   );
 }
 
-async function captureElement(rect, isPopup) {
+async function captureElement(element, rect, isPopup) {
   try {
     toast.show('Capturing element...', 'loading');
-    
-    // Check if element is in viewport, if not scroll to it
-    // For now we assume the user just selected what they see
-    
-    const dataUrl = await new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({ type: 'CAPTURE' }, response => {
-        if (response && response.error) reject(new Error(response.error));
-        else resolve(response);
-      });
+
+    // Validate element and rectangle dimensions
+    if (!element) {
+      throw new Error('No element selected for capture');
+    }
+
+    if (!rect || rect.width <= 0 || rect.height <= 0) {
+      throw new Error('Invalid element dimensions for capture');
+    }
+
+    // Ensure DOM is ready
+    if (document.readyState !== 'complete') {
+      await new Promise(r => window.addEventListener('load', r, { once: true }));
+    }
+
+    // Scroll element into view if needed
+    element.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'center' });
+    await sleep(100);
+
+    // Ensure html2canvas is loaded
+    const html2canvasLib = await ensureHtml2Canvas();
+
+    // Capture with html2canvas
+    const canvas = await html2canvasLib(element, {
+      useCORS: true,
+      allowTaint: false,
+      scale: window.devicePixelRatio || 1,
+      width: rect.width,
+      height: rect.height,
+      x: 0,
+      y: 0
     });
 
+    const dataUrl = canvas.toDataURL('image/png');
+
+    // Validate data URL
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/png;base64,')) {
+      throw new Error('Invalid image data received');
+    }
+
+    // Add to session store
+    const thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = 200;
+    thumbCanvas.height = 150;
+    const thumbCtx = thumbCanvas.getContext('2d');
     const img = new Image();
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = dataUrl;
-    });
+    img.onload = () => {
+      thumbCtx.drawImage(img, 0, 0, 200, 150);
+      const thumbDataUrl = thumbCanvas.toDataURL('image/png');
+      try {
+        chrome.runtime.sendMessage({
+          type: 'ADD_SESSION_SCREENSHOT',
+          dataUrl: dataUrl,
+          thumbnail: thumbDataUrl,
+          filename: `element-${Date.now()}.png`
+        });
+      } catch (error) {
+        console.error('Failed to add to session store:', error);
+      }
+    };
+    img.src = dataUrl;
 
-    const canvas = document.createElement('canvas');
-    const dpr = window.devicePixelRatio || 1;
-    
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(
-      img,
-      rect.left * dpr, rect.top * dpr, rect.width * dpr, rect.height * dpr,
-      0, 0, rect.width * dpr, rect.height * dpr
-    );
+    if (isPopup) {
+      try {
+        chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+      } catch (error) {
+        console.error('Failed to open popup:', error);
+      }
+      setTimeout(() => {
+        try {
+          chrome.runtime.sendMessage({
+            type: 'CAPTURE_COMPLETE',
+            dataUrl: dataUrl,
+            fromPopup: isPopup
+          });
+        } catch (sendError) {
+          console.error('Failed to send capture complete message:', sendError);
+          throw new Error('Failed to send capture result');
+        }
+      }, 500);
+    } else {
+      toast.show('Selected Element Captured! Click to preview.', 'success', () => {
+        try {
+          chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+        } catch (error) {
+          console.error('Failed to open popup:', error);
+        }
+        toast.hide();
+      });
+      toast.hide(8000);
 
-    const croppedDataUrl = canvas.toDataURL('image/png');
-    
-    toast.show('Selected Element Captured! Click to preview.', 'success', () => {
-      chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
-      toast.hide();
-    });
-    toast.hide(8000);
-
-    chrome.runtime.sendMessage({
-      type: 'CAPTURE_COMPLETE',
-      dataUrl: croppedDataUrl,
-      fromPopup: isPopup
-    });
+      console.log("CAPTURE_COMPLETE sent for element");
+      try {
+        chrome.runtime.sendMessage({
+          type: 'CAPTURE_COMPLETE',
+          dataUrl: dataUrl,
+          fromPopup: isPopup
+        });
+      } catch (sendError) {
+        console.error('Failed to send capture complete message:', sendError);
+        throw new Error('Failed to send capture result');
+      }
+    }
 
   } catch (error) {
     console.error('Element capture error:', error);
-    toast.show('Capture failed', 'error');
+    const errorMessage = error.message || 'Unknown error during element capture';
+    toast.show(`Capture failed: ${errorMessage}`, 'error');
     toast.hide(4000);
-    sendError(error.message);
+    sendError(errorMessage);
   }
 }
 
@@ -325,13 +516,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'INIT_CAPTURE' || message.type === 'START_CAPTURE') {
     const isPopup = message.isPopup !== undefined ? message.isPopup : false;
     const mode = message.mode || 'FULL_PAGE';
-    captureScreenshot(isPopup, mode);
+    // Delay to allow popup to close
+    setTimeout(() => captureScreenshot(isPopup, mode), 500);
     if (sendResponse) sendResponse({ status: 'started' });
+    return true; // Keep message channel open
   }
 
-  if (message.type === 'CANCEL_CAPTURE') {
-    isCancelled = true;
-  }
+  // Removed CAPTURE handler to avoid message loops
+
+  // Cancellation no longer needed in simplified architecture
 
   return true;
 });
@@ -339,29 +532,47 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Main capture function
 async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
   console.log(`Starting ${mode} screenshot capture...`);
-  isCancelled = false; // Reset cancel flag
+  console.log("CAPTURE START");
+
+  // Debug: Log when scrolling finishes
+  console.log("Scrolling setup complete");
   
   if (mode === 'SELECTED_ELEMENT') {
     startElementPicker(isPopup);
     return;
   }
 
-  if (!isPopup) {
-    const startMsg = mode === 'VISIBLE_AREA' ? 'Capturing Visible Area...' : 'Starting Full Page Capture...';
-    toast.show(startMsg, 'loading');
-    
-    // Visual feedback: Flash the screen like a camera shutter
-    const flash = document.createElement('div');
-    flash.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2147483647; pointer-events: none; opacity: 0.6; transition: opacity 0.4s ease-out;';
-    (document.documentElement || document.body).appendChild(flash);
-    
-    requestAnimationFrame(() => {
-      flash.style.opacity = '0';
-      setTimeout(() => flash.remove(), 400);
-    });
+  const startMsg = mode === 'VISIBLE_AREA' ? 'Capturing Visible Area...' : 'Starting Full Page Capture...';
+  toast.show(startMsg, 'loading');
 
-    await sleep(800); // Give user a moment to see the notification
+  // Visual feedback: Flash the screen like a camera shutter
+  const flash = document.createElement('div');
+  flash.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2147483647; pointer-events: none; opacity: 0.6; transition: opacity 0.4s ease-out;';
+
+  // Ensure DOM is ready before appending
+  function appendFlash() {
+    const flashTarget = document.documentElement || document.body;
+    if (flashTarget) {
+      try {
+        flashTarget.appendChild(flash);
+      } catch (e) {
+        console.error('Failed to append flash element:', e);
+      }
+    }
   }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', appendFlash);
+  } else {
+    appendFlash();
+  }
+
+  requestAnimationFrame(() => {
+    flash.style.opacity = '0';
+    setTimeout(() => flash.remove(), 400);
+  });
+
+  await sleep(800); // Give user a moment to see the notification
 
   let originalX = window.scrollX;
   let originalY = window.scrollY;
@@ -412,25 +623,91 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
     if (mode === 'VISIBLE_AREA') {
       sendProgressUpdate('Capturing visible area...', 50);
       toast.show('Capturing visible area...', 'loading');
-      
-      const dataUrl = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ type: 'CAPTURE' }, response => {
-          if (response && response.error) reject(new Error(response.error));
-          else resolve(response);
+
+      // Ensure html2canvas is loaded
+      const html2canvasLib = await ensureHtml2Canvas();
+
+      // Capture visible area using html2canvas
+      const canvas = await html2canvasLib(document.documentElement, {
+        useCORS: true,
+        allowTaint: false,
+        scale: window.devicePixelRatio || 1,
+        width: viewportWidth,
+        height: viewportHeight,
+        x: window.scrollX,
+        y: window.scrollY,
+        scrollX: 0,
+        scrollY: 0
+      });
+
+      const dataUrl = canvas.toDataURL('image/png');
+
+      // Validate dataUrl
+      if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/png;base64,')) {
+        throw new Error('Invalid image data received from capture');
+      }
+
+      if (isPopup) {
+        try {
+          chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+        } catch (error) {
+          console.error('Failed to open popup:', error);
+        }
+        setTimeout(() => {
+          try {
+            chrome.runtime.sendMessage({
+              type: 'CAPTURE_COMPLETE',
+              dataUrl: dataUrl,
+              fromPopup: isPopup
+            });
+          } catch (error) {
+            console.error('Failed to send capture complete:', error);
+          }
+        }, 1000);
+      } else {
+        toast.show('Visible Area Captured! Click to preview.', 'success', () => {
+          try {
+            chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+          } catch (error) {
+            console.error('Failed to open popup:', error);
+          }
+          toast.hide();
         });
-      });
+        toast.hide(8000);
 
-      toast.show('Visible Area Captured! Click to preview.', 'success', () => {
-        chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
-        toast.hide();
-      });
-      toast.hide(8000);
+        console.log("CAPTURE_COMPLETE sent for visible area");
+        try {
+          chrome.runtime.sendMessage({
+            type: 'CAPTURE_COMPLETE',
+            dataUrl: dataUrl,
+            fromPopup: isPopup
+          });
+        } catch (error) {
+          console.error('Failed to send capture complete:', error);
+        }
+      }
 
-      chrome.runtime.sendMessage({
-        type: 'CAPTURE_COMPLETE',
-        dataUrl: dataUrl,
-        fromPopup: isPopup
-      });
+    // Add to session store
+    const thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = 200;
+    thumbCanvas.height = 150;
+    const thumbCtx = thumbCanvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+      thumbCtx.drawImage(img, 0, 0, 200, 150);
+      const thumbDataUrl = thumbCanvas.toDataURL('image/png');
+      try {
+        chrome.runtime.sendMessage({
+          type: 'ADD_SESSION_SCREENSHOT',
+          dataUrl: dataUrl,
+          thumbnail: thumbDataUrl,
+          filename: `visible-area-${Date.now()}.png`
+        });
+      } catch (error) {
+        console.error('Failed to add to session store:', error);
+      }
+    };
+    img.src = dataUrl;
       return;
     }
 
@@ -455,178 +732,122 @@ async function captureScreenshot(isPopup = true, mode = 'FULL_PAGE') {
       await sleep(500);
     }
 
-    // Capture chunks
-    const chunks = [];
+    // Ensure html2canvas is loaded for full page capture
+    const html2canvasLib = await ensureHtml2Canvas();
 
-    for (let chunkIndex = 0; chunkIndex < numChunks; chunkIndex++) {
-      if (isCancelled) {
-        throw new Error('Screenshot cancelled');
-      }
+    // Use html2canvas's built-in full page capture for better reliability
+    sendProgressUpdate('Capturing full page with html2canvas...', 10);
 
-      const chunkStartY = chunkIndex * CHUNK_HEIGHT;
-      const chunkEndY = Math.min(chunkStartY + CHUNK_HEIGHT + OVERLAP, totalHeight);
-      const actualChunkHeight = chunkEndY - chunkStartY;
+    // Configure html2canvas for full page capture with optimized settings
+    const canvas = await html2canvasLib(document.documentElement, {
+      useCORS: true,
+      allowTaint: false,
+      scale: Math.min(window.devicePixelRatio || 1, 2), // Limit scale for performance
+      width: viewportWidth,
+      height: totalHeight,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: viewportWidth,
+      windowHeight: viewportHeight,
+      // Performance optimizations
+      backgroundColor: null,
+      imageTimeout: 0,
+      removeContainer: true,
+      foreignObjectRendering: false, // Disable for better compatibility
+      // Timeout settings
+      timeout: 60000, // 60 second timeout
+      // Better error handling
+      onclone: () => {
+        console.log('Document cloned for capture');
+      },
+      logging: false // Disable logging for performance
+    });
 
-      sendProgressUpdate(
-        `Capturing section ${chunkIndex + 1}/${numChunks}...`,
-        Math.round((chunkIndex / numChunks) * 85) + 5
-      );
-      if (!isPopup) toast.show(`Capturing... ${Math.round((chunkIndex / numChunks) * 85)}%`, 'loading');
+    sendProgressUpdate('Processing captured image...', 90);
 
-      // Create canvas for this chunk
-      const chunkCanvas = document.createElement('canvas');
-      chunkCanvas.width = viewportWidth;
-      chunkCanvas.height = actualChunkHeight;
-      const chunkCtx = chunkCanvas.getContext('2d', { willReadFrequently: false });
+    const dataUrl = canvas.toDataURL('image/png', 0.8); // Use higher compression
 
-      if (!chunkCtx) {
-        throw new Error('Could not create canvas context');
-      }
-
-      // Capture this chunk viewport by viewport
-      let currentY = chunkStartY;
-      let capturedParts = 0;
-
-      while (currentY < chunkEndY) {
-        if (isCancelled) {
-          throw new Error('Screenshot cancelled');
-        }
-
-        capturedParts++;
-
-        // Scroll to position
-        window.scrollTo(0, currentY);
-        await sleep(300);
-
-        // Capture current viewport with retry mechanism
-        let dataUrl;
-        let retryCount = 0;
-        const maxRetries = 3;
-
-        while (retryCount < maxRetries) {
-          try {
-            dataUrl = await new Promise((resolve, reject) => {
-              const captureTimeout = setTimeout(() => {
-                reject(new Error('Screenshot capture timed out'));
-              }, 10000);
-
-              chrome.runtime.sendMessage({ type: 'CAPTURE' }, (response) => {
-                clearTimeout(captureTimeout);
-                if (chrome.runtime.lastError) {
-                  reject(new Error(chrome.runtime.lastError.message));
-                } else if (!response || response.error) {
-                  if (response?.error && response.error.includes('MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND')) {
-                    reject(new Error('RATE_LIMIT_EXCEEDED'));
-                  } else {
-                    reject(new Error(response?.error || 'Failed to capture screenshot'));
-                  }
-                } else {
-                  resolve(response);
-                }
-              });
-            });
-            break;
-          } catch (error) {
-            retryCount++;
-            if (error.message === 'RATE_LIMIT_EXCEEDED' && retryCount < maxRetries) {
-              await sleep(1000);
-              continue;
-            } else {
-              throw error;
-            }
-          }
-        }
-
-        // Load image onto canvas
-        const img = new Image();
-        await new Promise((resolve, reject) => {
-          const imgTimeout = setTimeout(() => {
-            reject(new Error('Image loading timed out'));
-          }, 5000);
-
-          img.onload = () => {
-            clearTimeout(imgTimeout);
-            resolve();
-          };
-          img.onerror = () => {
-            clearTimeout(imgTimeout);
-            reject(new Error('Failed to load captured image'));
-          };
-          img.src = dataUrl;
-        });
-
-        // Calculate drawing position relative to chunk
-        const drawY = currentY - chunkStartY;
-        const drawHeight = Math.min(viewportHeight, chunkEndY - currentY);
-
-        // Draw to chunk canvas
-        chunkCtx.drawImage(img, 0, drawY, viewportWidth, drawHeight);
-
-        // Move to next section
-        currentY += viewportHeight;
-
-        // Allow garbage collection
-        if (capturedParts % 5 === 0) {
-          await sleep(100);
-        }
-      }
-
-      chunks.push(chunkCanvas);
+    // Validate data URL
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/png;base64,')) {
+      throw new Error('Invalid image data received from html2canvas');
     }
 
-    // Combine chunks into final canvas
-    sendProgressUpdate('Combining chunks into final image...', 92);
-
-    const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = viewportWidth;
-    finalCanvas.height = totalHeight;
-    const finalCtx = finalCanvas.getContext('2d', { willReadFrequently: false });
-
-    if (!finalCtx) {
-      throw new Error('Could not create final canvas context');
+    if (dataUrl.length < 1000) { // Very small data URLs are likely invalid
+      throw new Error('Captured image data appears to be invalid or corrupted');
     }
 
-    for (let i = 0; i < chunks.length; i++) {
-      const yPosition = i * CHUNK_HEIGHT;
-      finalCtx.drawImage(chunks[i], 0, yPosition);
+    sendProgressUpdate('Finalizing screenshot...', 95);
 
-      sendProgressUpdate(
-        'Stitching chunks...',
-        92 + Math.round((i / chunks.length) * 5)
-      );
-    }
-
-    sendProgressUpdate('Processing final screenshot...', 98);
-
-    // Convert canvas to data URL
-    let finalScreenshot;
-    try {
-      finalScreenshot = finalCanvas.toDataURL('image/png');
-    } catch (error) {
-      throw new Error('Failed to convert screenshot to image. The page may be too large.');
-    }
+    // Success handling
+    const finalScreenshot = dataUrl;
 
     cleanup();
 
-    toast.show('Full Page Capture Complete! Click to preview.', 'success', () => {
-      chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
-      toast.hide();
-    });
-    toast.hide(8000);
+    if (isPopup) {
+      try {
+        chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+      } catch (error) {
+        console.error('Failed to open popup:', error);
+      }
+      setTimeout(() => {
+        try {
+          chrome.runtime.sendMessage({
+            type: 'CAPTURE_COMPLETE',
+            dataUrl: finalScreenshot,
+            fromPopup: isPopup
+          });
+        } catch (error) {
+          console.error('Failed to send capture complete:', error);
+        }
+      }, 1000);
+    } else {
+      toast.show('Full Page Capture Complete! Click to preview.', 'success', () => {
+        chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+        toast.hide();
+      });
+      toast.hide(8000);
 
-    chrome.runtime.sendMessage({
-      type: 'CAPTURE_COMPLETE',
-      dataUrl: finalScreenshot,
-      fromPopup: isPopup
-    });
+      console.log("CAPTURE_COMPLETE sent for full page");
+      try {
+        chrome.runtime.sendMessage({
+          type: 'CAPTURE_COMPLETE',
+          dataUrl: finalScreenshot,
+          fromPopup: isPopup
+        });
+      } catch (error) {
+        console.error('Failed to send capture complete:', error);
+      }
+    }
+
+    // Add to session store
+    const thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = 200;
+    thumbCanvas.height = 150;
+    const thumbCtx = thumbCanvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+      thumbCtx.drawImage(img, 0, 0, 200, 150);
+      const thumbDataUrl = thumbCanvas.toDataURL('image/png');
+      try {
+        chrome.runtime.sendMessage({
+          type: 'ADD_SESSION_SCREENSHOT',
+          dataUrl: finalScreenshot,
+          thumbnail: thumbDataUrl,
+          filename: `full-page-${Date.now()}.png`
+        });
+      } catch (error) {
+        console.error('Failed to add to session store:', error);
+      }
+    };
+    img.src = finalScreenshot;
 
   } catch (error) {
     console.error('Screenshot error:', error);
     cleanup();
-    
-    if (!isPopup) toast.show('Capture Failed', 'error');
-    if (!isPopup) toast.hide(4000);
-    
+
+    toast.show('Capture Failed', 'error');
+    toast.hide(4000);
+
     sendError(error.message || 'Unknown error during screenshot capture');
   }
 }

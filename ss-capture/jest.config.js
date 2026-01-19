@@ -29,6 +29,7 @@ module.exports = {
     '/node_modules/',
     '/dist/',
     '/build/',
+    '/tests/e2e/',
   ],
   transform: {
     '^.+\\.js$': 'babel-jest',

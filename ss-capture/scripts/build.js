@@ -43,6 +43,8 @@ async function buildForBrowser(browser) {
       { src: 'src/popup/popup.js', dest: 'popup.js' },
       { src: 'src/js/content.js', dest: 'content.js' },
       { src: 'src/js/background.js', dest: 'background.js' },
+      { src: 'src/js/html2canvas.min.js', dest: 'html2canvas.min.js' },
+      { src: 'src/js/sessionPanel.js', dest: 'sessionPanel.js' },
       { src: 'src/css/style.css', dest: 'style.css' },
       { src: 'icons', dest: 'icons' },
       // Privacy Editor files
@@ -61,6 +63,15 @@ async function buildForBrowser(browser) {
           let htmlContent = await fs.readFile(srcPath, 'utf8');
           htmlContent = htmlContent.replace('../css/style.css', 'style.css');
           await fs.writeFile(destPath, htmlContent);
+          console.log(chalk.green(`✓ Processed and copied ${file.dest}`));
+        } else if (file.dest.endsWith('.js')) {
+          // Process JS files to fix injection paths
+          let jsContent = await fs.readFile(srcPath, 'utf8');
+          jsContent = jsContent.replace(/'src\/js\/content\.js'/g, "'content.js'");
+          jsContent = jsContent.replace(/'src\/js\/sessionPanel\.js'/g, "'sessionPanel.js'");
+          jsContent = jsContent.replace(/"src\/js\/content\.js"/g, '"content.js"');
+          jsContent = jsContent.replace(/"src\/js\/sessionPanel\.js"/g, '"sessionPanel.js"');
+          await fs.writeFile(destPath, jsContent);
           console.log(chalk.green(`✓ Processed and copied ${file.dest}`));
         } else {
           await fs.copy(srcPath, destPath);
@@ -99,14 +110,14 @@ async function generateManifest(browser, env) {
       "downloads",
       "storage",
       "unlimitedStorage",
-      "contextMenus"
+      "contextMenus",
+      "tabs"
     ],
     host_permissions: [
       "<all_urls>"
     ],
     background: {
-      service_worker: "background.js",
-      type: "module"
+      service_worker: "background.js"
     },
     action: {
       default_popup: "popup.html",
@@ -115,6 +126,14 @@ async function generateManifest(browser, env) {
         "128": "icons/icon-128x128.png"
       }
     },
+    content_scripts: [
+      {
+        matches: ["<all_urls>"],
+        js: ["content.js", "sessionPanel.js"],
+        css: ["style.css"],
+        run_at: "document_idle"
+      }
+    ],
     icons: {
       "48": "icons/icon-48x48.png",
       "128": "icons/icon-128x128.png"
