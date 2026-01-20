@@ -1,0 +1,120 @@
+[33m226d801[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/hiba-branch[m[33m)[m add package-lock.json in ss-capture
+[33ma2dc6d2[m[33m ([m[1;31morigin/feature/hiba-branch[m[33m)[m Merge remote-tracking branch 'upstream/main' into feature/hiba-branch
+[33mc27babb[m Remove package-lock.json from root
+[33md1c2e26[m[33m ([m[1;31mupstream/main[m[33m, [m[1;31mupstream/HEAD[m[33m)[m Merge pull request #114 from HarshYadav152/auto/changelog
+[33m900cac7[m[33m ([m[1;31mupstream/auto/changelog[m[33m)[m docs: auto update changelog
+[33m4c6f180[m Merge pull request #111 from 1212ekta/docs-theme-toggle
+[33md7c6e51[m Add multiple image export formats with quality settings
+[33md5336c2[m adding hyperlink for releases tab in the installation guide
+[33ma33495c[m adding hyperlink for releases tab in the installation guide
+[33mb9c5740[m Add dark/light theme toggle for docs
+[33mf9e05a1[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m, [m[1;32mfix/bug-description[m[33m)[m Merge pull request #108 from HarshYadav152/auto/changelog
+[33m89939be[m[33m ([m[1;31morigin/auto/changelog[m[33m)[m docs: auto update changelog
+[33m0bbdad1[m Merge pull request #106 from motalib-code/fix-issue-33-privacy-blur-pixelate
+[33m661cd57[m Split Save button into Save Edits & Close and Download buttons
+[33m54d7533[m feat: Implement Privacy Blur/Pixelate Tool for Screenshot Editor (#33)
+[33m5808ced[m Merge pull request #105 from HarshYadav152/auto/changelog
+[33m158b03f[m docs: auto update changelog
+[33mcbc7000[m Merge pull request #104 from GauravKarakoti/Images
+[33mf5cfe9e[m Edge
+[33m07fcb0c[m 2 left
+[33m4dcc394[m Merge pull request #97 from HarshYadav152/auto/changelog
+[33md539efd[m docs: auto update changelog
+[33md5173ed[m Create CNAME
+[33m4cceab4[m Merge pull request #95 from Sheetal-cell/main
+[33m5891374[m Merge branch 'HarshYadav152:main' into main
+[33me4b1409[m Merge pull request #96 from HarshYadav152/auto/changelog
+[33m4ddd83a[m docs: auto update changelog
+[33mb1271c8[m Merge pull request #94 from Souradeep858/souradeeep
+[33mc5a53f8[m fixed chatbot to an advanced version
+[33m0c253e6[m Footer done with changes
+[33m6c69487[m Added advanced AI chatbot
+[33m2c81f92[m Merge pull request #91 from HarshYadav152/auto/changelog
+[33mc7d6ed7[m docs: auto update changelog
+[33m668debc[m Merge pull request #83 from Sheetal-cell/main
+[33mb07ee23[m Merge pull request #90 from HarshYadav152/auto/changelog
+[33m93c3668[m Merge branch 'HarshYadav152:main' into main
+[33mab022f3[m docs: auto update changelog
+[33m431a2e4[m Merge pull request #85 from Diksha78-bot/bug/missing-watch.js
+[33m7a57cfd[m fix: complete dev script command with watch
+[33m53f0528[m feat: add watch.js script for development file watching
+[33mae44f31[m Merge branch 'HarshYadav152:main' into main
+[33m23e5bb6[m Merge pull request #89 from HarshYadav152/auto/changelog
+[33mca60888[m docs: auto update changelog
+[33m44740b7[m Merge pull request #86 from abhi9vaidya/feature/context-menu-support
+[33m00f591f[m feat: add context menu support for full page, visible area and element capture
+[33m82bf8b0[m linked navbar to the respective destinations
+[33mb417b13[m Merge pull request #81 from HarshYadav152/auto/changelog
+[33m5cff341[m docs: auto update changelog
+[33m77d6483[m Merge pull request #80 from Ewocs/fix-host-permissions
+[33m371dda5[m Fix over-broad host permissions #43
+[33m714852a[m Merge pull request #78 from HarshYadav152/auto/changelog
+[33mf5d05ce[m docs: auto update changelog
+[33m9d9c17a[m Merge pull request #77 from abhi9vaidya/feature/enhanced-capture-suite-v2
+[33ma063e93[m feat: implement enhanced capture suite with visible area and selective element modes
+[33m8b533d0[m Merge pull request #76 from HarshYadav152/auto/changelog
+[33m8bb4234[m docs: auto update changelog
+[33mf9601c4[m Merge pull request #72 from Sheetal-cell/main
+[33meda9441[m Merge branch 'HarshYadav152:main' into main
+[33m0fc0ac5[m Merge pull request #74 from HarshYadav152/auto/changelog
+[33mbd2f2e0[m docs: auto update changelog
+[33m4989af3[m Merge pull request #71 from Ewocs/fix-manifest-version-consistency
+[33m08f202c[m Fixed CSS padding issues
+[33mf4650ea[m Merge branch 'HarshYadav152:main' into fix-manifest-version-consistency
+[33mff9621b[m Fix validation script paths and add configurable directory support
+[33m42d0bef[m Merge pull request #70 from heisenberg7519/docs/fix-changelog-typo
+[33mc1e9ad3[m Merge branch 'main' of https://github.com/Sheetal-cell/ss-capture
+[33m7cdae54[m improved UI for installation guide
+[33m41ad8b2[m docs: fix typo 'undersrand' to 'understand' in changelog
+[33m79ea0cc[m Merge pull request #67 from HarshYadav152/auto/changelog
+[33m25199be[m docs: auto update changelog
+[33m4d75667[m Merge pull request #52 from Taarun8431/feature/animated-theme-switch
+[33mc01bf88[m Add keyboard shortcuts for quick access
+[33me72a12a[m Merge branch 'main' into feature/animated-theme-switch
+[33mb6b2bbd[m docs: auto update changelog
+[33m1837f05[m added logo,navbar and footer
+[33m760b73a[m docs: auto update changelog
+[33mfb22519[m Improve Animation
+[33mb19492c[m feat: add camera shutter flash and delay for background capture feedback
+[33m3c2fd0a[m feat: make capture toast clickable to open extension preview
+[33m43a2b94[m feat: open popup immediately on shortcut to show progress
+[33md8cc859[m feat: automatically open popup after background capture
+[33m046df71[m docs: remove keyboard shortcuts from README to avoid conflict
+[33maf2db3c[m docs: add keyboard shortcut details to README
+[33mb5115fe[m fix: prevent infinite message loop in background script
+[33md7c3c42[m feat: implement background capture functionality and add toast notifications
+[33maf2ca7a[m Merge pull request #64 from HarshYadav152/auto/changelog
+[33m63e2d29[m docs: auto update changelog
+[33mb432a23[m Merge pull request #62 from Sheetal-cell/main
+[33mea14b55[m added logo,navbar and footer
+[33ma77c3b5[m Improve manifest version derivation
+[33m695d39c[m Fix inconsistent manifest version and metadata
+[33m000e0b4[m Merge pull request #22 from abhi9vaidya/feature-background-capture
+[33m9cde335[m Merge branch 'main' into feature-background-capture
+[33m816983e[m Merge pull request #56 from HarshYadav152/auto/changelog
+[33m9f5576e[m docs: auto update changelog
+[33m366a9f4[m Merge pull request #55 from sohanjadyal/improve-animation
+[33m8c58cf6[m Improve Animation
+[33m2e1a72a[m Merge branch 'main' into feature/animated-theme-switch
+[33m3e834b0[m feat(popup): add animated dark/light theme switch with refined glass UI
+[33mb3e70a7[m Merge pull request #51 from HarshYadav152/auto/changelog
+[33md0df740[m docs: auto update changelog
+[33m4502d78[m Merge pull request #50 from HarshYadav152/changes-by-pa
+[33m850fd4d[m Merge pull request #49 from HarshYadav152/auto/changelog
+[33m64a62a4[m[33m ([m[1;31mupstream/changes-by-pa[m[33m, [m[1;31morigin/changes-by-pa[m[33m)[m docs: auto approve changelog PRs workflow
+[33m031d15b[m docs: auto update changelog
+[33m0ade2ec[m Merge pull request #41 from Shivani-Meena07/Shivani-Meena07/2
+[33m1f3a86f[m Merge pull request #31 from heisenberg7519/first-contribution
+[33m97babf9[m Merge branch 'main' into first-contribution
+[33m08947cc[m feat: add camera shutter flash and delay for background capture feedback
+[33m4cbed6d[m feat: make capture toast clickable to open extension preview
+[33m5993d72[m feat: open popup immediately on shortcut to show progress
+[33m5bcbfd3[m feat: automatically open popup after background capture
+[33mba7495c[m chore: resolve merge conflict in manifest.json
+[33me7ad720[m Merge pull request #48 from HarshYadav152/auto/changelog
+[33m77013b7[m docs: auto update changelog
+[33m01c587d[m Merge pull request #20 from abhi9vaidya/feature-keyboard-shortcuts
+[33m8be4a33[m Updated SS Naming
+[33ma9e5c2d[m Merge pull request #40 from HarshYadav152/auto/changelog
+[33mf662efa[m docs: auto update changelog
+[33mee22313[m Merge pull request #38 from L
