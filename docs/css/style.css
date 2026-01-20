@@ -3,6 +3,10 @@
 html {
   scroll-behavior: smooth;
 }
+img {
+  max-width: 100%;
+  height: auto;
+}
 
 * {
   transition: 
@@ -572,4 +576,198 @@ details li {
 
 .chat-header button:hover {
   background: rgba(255,255,255,0.15);
+}
+pre {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+code {
+  word-wrap: break-word;
+}
+@media (max-width: 768px) {
+body {
+  padding: 12px;
+}
+
+
+  .container {
+    width: 100%;
+    padding: 12px;
+  }
+
+  nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  button, .copy-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+/* ============================
+   Responsive Fix (Mobile + Tablet)
+   ============================ */
+
+/* Prevent horizontal scrolling */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Make container flexible */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 16px;
+  margin: auto;
+  box-sizing: border-box;
+}
+
+/* Responsive images */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Code blocks should not overflow */
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+/* Fix navbar for mobile */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  nav ul {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    padding: 0;
+  }
+
+  nav ul li {
+    width: 100%;
+  }
+
+  nav ul li a {
+    display: block;
+    width: 100%;
+    padding: 10px;
+  }
+
+  /* Sections spacing */
+  section {
+    padding: 14px;
+  }
+
+  /* Footer stacking */
+  footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  /* Buttons easier to tap */
+  button, .copy-btn {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  /* Chatbot fix */
+  #chatbot {
+    right: 12px !important;
+    bottom: 12px !important;
+    max-width: 90%;
+  }
+}
+
+/* Tablet view */
+@media (min-width: 769px) and (max-width: 1024px) {
+  section {
+    padding: 18px;
+  }
+
+  nav ul {
+    gap: 15px;
+  }
+
+  footer {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+}
+
+/* Navbar Responsive Fix */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-links {
+  display: flex;
+  gap: 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li a {
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.menu-toggle {
+  display: none;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Mobile view */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 10px;
+    background: #fff;
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .nav-links.active {
+    display: flex;
+  }
 }
