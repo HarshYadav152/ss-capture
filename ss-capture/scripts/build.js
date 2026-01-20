@@ -146,6 +146,10 @@ async function generateManifest(browser, env) {
           strict_min_version: "109.0"
         }
       };
+      // Firefox MV3 uses scripts instead of service_worker
+      delete baseManifest.background.service_worker;
+      delete baseManifest.background.type;
+      baseManifest.background.scripts = ["background.js"];
       break;
 
     case 'edge':

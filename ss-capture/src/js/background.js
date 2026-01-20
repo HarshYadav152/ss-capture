@@ -2,7 +2,7 @@
 let captureInProgress = false;
 let lastCaptureTime = 0;
 let lastCaptureData = null;
-const MIN_CAPTURE_INTERVAL = 600;
+const MIN_CAPTURE_INTERVAL = 700; // Increased buffer for stability and rate-limit safety
 
 // Initialize from storage
 chrome.storage.local.get(['lastCaptureData'], (result) => {
@@ -67,34 +67,41 @@ chrome.commands.onCommand.addListener(async (command) => {
       return;
     }
 
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    // Use callback for cross-browser compatibility (Firefox chrome.* namespace doesn't return promises everywhere)
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      const tab = tabs[0];
+      if (tab && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
 
-    if (tab && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+        // Try to ping existing script first
+        try {
+          await new Promise((resolve, reject) => {
+            chrome.tabs.sendMessage(tab.id, { type: 'PING' }, (response) => {
+              if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+              else resolve(response);
+            });
+          });
+          console.log('Script already active. Starting capture...');
+          // Explicitly set isPopup: false for background capture
+          chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
+        } catch (error) {
+          console.log('Script not found or orphaned. Injecting new instance...');
 
-      // Try to ping existing script first
-      try {
-        await chrome.tabs.sendMessage(tab.id, { type: 'PING' });
-        console.log('Script already active. Starting capture...');
-        // Explicitly set isPopup: false for background capture
-        chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
-      } catch (error) {
-        console.log('Script not found or orphaned. Injecting new instance...');
-
-        // Try to inject script
-        const injectResult = await injectScriptWithPermission(tab.id);
-        if (injectResult.success) {
-          // Script injected, give it a moment to initialize then trigger
-          setTimeout(() => {
-            chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
-          }, 100);
-        } else {
-          console.error('Failed to inject script:', injectResult.error);
+          // Try to inject script
+          const injectResult = await injectScriptWithPermission(tab.id);
+          if (injectResult.success) {
+            // Script injected, give it a moment to initialize then trigger
+            setTimeout(() => {
+              chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
+            }, 100);
+          } else {
+            console.error('Failed to inject script:', injectResult.error);
+          }
         }
-      }
 
-    } else {
-      console.warn('Cannot capture on this URL:', tab?.url);
-    }
+      } else {
+        console.warn('Cannot capture on this URL:', tab?.url);
+      }
+    });
   }
 });
 
@@ -109,10 +116,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (timeSinceLastCapture < MIN_CAPTURE_INTERVAL) {
       const delay = MIN_CAPTURE_INTERVAL - timeSinceLastCapture;
       setTimeout(() => {
-        performCapture(sender.tab.windowId, sendResponse);
+        performCapture(sender.tab ? sender.tab.windowId : null, sendResponse);
       }, delay);
     } else {
-      performCapture(sender.tab.windowId, sendResponse);
+      performCapture(sender.tab ? sender.tab.windowId : null, sendResponse);
     }
 
     return true; // Keep message channel open for async response
@@ -123,13 +130,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     captureInProgress = true;
     lastCaptureTime = Date.now();
 
+    // Use null as fallback to capture active tab in current window
+    const targetWindowId = windowId || chrome.windows.WINDOW_ID_CURRENT;
+
     chrome.tabs.captureVisibleTab(
-      windowId,
+      targetWindowId,
       { format: 'png', quality: 100 },
       dataUrl => {
         if (chrome.runtime.lastError) {
+          const errorMsg = chrome.runtime.lastError.message;
+          console.error('Capture failed:', errorMsg);
+          
           captureInProgress = false;
-          sendResponse({ error: chrome.runtime.lastError.message });
+          sendResponse({ error: errorMsg });
         } else {
           sendResponse(dataUrl);
         }
@@ -187,9 +200,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // Handle request to open popup from content script toast
   if (message.type === 'OPEN_POPUP') {
-    chrome.action.openPopup().catch((err) => {
-      console.warn('Could not open popup from toast click:', err);
-    });
+    if (chrome.action && typeof chrome.action.openPopup === 'function') {
+      chrome.action.openPopup().catch((err) => {
+        console.warn('Could not open popup from toast click:', err);
+      });
+    } else {
+      console.log('Programmatic openPopup not supported in this browser');
+    }
   }
 });
 
@@ -241,7 +258,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       // Helper to initialize script and send message
       const startCaptureViaContext = async () => {
         try {
-          await chrome.tabs.sendMessage(tab.id, { type: 'PING' });
+          await new Promise((resolve, reject) => {
+            chrome.tabs.sendMessage(tab.id, { type: 'PING' }, (response) => {
+              if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+              else resolve(response);
+            });
+          });
           console.log(`Script already active. Starting ${mode} capture...`);
           chrome.tabs.sendMessage(tab.id, {
             type: 'INIT_CAPTURE',
@@ -258,7 +280,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
                 isPopup: false,
                 mode: mode
               });
-            }, 100);
+            }, 150);
           } else {
             console.error('Failed to inject script:', injectResult.error);
           }
