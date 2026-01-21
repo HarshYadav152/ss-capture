@@ -1,0 +1,70 @@
+name: Build and Release Extension
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ss-capture/src/manifest.json'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ss-capture
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ss-capture/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Validate extension
+        run: npm run validate
+
+      - name: Build all browsers
+        run: npm run build
+
+      - name: Create ZIP packages
+        run: npm run zip
+
+      - name: Get version from manifest
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./src/manifest.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Detected version: $VERSION"
+
+      - name: Rename artifacts
+        run: |
+          # Rename the standard output from zip.js to the requested release format
+          mv dist/chrome-extension.zip dist/ss-capture-chrome-v${{ env.VERSION }}.zip
+          mv dist/firefox-extension.zip dist/ss-capture-firefox-v${{ env.VERSION }}.zip
+          mv dist/edge-extension.zip dist/ss-capture-edge-v${{ env.VERSION }}.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            ss-capture/dist/ss-capture-chrome-v${{ env.VERSION }}.zip
+            ss-capture/dist/ss-capture-firefox-v${{ env.VERSION }}.zip
+            ss-capture/dist/ss-capture-edge-v${{ env.VERSION }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
