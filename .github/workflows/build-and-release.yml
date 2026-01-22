@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for changelog
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,32 +31,142 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate extension
-        run: npm run validate
-
-      - name: Build all browsers
-        run: npm run build
-
-      - name: Create ZIP packages
-        run: npm run zip
-
       - name: Get version from manifest
         id: get_version
         run: |
           VERSION=$(node -p "require('./src/manifest.json').version")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Detected version: $VERSION"
-      - name: Rename artifacts
+          echo "::notice::Detected version: $VERSION"
+
+      - name: Check if release exists
+        id: check_release
         run: |
-          # Rename the standard output from zip.js to the requested release format
+          if git ls-remote --tags origin | grep -q "refs/tags/v${{ env.VERSION }}"; then
+            echo "::warning::Release v${{ env.VERSION }} already exists. Skipping..."
+            echo "exists=true" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract changelog for current version
+        if: steps.check_release.outputs.exists == 'false'
+        id: changelog
+        run: |
+          cd ..
+          # Extract changelog section for current date
+          CHANGELOG_CONTENT=$(awk '/^## \[2026-01-22\]/,/^## \[/' CHANGELOG.md | sed '$d' | sed '1d')
+          
+          if [ -z "$CHANGELOG_CONTENT" ]; then
+            CHANGELOG_CONTENT="No changelog entry found for this version."
+          fi
+          
+          # Create release notes
+          cat > release_notes.md << 'EOF'
+          ## 🎉 What's New in SS Capture v${{ env.VERSION }}
+          
+          SS Capture is a powerful browser extension for capturing, editing, and managing screenshots across Chrome, Firefox, and Edge browsers.
+          
+          ### 📦 Download the Extension
+          
+          Choose your browser and download the appropriate extension file below:
+          
+          - **Chrome**: `ss-capture-chrome-v${{ env.VERSION }}.zip`
+          - **Firefox**: `ss-capture-firefox-v${{ env.VERSION }}.zip`
+          - **Edge**: `ss-capture-edge-v${{ env.VERSION }}.zip`
+          
+          ### 📋 Installation Instructions
+          
+          #### Chrome/Edge:
+          1. Download the `.zip` file for your browser
+          2. Extract the contents
+          3. Open `chrome://extensions/` (Chrome) or `edge://extensions/` (Edge)
+          4. Enable "Developer mode"
+          5. Click "Load unpacked" and select the extracted folder
+          
+          #### Firefox:
+          1. Download the Firefox `.zip` file
+          2. Open `about:debugging#/runtime/this-firefox`
+          3. Click "Load Temporary Add-on"
+          4. Select the `.zip` file
+          
+          ### 🎯 Key Features
+          
+          - 📸 Multiple capture modes (Full page, Visible area, Selected element)
+          - ✏️ Built-in screenshot editor with annotations
+          - 🎨 Drawing tools, text, shapes, and arrows
+          - 🔒 Privacy blur/pixelate tool
+          - 📋 One-click copy to clipboard
+          - ⌨️ Keyboard shortcuts (Alt+Shift+S)
+          - 🌓 Dark/Light theme support
+          - 💾 Multiple save formats
+          
+          ### 📝 Changes in This Release
+          
+          EOF
+          
+          echo "$CHANGELOG_CONTENT" >> release_notes.md
+          
+          cat >> release_notes.md << 'EOF'
+          
+          ### 🔗 Useful Links
+          
+          - [Documentation](https://github.com/${{ github.repository }})
+          - [Report Issues](https://github.com/${{ github.repository }}/issues)
+          - [Contribute](https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md)
+          
+          ### ⭐ Support the Project
+          
+          If you find SS Capture useful, please consider:
+          - ⭐ Starring the repository
+          - 🐛 Reporting bugs
+          - 💡 Suggesting new features
+          - 🤝 Contributing to the project
+          
+          ---
+          
+          **Full Changelog**: https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md
+          EOF
+          
+          cat release_notes.md
+
+      - name: Validate extension
+        if: steps.check_release.outputs.exists == 'false'
+        run: npm run validate
+
+      - name: Build all browsers
+        if: steps.check_release.outputs.exists == 'false'
+        run: npm run build
+
+      - name: Create ZIP packages
+        if: steps.check_release.outputs.exists == 'false'
+        run: npm run zip
+
+      - name: Verify artifacts exist
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          ls -lh dist/
+          test -f dist/chrome-extension.zip
+          test -f dist/firefox-extension.zip
+          test -f dist/edge-extension.zip
+          echo "::notice::All extension packages created successfully"
+
+      - name: Rename artifacts
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
           mv dist/chrome-extension.zip dist/ss-capture-chrome-v${{ env.VERSION }}.zip
           mv dist/firefox-extension.zip dist/ss-capture-firefox-v${{ env.VERSION }}.zip
           mv dist/edge-extension.zip dist/ss-capture-edge-v${{ env.VERSION }}.zip
+          ls -lh dist/
+          echo "::notice::Artifacts renamed with version numbers"
+
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        if: steps.check_release.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
-          name: Release v${{ env.VERSION }}
+          name: SS Capture v${{ env.VERSION }}
+          body_path: release_notes.md
           draft: false
           prerelease: false
           files: |
@@ -63,3 +175,11 @@ jobs:
             ss-capture/dist/ss-capture-edge-v${{ env.VERSION }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release Summary
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          echo "::notice::🎉 Release v${{ env.VERSION }} created successfully!"
+          echo "::notice::📦 Chrome: ss-capture-chrome-v${{ env.VERSION }}.zip"
+          echo "::notice::📦 Firefox: ss-capture-firefox-v${{ env.VERSION }}.zip"
+          echo "::notice::📦 Edge: ss-capture-edge-v${{ env.VERSION }}.zip"
