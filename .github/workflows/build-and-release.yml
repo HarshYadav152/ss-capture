@@ -36,17 +36,12 @@ jobs:
       - name: Extract Release Notes
         id: extract_release_notes
         run: |
-          # Find the line number of the first header (latest version)
           FIRST_LINE=$(grep -n "^## " ../CHANGELOG.md | head -n 1 | cut -d: -f1)
-          # Find the line number of the second header (previous version)
           SECOND_LINE=$(grep -n "^## " ../CHANGELOG.md | head -n 2 | tail -n 1 | cut -d: -f1)
           
-          # Logic to isolate the text between the first two headers
           if [ -z "$SECOND_LINE" ] || [ "$FIRST_LINE" == "$SECOND_LINE" ]; then
-            # If only one version exists, take everything from first header to end
             tail -n +$((FIRST_LINE + 1)) ../CHANGELOG.md > release_body.md
           else
-            # Extract lines between first and second header
             sed -n "$((FIRST_LINE + 1)),$((SECOND_LINE - 1))p" ../CHANGELOG.md > release_body.md
           fi
           
