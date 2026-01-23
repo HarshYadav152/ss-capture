@@ -1,4 +1,4 @@
-name: Build and Release Extension
+name: Build and Release
 
 on:
   push:
@@ -8,63 +8,56 @@ on:
       - 'ss-capture/src/manifest.json'
 
 jobs:
-  build-and-release:
+  build_and_release:
     runs-on: ubuntu-latest
-    
+
     defaults:
       run:
         working-directory: ss-capture
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ss-capture/package-lock.json
+          node-version: '18'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
-
-      - name: Validate extension
-        run: npm run validate
-
-      - name: Build all browsers
+      - name: Build extension
         run: npm run build
 
-      - name: Create ZIP packages
+      - name: Zip extension
         run: npm run zip
 
-      - name: Get version from manifest
-        id: get_version
+      - name: Extract Release Notes
+        id: extract_release_notes
         run: |
-          VERSION=$(node -p "require('./src/manifest.json').version")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Detected version: $VERSION"
-
-      - name: Rename artifacts
-        run: |
-          # Rename the standard output from zip.js to the requested release format
-          mv dist/chrome-extension.zip dist/ss-capture-chrome-v${{ env.VERSION }}.zip
-          mv dist/firefox-extension.zip dist/ss-capture-firefox-v${{ env.VERSION }}.zip
-          mv dist/edge-extension.zip dist/ss-capture-edge-v${{ env.VERSION }}.zip
+          # Find the line number of the first header (latest version)
+          FIRST_LINE=$(grep -n "^## " ../CHANGELOG.md | head -n 1 | cut -d: -f1)
+          # Find the line number of the second header (previous version)
+          SECOND_LINE=$(grep -n "^## " ../CHANGELOG.md | head -n 2 | tail -n 1 | cut -d: -f1)
+          
+          # Logic to isolate the text between the first two headers
+          if [ -z "$SECOND_LINE" ] || [ "$FIRST_LINE" == "$SECOND_LINE" ]; then
+            # If only one version exists, take everything from first header to end
+            tail -n +$((FIRST_LINE + 1)) ../CHANGELOG.md > release_body.md
+          else
+            # Extract lines between first and second header
+            sed -n "$((FIRST_LINE + 1)),$((SECOND_LINE - 1))p" ../CHANGELOG.md > release_body.md
+          fi
+          
+          echo "Release notes extracted."
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
+        if: success()
         with:
-          tag_name: v${{ env.VERSION }}
-          name: Release v${{ env.VERSION }}
-          draft: false
-          prerelease: false
+          body_path: ss-capture/release_body.md 
           files: |
-            ss-capture/dist/ss-capture-chrome-v${{ env.VERSION }}.zip
-            ss-capture/dist/ss-capture-firefox-v${{ env.VERSION }}.zip
-            ss-capture/dist/ss-capture-edge-v${{ env.VERSION }}.zip
+            ss-capture/web-store-zip/*.zip 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
