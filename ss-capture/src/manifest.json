@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SS-Capture",
-  "version": "2.3.2",
+  "version": "2.4.2",
   "description": "Capture high-quality full-page screenshots with a modern glassmorphic interface.",
   "permissions": [
     "activeTab",
