@@ -33,6 +33,10 @@ jobs:
       - name: Zip extension
         run: npm run zip
 
+      - name: Get Version
+        id: get_version
+        run: echo "VERSION=$(jq -r .version src/manifest.json)" >> $GITHUB_ENV
+
       - name: Extract Release Notes
         id: extract_release_notes
         run: |
@@ -48,9 +52,11 @@ jobs:
           echo "Release notes extracted."
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: success()
         with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
           body_path: ss-capture/release_body.md 
           files: |
             ss-capture/web-store-zip/*.zip 
