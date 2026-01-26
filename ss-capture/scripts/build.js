@@ -12,6 +12,7 @@ const argv = yargs(hideBin(process.argv))
     type: 'string',
     choices: ['chrome', 'firefox', 'edge'],
     description: 'Target browser for build'
+    
   })
   .option('env', {
     alias: 'e',
@@ -42,10 +43,12 @@ async function buildForBrowser(browser) {
       { src: 'src/popup/popup.html', dest: 'popup.html' },
       { src: 'src/popup/popup.js', dest: 'popup.js' },
       { src: 'src/js/content.js', dest: 'content.js' },
-      { src: 'src/js/background.js', dest: 'background.js' },
-      { src: 'src/js/html2canvas.min.js', dest: 'html2canvas.min.js' },
       { src: 'src/js/sessionPanel.js', dest: 'sessionPanel.js' },
+      { src: 'src/js/background.js', dest: 'background.js' },
+      { src: 'js/html2canvas.min.js', dest: 'html2canvas.min.js' },
+      { src: 'js/html2canvas-bridge.js', dest: 'html2canvas-bridge.js' },
       { src: 'src/css/style.css', dest: 'style.css' },
+      { src: 'src/css/sessionPanel.css', dest: 'sessionPanel.css' },
       { src: 'icons', dest: 'icons' },
       // Privacy Editor files
       { src: 'src/editor/editor.html', dest: 'editor/editor.html' },
@@ -71,6 +74,8 @@ async function buildForBrowser(browser) {
           jsContent = jsContent.replace(/'src\/js\/sessionPanel\.js'/g, "'sessionPanel.js'");
           jsContent = jsContent.replace(/"src\/js\/content\.js"/g, '"content.js"');
           jsContent = jsContent.replace(/"src\/js\/sessionPanel\.js"/g, '"sessionPanel.js"');
+          jsContent = jsContent.replace(/chrome\.runtime\.getURL\("js\/html2canvas\.min\.js"\)/g, 'chrome.runtime.getURL("html2canvas.min.js")');
+          jsContent = jsContent.replace(/chrome\.runtime\.getURL\("js\/html2canvas-bridge\.js"\)/g, 'chrome.runtime.getURL("html2canvas-bridge.js")');
           await fs.writeFile(destPath, jsContent);
           console.log(chalk.green(`✓ Processed and copied ${file.dest}`));
         } else {
@@ -130,8 +135,14 @@ async function generateManifest(browser, env) {
       {
         matches: ["<all_urls>"],
         js: ["content.js", "sessionPanel.js"],
-        css: ["style.css"],
-        run_at: "document_idle"
+        css: ["style.css", "sessionPanel.css"],
+        run_at: "document_start"
+      }
+    ],
+    web_accessible_resources: [
+      {
+        resources: ["html2canvas.min.js", "html2canvas-bridge.js"],
+        matches: ["<all_urls>"]
       }
     ],
     icons: {

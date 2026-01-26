@@ -1,195 +1,291 @@
-// State
-let lastCaptureTime = 0, lastCaptureData = null;
-const MIN_CAPTURE_INTERVAL = 600, MAX_SESSION_ITEMS = 20;
-let sessionScreenshots = [], notifier = null;
+ // Background script for SS-Capture extension
+// Handles extension lifecycle, messaging, and background tasks
 
+// Session store implementation (in-memory)
+const MAX_SESSION_ITEMS = 20;
+let sessionScreenshots = [];
+let notifier = null;
 
-// Init from storage
-chrome.storage.local.get(['lastCaptureData'], (r) => r?.lastCaptureData && (lastCaptureData = r.lastCaptureData));
-
-// Check content script connection
-async function checkConnection(tabId, timeout = 10000) {
-  return new Promise((resolve) => {
-    const tid = setTimeout(() => resolve({ connected: false, error: 'Timeout' }), timeout);
-    chrome.tabs.sendMessage(tabId, { type: 'PING' }, (response) => {
-      clearTimeout(tid);
-      resolve(chrome.runtime.lastError ? { connected: false, error: chrome.runtime.lastError.message } :
-               response === 'PONG' ? { connected: true } : { connected: false, error: 'Invalid response' });
-    });
-  });
-}
-
-// Inject scripts with permission handling
-async function injectScripts(tabId) {
-  return new Promise((resolve) => {
-    chrome.scripting.executeScript({ target: { tabId }, files: ['content.js', 'sessionPanel.js'] }, async () => {
-      if (chrome.runtime.lastError) {
-        const msg = chrome.runtime.lastError.message;
-        if (msg.includes('permission') || msg.includes('access')) {
-          chrome.permissions.request({ origins: ['<all_urls>'] }, (granted) => {
-            if (!granted) return resolve({ success: false, error: 'Permission denied' });
-            chrome.scripting.executeScript({ target: { tabId }, files: ['content.js', 'sessionPanel.js'] }, async () => {
-              const conn = await checkConnection(tabId);
-              resolve(conn.connected ? { success: true } : { success: false, error: `Connection failed: ${conn.error}` });
-            });
-          });
-        } else resolve({ success: false, error: msg });
-      } else {
-        const conn = await checkConnection(tabId);
-        resolve(conn.connected ? { success: true } : { success: false, error: `Connection failed: ${conn.error}` });
-      }
-    });
-  });
-}
-
-// Keyboard shortcuts
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command !== 'capture_full_page') return;
-  const now = Date.now();
-  if (now - lastCaptureTime < MIN_CAPTURE_INTERVAL) return;
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
-  try {
-    await chrome.tabs.sendMessage(tab.id, { type: 'PING' });
-    chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false });
-  } catch {
-    const injected = await injectScripts(tab.id);
-    if (injected.success) setTimeout(() => chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false }), 100);
-  }
-});
+// Track tabs with active content scripts
+const activeTabs = new Set();
 
 function setNotifier(fn) {
   notifier = fn;
 }
 
-function addScreenshot(i) {
-  const d = typeof i === 'string' ? i : i.dataUrl, t = typeof i === 'string' ? null : i.thumbnail || null, f = typeof i === 'string' ? `screenshot-${Date.now()}.png` : i.filename || `screenshot-${Date.now()}.png`;
-  const item = { id: `ss-${Date.now()}-${Math.floor(Math.random()*10000)}`, timestamp: new Date().toISOString(), dataUrl: d, filename: f };
-  if (t) item.thumbnail = t;
+function addScreenshot(input) {
+  // input can be a string (dataUrl) or an object { dataUrl, thumbnail, filename }
+  const dataUrl = (typeof input === 'string') ? input : input.dataUrl;
+  const thumbnail = (typeof input === 'string') ? null : input.thumbnail || null;
+  const filename = (typeof input === 'string') ? `screenshot-${Date.now()}.png` : (input.filename || `screenshot-${Date.now()}.png`);
+  const timestamp = new Date().toISOString();
+  const id = `ss-${Date.now()}-${Math.floor(Math.random()*10000)}`;
+  const item = { id, timestamp, dataUrl, filename };
+  if (thumbnail) item.thumbnail = thumbnail;
   sessionScreenshots.unshift(item);
-  if (sessionScreenshots.length > MAX_SESSION_ITEMS) sessionScreenshots.length = MAX_SESSION_ITEMS;
-  if (notifier) notifier({ type: 'SESSION_UPDATED' });
+  if (sessionScreenshots.length > MAX_SESSION_ITEMS) {
+    sessionScreenshots.length = MAX_SESSION_ITEMS;
+  }
+  if (typeof notifier === 'function') notifier({ type: 'SESSION_UPDATED' });
   return item;
 }
 
-function getScreenshots() { return sessionScreenshots.slice(); }
-function deleteScreenshot(id) { const idx = sessionScreenshots.findIndex(s => s.id === id); if (idx !== -1) { sessionScreenshots.splice(idx, 1); if (notifier) notifier({ type: 'SESSION_UPDATED' }); return true; } return false; }
-function clearScreenshots() { sessionScreenshots.length = 0; if (notifier) notifier({ type: 'SESSION_UPDATED' }); }
-function setScreenshots(items) { if (!Array.isArray(items)) return; sessionScreenshots.length = 0; items.forEach(it => sessionScreenshots.push(it)); if (notifier) notifier({ type: 'SESSION_UPDATED' }); }
+function getScreenshots() {
+  // return shallow copy
+  return sessionScreenshots.slice();
+}
 
-
-
-// Notify UIs on session updates
-setNotifier((msg) => {
-  // Only try to send to popup if it's likely open (recent activity)
-  // Don't use sendMessageWithRetry here as it can cause connection errors
-  try {
-    chrome.runtime.sendMessage(msg).catch(() => {
-      // Ignore errors - popup might be closed
-    });
-  } catch (error) {
-    // Ignore connection errors
-  }
-
-  if (msg?.type === 'SESSION_UPDATED') {
-    const area = chrome.storage.session || chrome.storage.local;
-    area.set({ sessionScreenshots: getScreenshots() });
-  }
-});
-
-// Load persisted session
-(() => {
-  const area = chrome.storage.session || chrome.storage.local;
-  area.get(['sessionScreenshots'], (res) => {
-    if (Array.isArray(res?.sessionScreenshots)) {
-      setScreenshots(res.sessionScreenshots);
-    }
-  });
-})();
-
-// Messages
-chrome.runtime.onMessage.addListener(async (m, s, r) => {
-  if (m.type === 'INIT_CAPTURE') {
-    const [t] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (t) try { chrome.tabs.sendMessage(t.id, m); } catch (e) { console.error('Failed to send init capture message:', e); }
-  // Removed CAPTURE_REQUEST handling - now handled entirely by content script
-  } else if (m.type === 'CAPTURE') {
-    chrome.tabs.query({ active: true, currentWindow: true }, ([t]) => {
-      if (!t || !t.url || t.url.startsWith('chrome://') || t.url.startsWith('chrome-extension://')) { r({ error: 'Cannot capture this page. Please try on a regular web page.' }); return; }
-      const n = Date.now(), d = Math.max(0, MIN_CAPTURE_INTERVAL - (n - lastCaptureTime));
-      setTimeout(() => {
-        lastCaptureTime = Date.now();
-        let c = 0, mr = 5, bd = 1000;
-        const a = () => chrome.tabs.captureVisibleTab(t.id, { format: 'png' }, (u) => {
-          if (chrome.runtime.lastError) {
-            c++; console.warn(`Capture attempt ${c} failed:`, chrome.runtime.lastError.message);
-            if (c >= mr) { r({ error: chrome.runtime.lastError.message }); return; }
-            setTimeout(a, bd * Math.pow(2, c - 1));
-          } else if (!u || typeof u !== 'string' || !u.startsWith('data:image/png;base64,') || u.length < 100) {
-            c++; console.warn(`Capture attempt ${c} failed: invalid image data`);
-            if (c >= mr) { r({ error: 'Failed to capture screenshot - invalid image data' }); return; }
-            setTimeout(a, bd * Math.pow(2, c - 1));
-          } else if (typeof u !== 'string' || !u.startsWith('data:image/')) {
-            c++; console.warn(`Capture attempt ${c} failed: invalid data URL format`);
-            if (c >= mr) { r({ error: 'Invalid image data received' }); return; }
-            setTimeout(a, bd * Math.pow(2, c - 1));
-          } else r(u);
-        });
-        a();
-      }, d);
-    });
+function deleteScreenshot(id) {
+  const idx = sessionScreenshots.findIndex(s => s.id === id);
+  if (idx !== -1) {
+    sessionScreenshots.splice(idx, 1);
+    if (typeof notifier === 'function') notifier({ type: 'SESSION_UPDATED' });
     return true;
-  } else if (m.type === 'CANCEL_CAPTURE') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => { if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: 'CANCEL_CAPTURE' }); });
-  } else if (m.type === 'GET_SESSION_SCREENSHOTS') { r(getScreenshots()); return true; }
-  else if (m.type === 'DELETE_SESSION_SCREENSHOT') { r({ ok: deleteScreenshot(m.id) }); return true; }
-  else if (m.type === 'CLEAR_SESSION_SCREENSHOTS') { clearScreenshots(); r({ ok: true }); return true; }
-  else if (m.type === 'ADD_SESSION_SCREENSHOT') { addScreenshot(m); r({ ok: true }); return true; }
-  else if (['PROGRESS', 'CAPTURE_COMPLETE', 'CAPTURE_ERROR'].includes(m.type)) {
-    if (m.type === 'CAPTURE_COMPLETE') { lastCaptureData = m.dataUrl; chrome.storage.local.set({ lastCaptureData }); }
-    try { chrome.runtime.sendMessage(m).catch(() => {}); } catch (e) { /* ignore */ }
-  } else if (m.type === 'GET_LAST_CAPTURE') { r(lastCaptureData || null); return true; }
-  else if (m.type === 'OPEN_POPUP') chrome.action.openPopup().catch(() => {});
+  }
+  return false;
+}
+
+function clearScreenshots() {
+  sessionScreenshots.length = 0;
+  if (typeof notifier === 'function') notifier({ type: 'SESSION_UPDATED' });
+}
+
+let lastCaptureData = null;
+
+// Helper function to send message to content script, inject if needed
+function sendMessageToContentScript(tabId, message, callback) {
+  // Check if tab is restricted
+  chrome.tabs.get(tabId, (tab) => {
+    if (!tab?.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('file://')) {
+      if (callback) callback({ error: 'Cannot inject into restricted page' });
+      return;
+    }
+
+    // Try to send the message directly
+    chrome.tabs.sendMessage(tabId, message, (response) => {
+      if (chrome.runtime.lastError && chrome.runtime.lastError.message === 'Could not establish connection. Receiving end does not exist.') {
+        // Content script not loaded, try to inject
+        chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          files: ['src/js/content.js', 'src/js/sessionPanel.js']
+        }, () => {
+          if (chrome.runtime.lastError) {
+            console.error('Failed to inject content script:', chrome.runtime.lastError.message);
+            if (callback) callback({ error: 'Failed to inject content script' });
+            return;
+          }
+
+          // Wait a bit for the script to load, then retry send
+          setTimeout(() => {
+            chrome.tabs.sendMessage(tabId, message, (retryResponse) => {
+              if (chrome.runtime.lastError) {
+                console.error('Failed to send message after injection:', chrome.runtime.lastError.message);
+                if (callback) callback({ error: 'Failed to send message' });
+              } else {
+                if (callback) callback(retryResponse || { status: 'sent' });
+              }
+            });
+          }, 500);
+        });
+      } else if (chrome.runtime.lastError) {
+        console.error('Failed to send message to content script:', chrome.runtime.lastError.message);
+        if (callback) callback({ error: 'Failed to send message' });
+      } else {
+        if (callback) callback(response || { status: 'sent' });
+      }
+    });
+  });
+}
+
+
+
+// Set up session store notifier to broadcast updates only to active tabs
+setNotifier((update) => {
+  if (update.type === 'SESSION_UPDATED') {
+    activeTabs.forEach(tabId => {
+      chrome.tabs.sendMessage(tabId, { type: 'SESSION_UPDATED' }, () => {
+        if (chrome.runtime.lastError) {
+          // Tab reloaded or closed, remove from active tabs
+          activeTabs.delete(tabId);
+        }
+      });
+    });
+  }
 });
 
-// Install
+// Context menu setup
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: 'capture_full_page_context',
-    title: '📸 Capture Full Page',
+    id: 'capture-visible-area',
+    title: 'Capture Visible Area',
+    contexts: ['page', 'selection']
+  });
+
+  chrome.contextMenus.create({
+    id: 'capture-full-page',
+    title: 'Capture Full Page',
     contexts: ['page']
   });
 
   chrome.contextMenus.create({
-    id: 'capture_visible_area_context',
-    title: '👀 Capture Visible Area',
+    id: 'capture-element',
+    title: 'Capture Selected Element',
     contexts: ['page']
-  });
-
-  chrome.contextMenus.create({
-    id: 'capture_element_context',
-    title: '🎯 Capture Selected Element',
-    contexts: ['all']
   });
 });
 
-// Context menu
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (!tab || !tab.url || tab.url.startsWith('chrome://')) return;
+// Context menu click handler
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (!tab?.id || !tab.url.startsWith('http')) return;
 
-  let mode = 'FULL_PAGE';
-  if (info.menuItemId === 'capture_visible_area_context') mode = 'VISIBLE_AREA';
-  if (info.menuItemId === 'capture_element_context') mode = 'SELECTED_ELEMENT';
-
-  try {
-    await chrome.tabs.sendMessage(tab.id, { type: 'PING' });
-    try {
-      chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false, mode });
-    } catch (error) {
-      console.error('Failed to send init capture message:', error);
-    }
-  } catch {
-    const injected = await injectScripts(tab.id);
-    if (injected.success) setTimeout(() => chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', isPopup: false, mode }), 100);
+  // Only send message if tab has active content script
+  if (!activeTabs.has(tab.id)) {
+    console.warn('Content script not ready for tab:', tab.id);
+    return;
   }
+
+  chrome.tabs.sendMessage(tab.id, {
+    type: 'INIT_CAPTURE',
+    mode:
+      info.menuItemId === 'capture-visible-area'
+        ? 'VISIBLE_AREA'
+        : info.menuItemId === 'capture-full-page'
+        ? 'FULL_PAGE'
+        : 'SELECTED_ELEMENT'
+  }, () => {
+    if (chrome.runtime.lastError) {
+      console.error('SendMessage failed:', chrome.runtime.lastError.message);
+      // Remove from active tabs if message fails
+      activeTabs.delete(tab.id);
+    }
+  });
+});
+
+// Command shortcuts handler - removed full page capture command
+
+// Message listener
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  const m = message;
+  const r = sendResponse;
+
+  // Track tabs with active content scripts
+  if (m.type === 'CONTENT_READY' && sender.tab?.id) {
+    activeTabs.add(sender.tab.id);
+    return true;
+  }
+
+  if (m.type === 'CAPTURE_COMPLETE') {
+    lastCaptureData = m.dataUrl;
+    // Auto-save if configured
+    if (m.autoSave !== false) {
+      const filename = m.filename || `screenshot-${Date.now()}.png`;
+      chrome.downloads.download({
+        url: m.dataUrl,
+        filename: filename,
+        saveAs: false
+      });
+    }
+  } else if (m.type === 'GET_LAST_CAPTURE') {
+    r(lastCaptureData || null);
+    return true;
+  } else if (m.type === 'OPEN_POPUP') {
+    chrome.action.openPopup().catch(() => {});
+  } else if (m.type === 'ADD_SESSION_SCREENSHOT') {
+    const item = addScreenshot(m);
+    r(item);
+    return true;
+  } else if (m.type === 'GET_SESSION_SCREENSHOTS') {
+    r(getScreenshots());
+    return true;
+  } else if (m.type === 'DELETE_SESSION_SCREENSHOT') {
+    const success = deleteScreenshot(m.id);
+    r(success);
+    return true;
+  } else if (m.type === 'CLEAR_SESSION_SCREENSHOTS') {
+    clearScreenshots();
+    r(true);
+    return true;
+  } else if (m.type === 'SCREENSHOT_CAPTURED') {
+    // Forward to content script
+    if (sender.tab?.id) {
+      chrome.tabs.sendMessage(sender.tab.id, {
+        type: 'SCREENSHOT_CAPTURED',
+        payload: m
+      });
+    }
+    r(true);
+    return true;
+  } else if (m.type === 'CAPTURE_SCREENSHOT') {
+    chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+      r({ dataUrl });
+    });
+    return true; // async
+  } else if (m.type === 'CAPTURE_VISIBLE_FOR_ELEMENT') {
+    chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+      r({ dataUrl });
+    });
+    return true; // async
+  } else if (m.type === 'INIT_CAPTURE') {
+    const tabId = sender.tab?.id;
+    if (tabId) {
+      sendMessageToContentScript(tabId, m, (response) => {
+        if (response.error) {
+          console.error('Failed to start capture:', response.error);
+          r({ error: 'Failed to start capture' });
+        } else {
+          r(response || { status: 'started' });
+        }
+      });
+    } else {
+      // Message from popup, get active tab
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          sendMessageToContentScript(tabs[0].id, m, (response) => {
+            if (response.error) {
+              console.error('Failed to start capture:', response.error);
+              r({ error: 'Failed to start capture' });
+            } else {
+              r(response || { status: 'started' });
+            }
+          });
+        } else {
+          r({ error: 'No active tab found' });
+        }
+      });
+    }
+    return true; // async
+  }
+
+  return true;
+});
+
+// Handle extension icon click (fallback)
+chrome.action.onClicked.addListener((tab) => {
+  if (!tab?.id || !tab.url.startsWith('http')) return;
+
+  // Only send message if tab has active content script
+  if (!activeTabs.has(tab.id)) {
+    console.warn('Content script not ready for tab:', tab.id);
+    return;
+  }
+
+  chrome.tabs.sendMessage(tab.id, { type: 'INIT_CAPTURE', mode: 'VISIBLE_AREA' }, () => {
+    if (chrome.runtime.lastError) {
+      console.error('SendMessage failed:', chrome.runtime.lastError.message);
+      // Remove from active tabs if message fails
+      activeTabs.delete(tab.id);
+    }
+  });
+});
+
+// Clean up overlays when popup closes or capture is cancelled
+chrome.runtime.onMessage.addListener((msg, sender) => {
+  if (msg.type === 'CANCEL_CAPTURE' && sender.tab?.id) {
+    chrome.tabs.sendMessage(sender.tab.id, { type: 'REMOVE_OVERLAY' });
+  }
+});
+
+// Cleanup on extension unload
+chrome.runtime.onSuspend.addListener(() => {
+  console.log('SS-Capture background script suspending');
 });

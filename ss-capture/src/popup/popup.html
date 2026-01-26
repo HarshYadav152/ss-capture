@@ -55,17 +55,17 @@
     <div class="content">
       <!-- Button Group -->
       <div class="button-group">
-        <button id="captureBtn" class="btn btn-primary">
-          <span class="btn-icon">📷</span>
+        <button id="fullPageBtn" class="btn btn-primary">
+          <span class="btn-icon">📄</span>
           <span class="btn-text">Capture Full Page</span>
         </button>
 
-        <button id="visibleAreaBtn" class="btn btn-info">
+        <button id="visibleAreaBtn" class="btn btn-primary">
           <span class="btn-icon">🖼️</span>
           <span class="btn-text">Capture Visible Area</span>
         </button>
 
-        <button id="selectElementBtn" class="btn btn-warning">
+        <button id="selectElementBtn" class="btn btn-secondary">
           <span class="btn-icon">🎯</span>
           <span class="btn-text">Capture Selected Element</span>
         </button>
@@ -75,12 +75,12 @@
           <span class="btn-text">Cancel Capture</span>
         </button>
 
-        <button id="copyBtn" class="btn btn-info" style="display: none;">
+        <button id="copyBtn" class="btn btn-info">
           <span class="btn-icon">📋</span>
           <span class="btn-text">Copy to Clipboard</span>
         </button>
 
-        <button id="editBtn" class="btn btn-edit" style="display: none;">
+        <button id="editBtn" class="btn btn-edit">
           <span class="btn-icon">🔒</span>
           <span class="btn-text">Edit Screenshot</span>
         </button>
@@ -118,39 +118,14 @@
         </div>
       </div>
 
-      <!-- Session Screenshot Panel (collapsible) -->
-      <div id="sessionPanel" class="session-panel collapsed">
-        <button id="sessionToggle" class="session-toggle" aria-expanded="false">Recent Screenshots ▾</button>
-        <div id="sessionContent" class="session-content" aria-hidden="true">
-          <div id="sessionThumbs" class="session-thumbs" role="list"></div>
-          <div class="session-actions">
-            <button id="clearSession" class="btn small">Clear</button>
-          </div>
-        </div>
-      </div>
 
-      <!-- Modal for full-size preview/download -->
-      <div id="sessionModal" class="session-modal" role="dialog" aria-hidden="true">
-        <div class="session-modal-content">
-          <button id="sessionModalClose" class="modal-close">&times;</button>
-          <div class="modal-toolbar">
-            <button id="modalDownload" class="btn small">Download</button>
-            <button id="modalCopy" class="btn small">Copy</button>
-            <button id="modalDelete" class="btn small danger">Delete</button>
-          </div>
-          <div class="modal-image-wrapper">
-            <img id="modalImage" alt="Full screenshot preview">
-            <div id="modalInfo" class="modal-info"></div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
       <div class="footer-content">
         <span class="footer-text">Made with ❤️ by</span>
-        <a href="https://github.com/HarshYadav152" target="_blank" class="footer-link">Harsh Yadav</a>
+        <a href="https://github.com/HarshYadav152" target="_blank" rel="noopener" class="footer-link">Harsh Yadav</a>
       </div>
       <div class="footer-version">v1.2.0</div>
     </div>

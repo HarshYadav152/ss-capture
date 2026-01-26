@@ -29,17 +29,18 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
+      "exclude_matches": ["chrome://*", "chrome-extension://*", "file://*", "https://chrome.google.com/*"],
       "js": ["src/js/content.js", "src/js/sessionPanel.js"],
       "css": ["src/css/sessionPanel.css"],
-      "run_at": "document_idle"
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [
-  {
-    "resources": ["src/**/*"],
-    "matches": ["<all_urls>"]
-  }
-],
+    {
+      "resources": ["js/html2canvas.min.js", "js/html2canvas-bridge.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "icons": {
     "48": "icons/icon-48x48.png",
     "128": "icons/icon-128x128.png"
@@ -57,13 +58,6 @@
         "mac": "Command+Shift+S"
       },
       "description": "Open the extension popup"
-    },
-    "capture_full_page": {
-      "suggested_key": {
-        "default": "Alt+Shift+F",
-        "mac": "Command+Shift+F"
-      },
-      "description": "Background Full Page Capture"
     }
   }
 }
