@@ -2,6 +2,10 @@
 let captureInProgress = false;
 let captureData = null;
 
+// Format Settings Management
+let imageFormat = 'png';
+let imageQuality = 0.9;
+
 // Function to inject script with permission request if needed
 async function injectScriptWithPermission(tabId) {
   return new Promise((resolve) => {
@@ -62,16 +66,6 @@ function hideErrorAlert() {
   document.getElementById('errorAlert').style.display = 'none';
 }
 
-<<<<<<< HEAD
-=======
-// ✅ ADD FORMAT MANAGEMENT CODE HERE (NEW CODE)
-// ========================================
-// Format Settings Management
-// ========================================
-
-let imageFormat = 'png';
-let imageQuality = 0.9;
-
 // Load saved format settings
 function loadFormatSettings() {
   chrome.storage.local.get(['imageFormat', 'imageQuality'], (result) => {
@@ -79,7 +73,9 @@ function loadFormatSettings() {
     imageQuality = result.imageQuality || 0.9;
     
     // Set UI to match saved settings
-    document.querySelector(`input[name="imageFormat"][value="${imageFormat}"]`).checked = true;
+    const formatRadio = document.querySelector(`input[name="imageFormat"][value="${imageFormat}"]`);
+    if (formatRadio) formatRadio.checked = true;
+    
     document.getElementById('qualitySlider').value = imageQuality * 100;
     document.getElementById('qualityValue').textContent = Math.round(imageQuality * 100) + '%';
     
@@ -144,9 +140,33 @@ function getMimeType() {
   };
   return mimeTypes[imageFormat] || 'image/png';
 }
-// ✅ END FORMAT MANAGEMENT CODE
 
->>>>>>> d7c6e51 (Add multiple image export formats with quality settings)
+// Convert image data URL to selected format
+async function convertImageFormat(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      const mimeType = getMimeType();
+      const quality = (imageFormat === 'jpeg' || imageFormat === 'webp') ? imageQuality : undefined;
+      
+      const convertedDataUrl = canvas.toBlob((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      }, mimeType, quality);
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
 async function startCapture(mode = 'FULL_PAGE') {
   const captureBtn = document.getElementById('captureBtn');
   const visibleAreaBtn = document.getElementById('visibleAreaBtn');
@@ -246,14 +266,26 @@ document.getElementById('cancelBtn').addEventListener('click', () => {
 // Save button handler
 document.getElementById('saveBtn').addEventListener('click', async () => {
   if (captureData) {
-    const a = document.createElement('a');
-    a.href = captureData;
-    a.download = `screenshot-${Date.now()}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    try {
+      // Convert image if needed
+      let finalDataUrl = captureData;
+      if (imageFormat !== 'png') {
+        document.getElementById('statusText').textContent = `Converting to ${imageFormat.toUpperCase()}...`;
+        finalDataUrl = await convertImageFormat(captureData);
+      }
+      
+      const a = document.createElement('a');
+      a.href = finalDataUrl;
+      a.download = `screenshot-${Date.now()}.${getFileExtension()}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
 
-    document.getElementById('statusText').textContent = 'Screenshot saved successfully!';
+      document.getElementById('statusText').textContent = `Screenshot saved as ${imageFormat.toUpperCase()}!`;
+    } catch (error) {
+      console.error('Save failed:', error);
+      showErrorAlert('Failed to save screenshot');
+    }
   } else {
     showErrorAlert('No screenshot data available');
   }
@@ -263,25 +295,28 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
 document.getElementById('copyBtn').addEventListener('click', async () => {
   if (captureData) {
     try {
+      // Convert image if needed
+      let finalDataUrl = captureData;
+      if (imageFormat !== 'png') {
+        document.getElementById('statusText').textContent = `Converting to ${imageFormat.toUpperCase()}...`;
+        finalDataUrl = await convertImageFormat(captureData);
+      }
+      
       // Convert base64 to blob
-      const res = await fetch(captureData);
+      const res = await fetch(finalDataUrl);
       const blob = await res.blob();
 
       // Write to clipboard
       await navigator.clipboard.write([
         new ClipboardItem({
-          'image/png': blob
+          [getMimeType()]: blob
         })
       ]);
 
       const statusText = document.getElementById('statusText');
-<<<<<<< HEAD
-      statusText.textContent = 'Screenshot copied to clipboard!';
+      statusText.textContent = `Screenshot copied as ${imageFormat.toUpperCase()}!`;
 
       // Visual feedback
-=======
-      statusText.textContent = `Screenshot copied as ${imageFormat.toUpperCase()}!`;
->>>>>>> d7c6e51 (Add multiple image export formats with quality settings)
       const originalText = document.querySelector('#copyBtn .btn-text').textContent;
       document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
       setTimeout(() => {
@@ -313,6 +348,7 @@ function resetUI() {
 
 // Initialize popup
 async function initPopup() {
+  loadFormatSettings();
   const response = await chrome.runtime.sendMessage({ type: 'GET_LAST_CAPTURE' });
   if (response) {
     displayCapture(response);
@@ -369,21 +405,11 @@ document.getElementById('editBtn').addEventListener('click', () => {
   }
 });
 
-initPopup();
-
 // Listen for messages from content/background scripts
 chrome.runtime.onMessage.addListener((message) => {
   const statusText = document.getElementById('statusText');
   const progressBar = document.getElementById('progressBar');
   const progressPercent = document.getElementById('progressPercent');
-  const spinner = document.getElementById('loadingSpinner');
-  const previewImage = document.getElementById('previewImage');
-  const previewContainer = document.getElementById('previewContainer');
-  const previewDimensions = document.getElementById('previewDimensions');
-  const captureBtn = document.getElementById('captureBtn');
-  const cancelBtn = document.getElementById('cancelBtn');
-  const saveBtn = document.getElementById('saveBtn');
-  const copyBtn = document.getElementById('copyBtn');
   const progressContainer = document.getElementById('progressContainer');
 
   // Handle progress updates
@@ -432,11 +458,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   themeToggle.addEventListener('click', () => {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-<<<<<<< HEAD
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-=======
->>>>>>> d7c6e51 (Add multiple image export formats with quality settings)
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
   });
@@ -444,3 +467,5 @@ document.addEventListener('DOMContentLoaded', () => {
   // Setup format listeners after DOM is ready
   setupFormatListeners();
 });
+
+initPopup();
