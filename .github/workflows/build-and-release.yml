@@ -52,13 +52,13 @@ jobs:
           echo "Release notes extracted."
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v1
         if: success()
         with:
           tag_name: v${{ env.VERSION }}
           name: Release v${{ env.VERSION }}
           body_path: ss-capture/release_body.md 
           files: |
-            ss-capture/web-store-zip/*.zip 
+            ss-capture/dist/*.zip 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
