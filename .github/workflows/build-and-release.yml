@@ -58,6 +58,6 @@ jobs:
           name: Release v${{ env.VERSION }}
           body_path: ss-capture/release_body.md 
           files: |
-            ss-capture/web-store-zip/*.zip 
+            ss-capture/dist/*.zip 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
