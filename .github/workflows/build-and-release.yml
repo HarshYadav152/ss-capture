@@ -1,0 +1,64 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ss-capture/src/manifest.json'
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ss-capture
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Zip extension
+        run: npm run zip
+
+      - name: Get Version
+        id: get_version
+        run: echo "VERSION=$(jq -r .version src/manifest.json)" >> $GITHUB_ENV
+
+      - name: Extract Release Notes
+        id: extract_release_notes
+        run: |
+          FIRST_LINE=$(grep -n "^## " ../CHANGELOG.md | head -n 1 | cut -d: -f1)
+          SECOND_LINE=$(grep -n "^## " ../CHANGELOG.md | head -n 2 | tail -n 1 | cut -d: -f1)
+          
+          if [ -z "$SECOND_LINE" ] || [ "$FIRST_LINE" == "$SECOND_LINE" ]; then
+            tail -n +$((FIRST_LINE + 1)) ../CHANGELOG.md > release_body.md
+          else
+            sed -n "$((FIRST_LINE + 1)),$((SECOND_LINE - 1))p" ../CHANGELOG.md > release_body.md
+          fi
+          
+          echo "Release notes extracted."
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: success()
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          body_path: ss-capture/release_body.md 
+          files: |
+            ss-capture/dist/*.zip 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
