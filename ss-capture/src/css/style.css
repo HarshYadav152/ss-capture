@@ -19,6 +19,18 @@
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.25);
 }
+img {
+  max-width: 100%;
+  height: auto;
+}
+pre {
+  overflow-x: auto;
+  max-width: 100%;
+}
+code {
+  word-wrap: break-word;
+}
+
 
 .theme-toggle:hover .theme-toggle-wrapper {
     background: rgba(255, 255, 255, 0.2);
@@ -896,4 +908,45 @@ button:disabled {
 
 .theme-toggle:active {
     transform: scale(0.95);
+}
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .container {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  button, .copy-btn {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+}
+@media (min-width: 768px) and (max-width: 1024px) {
+  .container {
+    padding: 15px;
+  }
+
+  .nav-links {
+    gap: 15px;
+  }
 }

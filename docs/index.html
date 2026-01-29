@@ -2,32 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>SS-capture</title>
     <link rel="stylesheet" href ="css/style.css">
 </head>
+<script>
+  const menuToggle = document.getElementById("menuToggle");
+  const navLinks = document.getElementById("navLinks");
+
+  menuToggle.addEventListener("click", () => {
+    navLinks.classList.toggle("active");
+  });
+</script>
+
 <body>
 
-  <nav class="navbar">
-  <div class="nav-container">
-    <div class="logo">
-      <img src="logo.png" alt="SS-Capture Logo" />
-      <span>SS-Capture</span>
-    </div>
-
-    <ul class="nav-links">
-      <li><a href="https://harshyadav152.github.io/ss-capture">Home</a></li>
-      <li><a href="https://github.com/HarshYadav152/ss-capture#readme">Docs</a></li>
-      <li><a href="https://github.com/HarshYadav152/ss-capture">GitHub</a></li>
-      <li><a href="https://github.com/HarshYadav152/ss-capture/discussions">Support</a></li>
-    </ul>
-
-    <!-- Dark/Light Mode Toggle Button -->
-    <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark/light theme">
-      <span id="theme-icon">🌙</span>
-    </button>
+ <nav class="navbar">
+  <div class="nav-left">
+    <a href="#" class="logo">SS-Capture</a>
   </div>
+
+  <button class="menu-toggle" id="menuToggle">☰</button>
+
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#docs">Docs</a></li>
+    <li><a href="https://github.com/HarshYadav152/ss-capture" target="_blank">GitHub</a></li>
+    <li><a href="#support">Support</a></li>
+  </ul>
 </nav>
+
 
 
     <section class="installation-guide">
@@ -481,6 +486,18 @@ function getBotReply(message) {
     const isDark = document.body.classList.contains('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     updateThemeIcon(isDark ? '🌙' : '☀️');
+  });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const menuToggle = document.getElementById("menuToggle");
+    const navLinks = document.getElementById("navLinks");
+
+    if (menuToggle && navLinks) {
+      menuToggle.addEventListener("click", () => {
+        navLinks.classList.toggle("active");
+      });
+    }
   });
 </script>
 
