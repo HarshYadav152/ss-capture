@@ -91,6 +91,55 @@
         </button>
       </div>
 
+      <!-- ✅ ADD FORMAT SETTINGS HERE (NEW CODE) -->
+      <!-- Format Settings Section -->
+      <div class="format-settings">
+        <div class="format-header">
+          <span class="format-icon">🎨</span>
+          <h3>Export Format</h3>
+        </div>
+        
+        <div class="format-options">
+          <label class="format-option">
+            <input type="radio" name="imageFormat" value="png" checked>
+            <div class="option-content">
+              <span class="format-name">PNG</span>
+              <span class="format-desc">Lossless • Larger file</span>
+            </div>
+          </label>
+          
+          <label class="format-option">
+            <input type="radio" name="imageFormat" value="jpeg">
+            <div class="option-content">
+              <span class="format-name">JPEG</span>
+              <span class="format-desc">Lossy • Smaller file</span>
+            </div>
+          </label>
+          
+          <label class="format-option">
+            <input type="radio" name="imageFormat" value="webp">
+            <div class="option-content">
+              <span class="format-name">WebP</span>
+              <span class="format-desc">Modern • Best compression</span>
+            </div>
+          </label>
+        </div>
+        
+        <!-- Quality Slider (shown only for JPEG/WebP) -->
+        <div id="qualityContainer" class="quality-container" style="display: none;">
+          <label class="quality-label">
+            <span>Quality:</span>
+            <span id="qualityValue">90%</span>
+          </label>
+          <input type="range" id="qualitySlider" min="10" max="100" value="90" step="5">
+          <div class="quality-hints">
+            <span>Lower size</span>
+            <span>Higher quality</span>
+          </div>
+        </div>
+      </div>
+      <!-- ✅ END FORMAT SETTINGS -->
+
       <!-- Loading Spinner -->
       <div id="loadingSpinner" class="spinner"></div>
 
