@@ -17,7 +17,6 @@
 
 let canvas, ctx;
 let originalImageData = null;
-let currentImageData = null;
 let effects = [];
 let currentTool = 'select';
 let isDrawing = false;
@@ -97,7 +96,6 @@ function loadScreenshot() {
 
     // Store original image data
     originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
     // Update UI
     document.getElementById('canvasDimensions').textContent = `${img.width} × ${img.height}`;
@@ -249,7 +247,7 @@ function applyEffect(x, y, width, height) {
   }
 
   // Update current image data
-  currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  // currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
   // Update UI
   updateEffectCount();
@@ -431,7 +429,7 @@ function clearAllEffects() {
 
     // Restore original image
     ctx.putImageData(originalImageData, 0, 0);
-    currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
     updateEffectCount();
     updateStatus('All effects cleared');
@@ -452,7 +450,7 @@ function redrawWithEffects() {
   }
 
   // Update current image data
-  currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  // currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
 
 // ===============================

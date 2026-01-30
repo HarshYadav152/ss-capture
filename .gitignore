@@ -1,0 +1,21 @@
+test-results/
+# Editor / OS
+.vscode/
+*.lnk
+
+# Local test extensions
+test-extension/
+test-ext/
+test-ext-simple/
+
+# TODO / notes
+TODO.md
+TODO_FIXES.md
+
+# Tooling
+.eslintrc.js
+.eslintignore
+jscpd.json
+/manifest.json
+
+

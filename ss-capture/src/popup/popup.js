@@ -1,350 +1,184 @@
-// Global variable to track capture state
-let captureInProgress = false;
 let captureData = null;
+let captureInProgress = false;
 
-// Function to inject script with permission request if needed
-async function injectScriptWithPermission(tabId) {
-  return new Promise((resolve) => {
-    chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ['content.js']
-    }, () => {
-      if (chrome.runtime.lastError) {
-        const errorMessage = chrome.runtime.lastError.message;
-        console.error('Injection failed:', errorMessage);
+// Global functions that will be defined after DOM loads
+let showErrorAlert, hideErrorAlert, resetUI, startCapture;
 
-        // Check if it's a permission error
-        if (errorMessage.includes('permission') || errorMessage.includes('access') || errorMessage.includes('Cannot access')) {
-          console.log('Permission error detected, requesting host permissions...');
+// Extract handlers (required)
+async function handleSave() {
+  if (!captureData) return;
 
-          // Request permission
-          chrome.permissions.request({
-            origins: ['<all_urls>']
-          }, (granted) => {
-            if (granted) {
-              console.log('Permission granted, retrying injection...');
-              // Retry injection
-              chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                files: ['content.js']
-              }, () => {
-                if (chrome.runtime.lastError) {
-                  resolve({ success: false, error: chrome.runtime.lastError.message });
-                } else {
-                  resolve({ success: true });
-                }
-              });
-            } else {
-              resolve({ success: false, error: 'User denied permission request' });
-            }
-          });
-        } else {
-          resolve({ success: false, error: errorMessage });
-        }
-      } else {
-        resolve({ success: true });
-      }
+  try {
+    const response = await fetch(captureData);
+    const blob = await response.blob();
+
+    await chrome.downloads.download({
+      url: URL.createObjectURL(blob),
+      filename: `Pictures/screenshot-${Date.now()}.png`,
+      saveAs: false
     });
-  });
+
+    showErrorAlert('Screenshot saved to Downloads/Pictures!');
+    setTimeout(hideErrorAlert, 3000);
+  } catch (error) {
+    console.error('Failed to save screenshot:', error);
+    showErrorAlert('Failed to save screenshot');
+  }
 }
 
-// Show error alert function
-function showErrorAlert(message) {
-  const errorAlert = document.getElementById('errorAlert');
+async function handleCopy() {
+  if (!captureData) return;
+
+  const blob = await (await fetch(captureData)).blob();
+  await navigator.clipboard.write([
+    new ClipboardItem({ 'image/png': blob })
+  ]);
+}
+
+// Wrap ALL DOM access in DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+  // DOM element references
   const errorMessage = document.getElementById('errorMessage');
-
-  errorMessage.textContent = message;
-  errorAlert.style.display = 'block';
-}
-
-// Hide error alert function
-function hideErrorAlert() {
-  document.getElementById('errorAlert').style.display = 'none';
-}
-
-async function startCapture(mode = 'FULL_PAGE') {
-  const captureBtn = document.getElementById('captureBtn');
-  const visibleAreaBtn = document.getElementById('visibleAreaBtn');
-  const selectElementBtn = document.getElementById('selectElementBtn');
-  const cancelBtn = document.getElementById('cancelBtn');
-  const saveBtn = document.getElementById('saveBtn');
-  const copyBtn = document.getElementById('copyBtn');
-  const spinner = document.getElementById('loadingSpinner');
+  const errorAlert = document.getElementById('errorAlert');
   const statusText = document.getElementById('statusText');
-  const progressContainer = document.getElementById('progressContainer');
   const progressBar = document.getElementById('progressBar');
   const progressPercent = document.getElementById('progressPercent');
   const previewImage = document.getElementById('previewImage');
   const previewContainer = document.getElementById('previewContainer');
+  const previewDimensions = document.getElementById('previewDimensions');
+  const saveBtn = document.getElementById('saveBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const loadingSpinner = document.getElementById('loadingSpinner');
 
-  // Reset state
-  captureData = null;
-  previewImage.style.display = 'none';
-  previewContainer.style.display = 'none';
-  previewImage.src = '';
-  hideErrorAlert();
+  // Define functions that access DOM
+  showErrorAlert = (message) => {
+    errorMessage.textContent = message;
+    errorAlert.style.display = 'block';
+  };
 
-  try {
-    // Update UI
-    captureBtn.disabled = true;
-    visibleAreaBtn.disabled = true;
-    selectElementBtn.disabled = true;
+  hideErrorAlert = () => {
+    errorAlert.style.display = 'none';
+  };
 
-    cancelBtn.style.display = 'flex';
+  resetUI = () => {
+    captureInProgress = false;
+    captureData = null;
+    statusText.textContent = 'Ready to capture';
+    progressBar.style.width = '0%';
+    progressPercent.textContent = '';
+    previewImage.style.display = 'none';
+    previewContainer.style.display = 'none';
     saveBtn.style.display = 'none';
     copyBtn.style.display = 'none';
-    spinner.style.display = 'block';
+    loadingSpinner.style.display = 'none';
+  };
 
-    if (mode === 'FULL_PAGE') {
-      progressContainer.style.display = 'block';
-      progressBar.style.width = '0%';
-      progressPercent.textContent = '0%';
-      statusText.textContent = 'Preparing to capture full page...';
-    } else if (mode === 'VISIBLE_AREA') {
-      statusText.textContent = 'Capturing visible area...';
-    } else if (mode === 'SELECTED_ELEMENT') {
-      statusText.textContent = 'Select an element on the page...';
+  startCapture = async (mode = 'FULL_PAGE') => {
+    hideErrorAlert();
+
+    if (captureInProgress) {
+      return;
     }
 
-    // Set flag
     captureInProgress = true;
+    statusText.textContent = 'Starting capture...';
+    loadingSpinner.style.display = 'block';
 
-    // Get current tab
-    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    // Check if we can inject scripts into this tab
-    if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-      throw new Error('Cannot capture screenshots on this page type');
+    if (!tab?.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+      showErrorAlert('Cannot capture this page');
+      resetUI();
+      // Don't close popup - let user try again
+      return;
     }
 
-    // Execute the content script
-    const injectResult = await injectScriptWithPermission(tab.id);
-    if (!injectResult.success) {
-      throw new Error(injectResult.error);
-    }
+    if (mode === 'VISIBLE_AREA') {
+      // Use chrome.tabs.captureVisibleTab for visible area
+      try {
+        const res = await chrome.runtime.sendMessage({ type: 'CAPTURE_SCREENSHOT' });
+        if (res?.dataUrl) {
+          captureData = res.dataUrl;
+          captureInProgress = false;
+          loadingSpinner.style.display = 'none';
+          saveBtn.style.display = 'flex';
+          copyBtn.style.display = 'flex';
+          statusText.textContent = 'Screenshot complete!';
 
-    // Trigger capture explicitly with mode
-    chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURE', mode, isPopup: true });
+          // Add to session store via background to content
+          chrome.runtime.sendMessage({
+            type: 'SCREENSHOT_CAPTURED',
+            dataUrl: captureData,
+            filename: `visible-area-${Date.now()}.png`
+          });
 
-    // Set a timeout for very long captures
-    const timeout = mode === 'FULL_PAGE' ? 120000 : 30000;
-    setTimeout(() => {
-      if (captureInProgress) {
-        showErrorAlert('Screenshot capture timed out.');
-        statusText.textContent = 'Capture timeout - please retry';
+          // Show preview
+          previewImage.src = captureData;
+          previewImage.onload = () => {
+            previewDimensions.textContent = `${previewImage.naturalWidth} × ${previewImage.naturalHeight}`;
+          };
+          previewImage.style.display = 'block';
+          previewContainer.style.display = 'block';
+        } else {
+          throw new Error('No data URL received');
+        }
+      } catch (error) {
+        console.error('Visible area capture failed:', error);
+        showErrorAlert('Failed to capture visible area');
         resetUI();
       }
-    }, timeout);
-
-  } catch (error) {
-    showErrorAlert(error.message);
-    statusText.textContent = 'Failed to start capture';
-    console.error(error);
-    resetUI();
-  }
-}
-
-document.getElementById('captureBtn').addEventListener('click', () => startCapture('FULL_PAGE'));
-document.getElementById('visibleAreaBtn').addEventListener('click', () => startCapture('VISIBLE_AREA'));
-document.getElementById('selectElementBtn').addEventListener('click', () => startCapture('SELECTED_ELEMENT'));
-
-// Cancel button handler
-document.getElementById('cancelBtn').addEventListener('click', () => {
-  if (captureInProgress) {
-    chrome.runtime.sendMessage({ type: 'CANCEL_CAPTURE' });
-    statusText.textContent = 'Screenshot capture cancelled';
-    resetUI();
-  }
-});
-
-// Save button handler
-document.getElementById('saveBtn').addEventListener('click', async () => {
-  if (captureData) {
-    const a = document.createElement('a');
-    a.href = captureData;
-    a.download = `screenshot-${Date.now()}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    document.getElementById('statusText').textContent = 'Screenshot saved successfully!';
-  } else {
-    showErrorAlert('No screenshot data available');
-  }
-});
-
-// Copy button handler
-document.getElementById('copyBtn').addEventListener('click', async () => {
-  if (captureData) {
-    try {
-      // Convert base64 to blob
-      const res = await fetch(captureData);
-      const blob = await res.blob();
-
-      // Write to clipboard
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          'image/png': blob
-        })
-      ]);
-
-      const statusText = document.getElementById('statusText');
-      statusText.textContent = 'Screenshot copied to clipboard!';
-
-      // Visual feedback
-      const originalText = document.querySelector('#copyBtn .btn-text').textContent;
-      document.querySelector('#copyBtn .btn-text').textContent = 'Copied!';
-      setTimeout(() => {
-        document.querySelector('#copyBtn .btn-text').textContent = originalText;
-      }, 2000);
-
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-      showErrorAlert('Failed to copy to clipboard');
+    } else {
+      // Use content script for full page and element capture
+      try {
+        chrome.runtime.sendMessage({ type: 'INIT_CAPTURE', mode, isPopup: true });
+        // Keep popup open to receive results
+      } catch (error) {
+        console.error('Failed to send init capture message:', error);
+        resetUI();
+        showErrorAlert('Failed to start capture');
+      }
     }
-  } else {
-    showErrorAlert('No screenshot data available');
-  }
-});
+  };
 
-// Error alert close button handler
-document.getElementById('errorClose').addEventListener('click', hideErrorAlert);
+  // -------------------- Buttons --------------------
 
-// Reset UI to initial state
-function resetUI() {
-  captureInProgress = false;
-  document.getElementById('captureBtn').disabled = false;
-  document.getElementById('visibleAreaBtn').disabled = false;
-  document.getElementById('selectElementBtn').disabled = false;
-  document.getElementById('cancelBtn').style.display = 'none';
-  document.getElementById('loadingSpinner').style.display = 'none';
-  document.getElementById('progressContainer').style.display = 'none';
-}
+  // Safe button binding with guards
+  const saveBtnEl = document.getElementById('saveBtn');
+  const copyBtnEl = document.getElementById('copyBtn');
+  const fullPageBtnEl = document.getElementById('fullPageBtn');
+  const visibleAreaBtnEl = document.getElementById('visibleAreaBtn');
+  const selectElementBtnEl = document.getElementById('selectElementBtn');
+  const cancelBtnEl = document.getElementById('cancelBtn');
+  const editBtnEl = document.getElementById('editBtn');
+  const errorCloseEl = document.getElementById('errorClose');
 
-// Initialize popup
-async function initPopup() {
-  const response = await chrome.runtime.sendMessage({ type: 'GET_LAST_CAPTURE' });
-  if (response) {
-    displayCapture(response);
-  }
-}
-
-function displayCapture(dataUrl) {
-  const statusText = document.getElementById('statusText');
-  const previewImage = document.getElementById('previewImage');
-  const previewContainer = document.getElementById('previewContainer');
-  const previewDimensions = document.getElementById('previewDimensions');
-  const saveBtn = document.getElementById('saveBtn');
-  const copyBtn = document.getElementById('copyBtn');
-  const editBtn = document.getElementById('editBtn');
-
-  captureData = dataUrl;
-  saveBtn.style.display = 'flex';
-  copyBtn.style.display = 'flex';
-  editBtn.style.display = 'flex';
-  statusText.textContent = 'Screenshot ready! Click Save to download or Edit to hide sensitive info.';
-
-  try {
-    const img = new Image();
-    img.onload = function () {
-      previewDimensions.textContent = `${this.width} × ${this.height}px`;
+  if (saveBtnEl) saveBtnEl.onclick = handleSave;
+  if (copyBtnEl) copyBtnEl.onclick = handleCopy;
+  if (fullPageBtnEl) fullPageBtnEl.onclick = () => startCapture('FULL_PAGE');
+  if (visibleAreaBtnEl) visibleAreaBtnEl.onclick = () => startCapture('VISIBLE_AREA');
+  if (selectElementBtnEl) selectElementBtnEl.onclick = () => startCapture('SELECTED_ELEMENT');
+  if (cancelBtnEl) {
+    cancelBtnEl.onclick = () => {
+      resetUI();
+      chrome.runtime.sendMessage({ type: 'CANCEL_CAPTURE' });
     };
-    img.src = dataUrl;
-
-    previewImage.src = dataUrl;
-    previewImage.style.display = 'block';
-    previewContainer.style.display = 'block';
-  } catch (error) {
-    console.warn('Could not display preview:', error);
   }
-}
-
-// Edit button handler - opens privacy editor
-document.getElementById('editBtn').addEventListener('click', () => {
-  if (captureData) {
-    // Store screenshot data for editor
-    localStorage.setItem('screenshotForEdit', captureData);
-
-    // Open editor in new window
-    chrome.windows.create({
-      url: chrome.runtime.getURL('/editor/editor.html'),
-      type: 'popup',
-      width: 1200,
-      height: 800
-    });
-
-    document.getElementById('statusText').textContent = 'Editor opened - Apply blur/pixelate effects to hide sensitive info';
-  } else {
-    showErrorAlert('No screenshot data available to edit');
+  if (editBtnEl) {
+    editBtnEl.onclick = () => {
+      if (!captureData) return;
+      chrome.runtime.sendMessage({
+        type: 'OPEN_EDITOR',
+        dataUrl: captureData
+      });
+    };
   }
-});
+  if (errorCloseEl) errorCloseEl.onclick = hideErrorAlert;
 
-initPopup();
-
-// Listen for messages from content/background scripts
-chrome.runtime.onMessage.addListener((message) => {
-  const statusText = document.getElementById('statusText');
-  const progressBar = document.getElementById('progressBar');
-  const progressPercent = document.getElementById('progressPercent');
-  const spinner = document.getElementById('loadingSpinner');
-  const previewImage = document.getElementById('previewImage');
-  const previewContainer = document.getElementById('previewContainer');
-  const previewDimensions = document.getElementById('previewDimensions');
-  const captureBtn = document.getElementById('captureBtn');
-  const cancelBtn = document.getElementById('cancelBtn');
-  const saveBtn = document.getElementById('saveBtn');
-  const copyBtn = document.getElementById('copyBtn');
-  const progressContainer = document.getElementById('progressContainer');
-
-  // Handle progress updates
-  if (message.type === 'PROGRESS') {
-    statusText.textContent = message.message;
-
-    if (message.percentComplete !== null) {
-      progressBar.style.width = `${message.percentComplete}%`;
-      progressPercent.textContent = `${message.percentComplete}%`;
-    }
-  }
-
-  if (message.type === 'CAPTURE_COMPLETE') {
-    captureInProgress = false;
-    resetUI();
-    displayCapture(message.dataUrl);
-
-    // Hide progress after 2 seconds
-    setTimeout(() => {
-      progressContainer.style.display = 'none';
-    }, 2000);
-  }
-
-  // Handle edited screenshot from editor
-  if (message.type === 'EDITOR_COMPLETE') {
-    captureData = message.dataUrl;
-    const previewImage = document.getElementById('previewImage');
-    previewImage.src = message.dataUrl;
-    statusText.textContent = 'Screenshot edited! Privacy effects applied. Click Save to download.';
-  }
-
-  if (message.type === 'CAPTURE_ERROR') {
-    resetUI();
-    showErrorAlert(message.error);
-    statusText.textContent = 'Screenshot capture failed';
-  }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  const themeToggle = document.getElementById('themeToggle');
-  if (!themeToggle) return;
-
-  // Initialize theme on page load
-  const initTheme = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', initTheme);
-
-  themeToggle.addEventListener('click', () => {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
+  // Cleanup on popup close
+  window.addEventListener('unload', () => {
+    chrome.runtime.sendMessage({ type: 'CANCEL_CAPTURE' });
   });
 });
+
+
+
