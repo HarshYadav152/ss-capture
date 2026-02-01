@@ -1,3 +1,32 @@
+## [2026-01-30]
+
+### ✨ Features
+-  Implement Privacy Blur/Pixelate Tool for Screenshot Editor (#33) (54d7533) - @motalib-code
+
+### 📝 Documentation
+-  auto update changelog (6547cd9) - @HarshYadav152
+-  auto update changelog (900cac7) - @HarshYadav152
+-  auto update changelog (89939be) - @HarshYadav152
+-  auto update changelog (158b03f) - @HarshYadav152
+-  auto update changelog (d539efd) - @HarshYadav152
+-  auto update changelog (4ddd83a) - @HarshYadav152
+
+### 📦 Other Changes
+- final changes (afa3afe) - @Hiba
+- requested changes remove this file ss-capture/docs/package-lock.json and take back ss-capture/package-lock.json remove these comments from ss-capture/src/popup/popup.js these are merge conflict comments. Images exported only in .png format. Styling of export buttons missing (a83058b) - @Hiba
+- Add multiple image export formats with quality settings (aff3a97) - @Hiba
+- Suggestions (916d5a2) - @Gaurav Karakoti
+- Tags (c528582) - @Gaurav Karakoti
+- Remove Test (da012c7) - @Gaurav Karakoti
+- Remove Test (8ffba0a) - @Gaurav Karakoti
+- Build and Release (e1bf997) - @Gaurav Karakoti
+- Add dark/light theme toggle for docs (b9c5740) - @1212ekta
+- Split Save button into Save Edits & Close and Download buttons (661cd57) - @motalib-code
+- Edge (f5cfe9e) - @Gaurav Karakoti
+- 2 left (07fcb0c) - @Gaurav Karakoti
+- Create CNAME (d5173ed) - @Harsh Yadav
+
+
 ## [2026-01-29]
 
 ### ✨ Features
