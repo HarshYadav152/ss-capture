@@ -1,20 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SS-capture</title>
-    <link rel="stylesheet" href ="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SS-Capture</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-
-  <nav class="navbar">
-  <div class="nav-container">
-    <div class="logo">
-      <img src="logo.png" alt="SS-Capture Logo" />
-      <span>SS-Capture</span>
+<body class="glass-page">
+  <!-- Glass Container Popup -->
+  <div class="glass-container">
+    <div class="header">
+      <div class="icon-wrapper">
+        <div class="main-icon">📸</div>
+      </div>
+      <h2>SS-Capture</h2>
+      <p class="subtitle">Capture screenshots with ease and precision</p>
     </div>
 
+    <!-- Error Alert -->
+    <div class="error-alert" id="errorAlert">
+      <div class="error-alert-content">
+        <div class="error-icon">!</div>
+        <div class="error-message" id="errorMessage">Error message here</div>
+        <button class="error-close" id="errorClose">&times;</button>
+      </div>
+    </div>
     <ul class="nav-links">
       <li><a href="https://harshyadav152.github.io/ss-capture">Home</a></li>
       <li><a href="https://github.com/HarshYadav152/ss-capture#readme">Docs</a></li>
@@ -228,18 +238,56 @@
     </details>
   </section>
 
-  <script>
-    document.querySelectorAll(".copy-btn").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        navigator.clipboard.writeText(btn.dataset.copy);
-        btn.textContent = "Copied";
-        setTimeout(function () {
-          btn.textContent = "Copy";
-        }, 1500);
-      });
-    });
-  </script>
+    <!-- Main Content -->
+    <div class="content">
+      <div class="button-group">
+        <button class="btn-primary" id="captureBtn">
+          <span class="btn-icon">📸</span>
+          <span class="btn-text">Capture Screenshot</span>
+        </button>
+        <button class="btn-secondary" id="downloadBtn" disabled>
+          <span class="btn-icon">⬇️</span>
+          <span class="btn-text">Download</span>
+        </button>
+        <button class="btn-success" id="retryBtn">
+          <span class="btn-icon">🔄</span>
+          <span class="btn-text">Try Again</span>
+        </button>
+      </div>
 
+      <!-- Loading Spinner -->
+      <div class="spinner" id="loadingSpinner"></div>
+
+      <!-- Progress Section -->
+      <div class="progress-section" id="progressSection">
+        <div class="progress-wrapper">
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <div class="progress-percentage" id="progressPercentage">0%</div>
+        </div>
+        <div class="status" id="statusText">Initializing...</div>
+      </div>
+
+      <!-- Preview Section -->
+      <div class="preview-container" id="previewContainer">
+        <div class="preview-header">
+          <div class="preview-label">Preview</div>
+          <div class="preview-dimensions" id="previewDimensions">0x0px</div>
+        </div>
+        <div class="preview-wrapper">
+          <img class="preview" id="previewImage" src="" alt="Screenshot preview" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-content">
+        <span class="footer-text">Powered by</span>
+        <a href="#" class="footer-link">SS-Capture</a>
+      </div>
+      <div class="footer-version">v1.0.0</div>
   
  <footer class="footer">
   <div class="footer-wrapper">
@@ -274,8 +322,8 @@
   <div class="footer-bottom">
     © 2026 SS-Capture · Open-source browser extension
   </div>
-</footer>
 
+  <script src="js/script.js"></script>
 <!-- AI Chatbot -->
 <div id="chatbot">
   <button id="chatbot-toggle">💬</button>
