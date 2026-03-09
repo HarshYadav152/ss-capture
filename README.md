@@ -92,38 +92,47 @@ When a page exceeds **32,000px** in height (browser canvas limitation):
 ## 🛠️ Development
 
 ### Project Structure
-```
+```bash
 ss-capture/
-├── src/
-│   ├── manifest.json          # Extension manifest (V3)
-│   ├── js/
-│   │   ├── background.js      # Service worker
-│   │   └── content.js         # Screenshot capture logic
-│   ├── popup/
-│   │   ├── popup.html         # UI interface
-│   │   └── popup.js           # UI logic
-│   └── css/
-│       └── style.css          # Glassmorphic styling
-├── scripts/
-│   ├── build.js               # Build automation
-│   ├── validate.js            # Extension validation
-│   └── zip.js                 # Package for distribution
-├── tests/
-│   ├── test-build.js          # Build tests
-│   └── test-build-fixed.js    # Fixed build tests
-├── icons/                     # Extension icons
-├── docs/                      # Documentation
-├── dist/                      # Built extensions (gitignored)
-│   ├── chrome/
-│   ├── firefox/
-│   └── edge/
-├── README.md
-├── UNDERSTAND.md              # Project documentation
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── LICENSE
-├── package.json
-└── jest.config.js
+├── 💻 src/                           # Extension source code
+│   ├── 📄 manifest.json              # Extension manifest (Manifest V3)
+│   │
+│   ├── 📜 js/
+│   │   ├── ⚙️ background.js          # Service worker
+│   │   └── 📸 content.js             # Screenshot capture logic
+│   │
+│   ├── 🪟 popup/
+│   │   ├── 📄 popup.html             # Extension popup UI
+│   │   └── 🧠 popup.js               # Popup interaction logic
+│   │
+│   └── 🎨 css/
+│       └── style.css                 # Glassmorphic UI styling
+│
+├── 🛠️ scripts/                      # Build & automation scripts
+│   ├── ⚙️ build.js                   # Build automation
+│   ├── ✅ validate.js                # Extension validation
+│   └── 📦 zip.js                     # Packaging for distribution
+│
+├── 🧪 tests/                         # Test files
+│   ├── 🧪 test-build.js
+│   └── 🔧 test-build-fixed.js
+│
+├── 🖼️ icons/                         # Extension icons
+├── 📚 docs/                          # Project documentation
+│
+├── 📦 dist/                          # Built extensions (gitignored)
+│   ├── 🌐 chrome/
+│   ├── 🦊 firefox/
+│   └── 🟦 edge/
+│
+├── 📖 README.md                      # Project overview
+├── 📘 UNDERSTAND.md                  # Detailed project explanation
+├── 📜 CHANGELOG.md                   # Version history
+├── 🤝 CONTRIBUTING.md                # Contribution guidelines
+├── ⚖️ LICENSE                        # MIT License
+│
+├── 📦 package.json                   # Dependencies & scripts
+└── ⚙️ jest.config.js                 # Jest testing configuration
 ```
 
 ### Key Components
